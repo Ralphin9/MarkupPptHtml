@@ -1,0 +1,64 @@
+/* ===== THEME: DEFAULT ===== */
+.slide-theme-default {
+  --slide-bg: #ffffff;
+  --slide-fg: #333333;
+  --slide-heading: #246;
+  --slide-accent: #0366d6;
+  --slide-code-bg: #f6f8fa;
+  --slide-code-fg: #24292e;
+  --slide-border: #e1e4e8;
+  --slide-muted: #6a737d;
+  --slide-font: 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ===== THEME: DARK ===== */
+.slide-theme-dark {
+  --slide-bg: #1a1b26;
+  --slide-fg: #c0caf5;
+  --slide-heading: #bb9af7;
+  --slide-accent: #7aa2f7;
+  --slide-code-bg: #24283b;
+  --slide-code-fg: #a9b1d6;
+  --slide-border: #3b4261;
+  --slide-muted: #565f89;
+  --slide-font: 'Inter', system-ui, sans-serif;
+}
+
+/* ===== THEME: GAIA ===== */
+.slide-theme-gaia {
+  --slide-bg: #fdf6e3;
+  --slide-fg: #657b83;
+  --slide-heading: #b58900;
+  --slide-accent: #268bd2;
+  --slide-code-bg: #eee8d5;
+  --slide-code-fg: #586e75;
+  --slide-border: #d6cba4;
+  --slide-muted: #93a1a1;
+  --slide-font: 'Georgia', serif;
+}
+
+/* ===== THEME: UNCOVER ===== */
+.slide-theme-uncover {
+  --slide-bg: #fafafa;
+  --slide-fg: #333;
+  --slide-heading: #e91e63;
+  --slide-accent: #e91e63;
+  --slide-code-bg: #263238;
+  --slide-code-fg: #eeffff;
+  --slide-border: #e0e0e0;
+  --slide-muted: #757575;
+  --slide-font: 'Lato', 'Segoe UI', sans-serif;
+}
+
+/* ===== THEME: GRADIENT ===== */
+.slide-theme-gradient {
+  --slide-bg: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  --slide-fg: #e0e0ff;
+  --slide-heading: #f857a6;
+  --slide-accent: #ff5858;
+  --slide-code-bg: rgba(0,0,0,0.4);
+  --slide-code-fg: #e0e0ff;
+  --slide-border: rgba(255,255,255,0.1);
+  --slide-muted: rgba(255,255,255,0.4);
+  --slide-font: 'Inter', system-ui, sans-serif;
+}

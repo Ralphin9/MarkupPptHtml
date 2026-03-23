@@ -1,0 +1,11 @@
+{
+  "name": "markup-ppt-html",
+  "version": "1.0.0",
+  "description": "Create beautiful presentations from Markdown — export to HTML, PDF, PPTX, and PNG slides",
+  "scripts": {
+    "dev": "npx serve . -p 3000 -s",
+    "start": "npx serve . -p 3000 -s"
+  },
+  "keywords": ["markdown", "presentation", "slides", "pptx", "html", "pdf"],
+  "license": "MIT"
+}

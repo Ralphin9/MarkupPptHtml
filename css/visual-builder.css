@@ -1,0 +1,297 @@
+/* ===== VISUAL BUILDER: Drop Zone Elements ===== */
+
+/* Visual canvas (slide area) */
+.slide-canvas-visual {
+  width: 960px;
+  max-width: 100%;
+  min-height: 540px;
+  background: var(--slide-bg, #fff);
+  color: var(--slide-fg, #333);
+  font-family: var(--slide-font, 'Segoe UI', system-ui, sans-serif);
+  padding: 40px 48px;
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  position: relative;
+  overflow-y: auto;
+}
+
+/* Logo overlay - bottom left of slide */
+.slide-logo-overlay {
+  position: absolute;
+  bottom: 12px;
+  left: 16px;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0.85;
+}
+.slide-logo-overlay img {
+  max-height: 36px;
+  max-width: 120px;
+  object-fit: contain;
+  border-radius: 3px;
+}
+
+/* Elements on the visual canvas */
+.ve-element {
+  position: relative;
+  min-height: 24px;
+  padding: 6px 10px;
+  margin: 2px 0;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  transition: border-color 100ms, box-shadow 100ms;
+  user-select: none;
+}
+.ve-element:hover {
+  border-color: rgba(100,150,255,0.3);
+}
+.ve-element.selected {
+  border-color: var(--accent, #cba6f7);
+  box-shadow: 0 0 0 1px var(--accent, #cba6f7);
+}
+.ve-element.drag-over-above {
+  border-top: 3px solid var(--accent, #cba6f7);
+}
+.ve-element.drag-over-below {
+  border-bottom: 3px solid var(--accent, #cba6f7);
+}
+
+/* Drag handle */
+.ve-drag-handle {
+  position: absolute;
+  left: -18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 20px;
+  cursor: grab;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #999;
+  transition: opacity 100ms;
+}
+.ve-element:hover .ve-drag-handle,
+.ve-element.selected .ve-drag-handle {
+  opacity: 1;
+}
+.ve-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Element type indicators */
+.ve-element[data-type="heading"] { }
+.ve-element[data-type="text"] { }
+.ve-element[data-type="code"] { }
+.ve-element[data-type="image"] { }
+
+/* Rendered content inside visual elements */
+.ve-content {
+  pointer-events: none;
+}
+.ve-content h1, .ve-content h2, .ve-content h3,
+.ve-content h4, .ve-content h5, .ve-content h6 {
+  margin: 0;
+  line-height: 1.2;
+}
+.ve-content p { margin: 0 0 0.3em; }
+.ve-content ul, .ve-content ol { margin: 0; padding-left: 1.3em; }
+.ve-content li { line-height: 1.5; }
+.ve-content pre {
+  background: #282c34;
+  color: #abb2bf;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 12px;
+  overflow-x: auto;
+  position: relative;
+  margin: 4px 0;
+}
+.ve-content pre::before {
+  content: '';
+  display: block;
+  height: 10px;
+  margin-bottom: 8px;
+  background:
+    radial-gradient(circle at 6px 5px, #ff5f57 4px, transparent 4px),
+    radial-gradient(circle at 22px 5px, #febc2e 4px, transparent 4px),
+    radial-gradient(circle at 38px 5px, #28c840 4px, transparent 4px);
+}
+.ve-content code {
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 0.85em;
+}
+.ve-content :not(pre) > code {
+  background: rgba(0,0,0,0.06);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.ve-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85em;
+  margin: 4px 0;
+}
+.ve-content th {
+  background: #0366d6;
+  color: #fff;
+  padding: 6px 10px;
+  text-align: left;
+  font-weight: 600;
+}
+.ve-content td {
+  padding: 5px 10px;
+  border-bottom: 1px solid #e1e4e8;
+}
+.ve-content tr:nth-child(even) td {
+  background: rgba(0,0,0,0.02);
+}
+.ve-content blockquote {
+  border-left: 3px solid #0366d6;
+  padding: 6px 12px;
+  margin: 4px 0;
+  color: #666;
+  font-style: italic;
+  background: rgba(0,0,0,0.02);
+  border-radius: 0 3px 3px 0;
+}
+.ve-content img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.ve-content hr {
+  border: none;
+  border-top: 2px solid #e1e4e8;
+  margin: 8px 0;
+}
+.ve-content .columns {
+  display: flex;
+  gap: 16px;
+}
+.ve-content .columns .col {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Empty element placeholder */
+.ve-empty {
+  color: #bbb;
+  font-style: italic;
+  font-size: 12px;
+  padding: 8px 0;
+}
+
+/* Drop zone empty state */
+.drop-zone-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #ccc;
+  font-size: 14px;
+  gap: 8px;
+  pointer-events: none;
+}
+.drop-zone-empty .dz-icon {
+  font-size: 40px;
+  opacity: 0.4;
+}
+.drop-zone-empty p {
+  opacity: 0.5;
+  font-size: 12px;
+}
+
+/* Split mode */
+.split-view #visual-canvas-wrapper {
+  width: 55%;
+  border-right: 1px solid var(--border);
+}
+.split-view #markdown-panel {
+  width: 45%;
+  display: flex !important;
+}
+
+/* Slide thumbnail drag indicator */
+.slide-thumb.dragging {
+  opacity: 0.4;
+}
+
+/* Image gallery drag */
+.gallery-img.dragging {
+  opacity: 0.5;
+  border-color: var(--accent);
+}
+
+/* ===== Image Compare Layout ===== */
+.image-compare-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+.ic-side {
+  flex: 1;
+  text-align: center;
+  position: relative;
+}
+.ic-side img {
+  max-width: 100%;
+  max-height: 220px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.ic-label {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: inherit;
+  opacity: 0.7;
+}
+.ic-arrow {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent, #6c63ff);
+  color: #fff;
+  font-size: 22px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.ic-arrow-icon { line-height: 1; }
+
+/* ===== Image Grid Layout ===== */
+.image-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  padding: 8px 0;
+}
+.ig-item {
+  text-align: center;
+}
+.ig-item img {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+}
+.ig-caption {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.7;
+}
