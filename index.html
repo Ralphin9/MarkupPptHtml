@@ -288,18 +288,30 @@
             <textarea id="prop-right-content" rows="4"></textarea>
           </div>
           <div class="prop-group hidden" id="prop-compare-group">
-            <label>Left Image URL</label>
+            <label>Left Image</label>
+            <div class="img-drop-target" id="drop-compare-left" data-field="prop-compare-left">
+              <div class="img-drop-preview" id="preview-compare-left"></div>
+              <span class="img-drop-hint">Drop image here or paste URL</span>
+            </div>
             <input type="text" id="prop-compare-left" placeholder="Left/Before image URL">
             <label style="margin-top:6px">Left Label</label>
             <input type="text" id="prop-compare-left-label" placeholder="Before">
-            <label style="margin-top:6px">Right Image URL</label>
+            <label style="margin-top:10px">Right Image</label>
+            <div class="img-drop-target" id="drop-compare-right" data-field="prop-compare-right">
+              <div class="img-drop-preview" id="preview-compare-right"></div>
+              <span class="img-drop-hint">Drop image here or paste URL</span>
+            </div>
             <input type="text" id="prop-compare-right" placeholder="Right/After image URL">
             <label style="margin-top:6px">Right Label</label>
             <input type="text" id="prop-compare-right-label" placeholder="After">
           </div>
           <div class="prop-group hidden" id="prop-grid-group">
-            <label>Images (one URL per line)</label>
-            <textarea id="prop-grid-urls" rows="4" placeholder="https://example.com/img1.jpg&#10;https://example.com/img2.jpg"></textarea>
+            <label>Images <span class="drop-grid-hint">(drop images below)</span></label>
+            <div class="img-drop-target img-drop-target-grid" id="drop-grid-images">
+              <div id="grid-drop-previews" class="grid-drop-previews"></div>
+              <span class="img-drop-hint">Drop images here to add</span>
+            </div>
+            <textarea id="prop-grid-urls" rows="3" placeholder="https://example.com/img1.jpg&#10;https://example.com/img2.jpg"></textarea>
             <label style="margin-top:6px">Captions (one per line)</label>
             <textarea id="prop-grid-captions" rows="3" placeholder="Caption 1&#10;Caption 2"></textarea>
           </div>

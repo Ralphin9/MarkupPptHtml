@@ -256,6 +256,117 @@
     };
     if (gridUrls) gridUrls.addEventListener('input', syncGrid);
     if (gridCaptions) gridCaptions.addEventListener('input', syncGrid);
+
+    // Drag-and-drop zones for image compare (left & right)
+    setupImageDropTarget('drop-compare-left', 'prop-compare-left', 'preview-compare-left');
+    setupImageDropTarget('drop-compare-right', 'prop-compare-right', 'preview-compare-right');
+
+    // Drag-and-drop zone for image grid
+    setupGridDropTarget();
+  }
+
+  /** Wire a drop zone to accept image drags from the gallery and populate a text input + preview */
+  function setupImageDropTarget(dropId, inputId, previewId) {
+    const zone = document.getElementById(dropId);
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    if (!zone || !input) return;
+
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; zone.classList.add('drag-hover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-hover'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-hover');
+
+      // Accept gallery image-url or dropped files
+      const url = e.dataTransfer.getData('image-url');
+      if (url) {
+        applyImageToField(url, input, preview, zone);
+      } else if (e.dataTransfer.files?.length) {
+        const file = e.dataTransfer.files[0];
+        if (!file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          // Also add to gallery
+          window.ImageManager.addImageDirect(file.name, ev.target.result);
+          applyImageToField(ev.target.result, input, preview, zone);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Clicking the zone triggers file browse
+    zone.addEventListener('click', () => {
+      const fi = document.createElement('input');
+      fi.type = 'file';
+      fi.accept = 'image/*';
+      fi.addEventListener('change', () => {
+        if (!fi.files?.length) return;
+        const file = fi.files[0];
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          window.ImageManager.addImageDirect(file.name, ev.target.result);
+          applyImageToField(ev.target.result, input, preview, zone);
+        };
+        reader.readAsDataURL(file);
+      });
+      fi.click();
+    });
+  }
+
+  function applyImageToField(url, input, preview, zone) {
+    input.value = url;
+    input.dispatchEvent(new Event('input'));
+    if (preview) {
+      preview.innerHTML = '<img src="' + encodeURI(url) + '" alt="">';
+    }
+    if (zone) zone.classList.add('has-image');
+  }
+
+  /** Wire the grid drop zone to accept multiple image drops */
+  function setupGridDropTarget() {
+    const zone = document.getElementById('drop-grid-images');
+    const urlsArea = document.getElementById('prop-grid-urls');
+    if (!zone || !urlsArea) return;
+
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; zone.classList.add('drag-hover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-hover'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-hover');
+
+      const addUrl = (url) => {
+        const current = urlsArea.value.trim();
+        urlsArea.value = current ? current + '\n' + url : url;
+        urlsArea.dispatchEvent(new Event('input'));
+        refreshGridPreviews();
+      };
+
+      const url = e.dataTransfer.getData('image-url');
+      if (url) {
+        addUrl(url);
+      } else if (e.dataTransfer.files?.length) {
+        Array.from(e.dataTransfer.files).forEach(file => {
+          if (!file.type.startsWith('image/')) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            window.ImageManager.addImageDirect(file.name, ev.target.result);
+            addUrl(ev.target.result);
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+    });
+  }
+
+  function refreshGridPreviews() {
+    const container = document.getElementById('grid-drop-previews');
+    const urlsArea = document.getElementById('prop-grid-urls');
+    if (!container || !urlsArea) return;
+    const urls = urlsArea.value.split('\n').filter(u => u.trim());
+    container.innerHTML = urls.map(u => '<img src="' + encodeURI(u.trim()) + '" alt="">').join('');
+    const zone = document.getElementById('drop-grid-images');
+    if (zone) zone.classList.toggle('has-image', urls.length > 0);
   }
 
   function renderPropertiesPanel() {
@@ -371,17 +482,30 @@
       setValue('prop-compare-right', el.rightImage || '');
       setValue('prop-compare-left-label', el.leftLabel || 'Before');
       setValue('prop-compare-right-label', el.rightLabel || 'After');
+      // Update drop zone previews
+      updateDropPreview('preview-compare-left', 'drop-compare-left', el.leftImage);
+      updateDropPreview('preview-compare-right', 'drop-compare-right', el.rightImage);
     }
     if (el.type === 'imageGrid') {
       const imgs = el.images || [];
       setValue('prop-grid-urls', imgs.map(i => i.url).join('\n'));
       setValue('prop-grid-captions', imgs.map(i => i.caption || '').join('\n'));
+      refreshGridPreviews();
     }
   }
 
   function setValue(id, val) {
     const el = document.getElementById(id);
     if (el) el.value = val;
+  }
+
+  function updateDropPreview(previewId, zoneId, url) {
+    const preview = document.getElementById(previewId);
+    const zone = document.getElementById(zoneId);
+    if (preview) {
+      preview.innerHTML = url ? '<img src="' + encodeURI(url) + '" alt="">' : '';
+    }
+    if (zone) zone.classList.toggle('has-image', !!url);
   }
 
   function toggleGroup(id, show) {

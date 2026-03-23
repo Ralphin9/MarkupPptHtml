@@ -181,5 +181,5 @@ window.ImageManager = (function () {
   function getImages() { return images; }
   function setImages(list) { images = list || []; imageIdCounter = images.reduce((m, i) => Math.max(m, i.id || 0), 0); renderGallery(); }
 
-  return { init, addImage, removeImage, renderGallery, getImages, setImages };
+  return { init, addImage, addImageDirect: addImage, removeImage, renderGallery, getImages, setImages };
 })();

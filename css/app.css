@@ -14,6 +14,61 @@
   --radius:6px;--transition:150ms ease;
   --bg-section:#1e1e2e;
 }
+
+/* Image drop targets in properties panel */
+.img-drop-target {
+  border:2px dashed var(--border,#444);
+  border-radius:var(--radius);
+  padding:8px;
+  text-align:center;
+  cursor:pointer;
+  transition:all 150ms;
+  margin-bottom:4px;
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  position:relative;
+}
+.img-drop-target.drag-hover {
+  border-color:var(--accent,#cba6f7);
+  background:rgba(203,166,247,0.1);
+}
+.img-drop-target .img-drop-hint {
+  font-size:11px;
+  color:#888;
+  pointer-events:none;
+}
+.img-drop-target.has-image .img-drop-hint {
+  display:none;
+}
+.img-drop-preview img {
+  max-height:48px;
+  max-width:80px;
+  border-radius:4px;
+  object-fit:cover;
+}
+.img-drop-target-grid {
+  flex-wrap:wrap;
+  min-height:56px;
+}
+.grid-drop-previews {
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+}
+.grid-drop-previews img {
+  height:40px;
+  width:40px;
+  border-radius:4px;
+  object-fit:cover;
+}
+.drop-grid-hint {
+  font-size:10px;
+  color:#888;
+  font-weight:400;
+}
 html,body{height:100%;overflow:hidden;font-family:var(--font-sans);font-size:13px;color:var(--text-primary);background:var(--bg-app)}
 
 /* Scrollbar */
