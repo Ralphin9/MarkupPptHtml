@@ -508,7 +508,7 @@ window.VisualBuilder = (function () {
         const rightLabel = escapeHtml(el.rightLabel || 'After');
         return `<div class="image-compare-container">
           <div class="ic-side"><img src="${leftUrl}" alt="${leftLabel}"><span class="ic-label">${leftLabel}</span></div>
-          <div class="ic-arrow"><span class="ic-arrow-icon">⟷</span></div>
+          <div class="ic-arrow"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg></div>
           <div class="ic-side"><img src="${rightUrl}" alt="${rightLabel}"><span class="ic-label">${rightLabel}</span></div>
         </div>`;
       }
