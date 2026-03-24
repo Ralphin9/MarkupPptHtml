@@ -10,6 +10,12 @@
   justify-content: flex-start;
   overflow: hidden;
   position: relative;
+  gap: 0.15em;
+}
+
+/* Content should NOT stretch to fill — keep tight spacing */
+.slide-frame > * {
+  flex-shrink: 0;
 }
 
 /* Background handling */
@@ -25,26 +31,26 @@
   font-size: 2.2em;
   font-weight: 800;
   color: var(--slide-heading, #246);
-  margin-bottom: 0.3em;
-  line-height: 1.2;
+  margin-bottom: 0.15em;
+  line-height: 1.15;
 }
 .slide-frame h2 {
   font-size: 1.6em;
   font-weight: 700;
   color: var(--slide-heading, #246);
-  margin-bottom: 0.3em;
-  line-height: 1.25;
+  margin-bottom: 0.15em;
+  line-height: 1.2;
 }
 .slide-frame h3 {
   font-size: 1.25em;
   font-weight: 600;
   color: var(--slide-heading, #246);
-  margin-bottom: 0.2em;
+  margin-bottom: 0.1em;
 }
 .slide-frame p {
   font-size: 0.95em;
-  line-height: 1.6;
-  margin-bottom: 0.5em;
+  line-height: 1.5;
+  margin-bottom: 0.3em;
 }
 
 /* ===== TITLE SLIDE ===== */
@@ -66,12 +72,12 @@
 .slide-frame ul,
 .slide-frame ol {
   padding-left: 1.5em;
-  margin-bottom: 0.5em;
+  margin-bottom: 0.3em;
 }
 .slide-frame li {
   font-size: 0.95em;
-  line-height: 1.7;
-  margin-bottom: 0.2em;
+  line-height: 1.5;
+  margin-bottom: 0.1em;
 }
 .slide-frame ul li::marker {
   color: var(--slide-accent, #0366d6);
@@ -87,8 +93,8 @@
 .slide-frame pre {
   background: var(--slide-code-bg, #f6f8fa);
   border-radius: 8px;
-  padding: 16px 20px;
-  margin: 0.5em 0;
+  padding: 14px 18px;
+  margin: 0.3em 0;
   overflow-x: auto;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   position: relative;
@@ -131,7 +137,7 @@
 .slide-frame table {
   width: 100%;
   border-collapse: collapse;
-  margin: 0.5em 0;
+  margin: 0.3em 0;
   font-size: 0.85em;
 }
 .slide-frame th {

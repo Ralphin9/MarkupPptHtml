@@ -861,6 +861,20 @@
         }
       }
 
+      // Alt+Up / Alt+Down = move selected element
+      if (e.altKey && e.key === 'ArrowUp') {
+        if (window.VisualBuilder.selectedElementId) {
+          e.preventDefault();
+          window.VisualBuilder.moveElement(window.VisualBuilder.selectedElementId, -1);
+        }
+      }
+      if (e.altKey && e.key === 'ArrowDown') {
+        if (window.VisualBuilder.selectedElementId) {
+          e.preventDefault();
+          window.VisualBuilder.moveElement(window.VisualBuilder.selectedElementId, 1);
+        }
+      }
+
       // Arrow keys for slide navigation when no element selected
       if (!window.VisualBuilder.selectedElementId) {
         if (e.key === 'ArrowLeft') {
