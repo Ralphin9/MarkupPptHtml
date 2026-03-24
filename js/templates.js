@@ -9,11 +9,13 @@ window.SlideTemplates = (function () {
   'use strict';
 
   const templates = [
+    // ===== BASIC =====
     {
       id: 'starter',
       name: 'Starter Deck',
       icon: '🚀',
-      description: 'A complete starter presentation with multiple slide types',
+      category: 'Basic',
+      description: 'Complete starter presentation with multiple slide types',
       markdown: `---
 marp: true
 theme: default
@@ -71,6 +73,7 @@ Questions?`
       id: 'title',
       name: 'Title Slide',
       icon: '📌',
+      category: 'Basic',
       description: 'Big heading with optional subtitle',
       markdown: `
 # Presentation Title
@@ -81,6 +84,7 @@ Your subtitle or tagline here`
       id: 'title-invert',
       name: 'Title (Dark)',
       icon: '🌙',
+      category: 'Basic',
       description: 'Title slide with dark background',
       markdown: `
 <!-- backgroundColor: #1a1a2e -->
@@ -90,10 +94,13 @@ Your subtitle or tagline here`
 
 Make an impact with contrasting colors`
     },
+
+    // ===== CONTENT =====
     {
       id: 'bullets',
       name: 'Bullet Points',
       icon: '☰',
+      category: 'Content',
       description: 'Standard content slide with bullet list',
       markdown: `
 ## Key Points
@@ -107,6 +114,7 @@ Make an impact with contrasting colors`
       id: 'bullets-fragment',
       name: 'Animated Bullets',
       icon: '✨',
+      category: 'Content',
       description: 'Bullets that appear one at a time (HTML export)',
       markdown: `
 ## Step by Step
@@ -120,6 +128,7 @@ Make an impact with contrasting colors`
       id: 'numbered',
       name: 'Numbered List',
       icon: '🔢',
+      category: 'Content',
       description: 'Ordered step-by-step content',
       markdown: `
 ## Process Overview
@@ -131,9 +140,67 @@ Make an impact with contrasting colors`
 5. **Iterate** — Improve it`
     },
     {
+      id: 'quote',
+      name: 'Quote Slide',
+      icon: '💬',
+      category: 'Content',
+      description: 'Featured quotation with attribution',
+      markdown: `
+## Inspiration
+
+> "Any sufficiently advanced technology is indistinguishable from magic."
+>
+> — Arthur C. Clarke`
+    },
+    {
+      id: 'math',
+      name: 'Math Equations',
+      icon: '∑',
+      category: 'Content',
+      description: 'Slide with mathematical expressions (KaTeX)',
+      markdown: `
+## Key Formula
+
+The quadratic formula:
+
+$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
+
+Where $a$, $b$, and $c$ are coefficients of $ax^2 + bx + c = 0$.`
+    },
+    {
+      id: 'fit',
+      name: 'Big Word (Fit)',
+      icon: '🔠',
+      category: 'Content',
+      description: 'Single word or phrase stretched to fill the slide',
+      markdown: `
+<!-- backgroundColor: #000 -->
+<!-- color: #ff0 -->
+
+# <!-- fit --> DEMO TIME`
+    },
+    {
+      id: 'thanks',
+      name: 'Thank You / End',
+      icon: '🎉',
+      category: 'Content',
+      description: 'Closing slide with contact info',
+      markdown: `
+# Thank You! :tada:
+
+**Your Name**
+your.email@example.com
+
+:globe: yourwebsite.com
+:link: github.com/yourusername`
+    },
+
+    // ===== CODE =====
+    {
       id: 'code-python',
-      name: 'Code (Python)',
+      name: 'Code — Python',
       icon: '🐍',
+      category: 'Code',
       description: 'Python code block with syntax highlighting',
       markdown: `
 ## Python Example
@@ -149,8 +216,9 @@ print(summary)
     },
     {
       id: 'code-js',
-      name: 'Code (JavaScript)',
+      name: 'Code — JavaScript',
       icon: '📜',
+      category: 'Code',
       description: 'JavaScript code block with syntax highlighting',
       markdown: `
 ## JavaScript Example
@@ -168,8 +236,9 @@ async function fetchData(url) {
     },
     {
       id: 'code-multi',
-      name: 'Code Comparison',
+      name: 'Code — Before & After',
       icon: '⚖️',
+      category: 'Code',
       description: 'Two code blocks side by side concept',
       markdown: `
 ## Before & After
@@ -187,10 +256,13 @@ const add = (x, y) => x + y;
 console.log(add(1, 2));
 \`\`\``
     },
+
+    // ===== DATA =====
     {
       id: 'table',
       name: 'Data Table',
       icon: '▦',
+      category: 'Data',
       description: 'Table for comparing data or features',
       markdown: `
 ## Feature Comparison
@@ -203,10 +275,13 @@ console.log(add(1, 2));
 | API Access  | ❌    | ✅     | ✅         |
 | Custom CSS  | ❌    | ❌     | ✅         |`
     },
+
+    // ===== MEDIA =====
     {
       id: 'image',
-      name: 'Image Slide',
+      name: 'Image — Centered',
       icon: '🖼',
+      category: 'Media',
       description: 'Centered image with caption',
       markdown: `
 ## Architecture Diagram
@@ -215,24 +290,14 @@ console.log(add(1, 2));
 
 *Figure 1: System architecture overview*`
     },
-    {
-      id: 'image-bg',
-      name: 'Background Image',
-      icon: '🌄',
-      description: 'Full-screen background image with text overlay',
-      markdown: `
-<!-- backgroundImage: url(https://via.placeholder.com/1920x1080/2d3436/ffffff?text=BG) -->
-<!-- color: #fff -->
 
-# Big Visual Slide
-
-Text overlaid on a background image`
-    },
+    // ===== LAYOUT =====
     {
       id: 'split',
-      name: 'Split (Image + Text)',
+      name: 'Split — Image + Text',
       icon: '▥',
-      description: 'Image on one side, text on the other (Marp-style)',
+      category: 'Layout',
+      description: 'Image on one side, text on the other',
       markdown: `
 ## Product Features
 
@@ -247,6 +312,7 @@ Text overlaid on a background image`
       id: 'twocol',
       name: 'Two Columns',
       icon: '‖',
+      category: 'Layout',
       description: 'Two columns of text content',
       markdown: `
 ## Pros & Cons
@@ -272,76 +338,303 @@ Text overlaid on a background image`
 </div>
 </div>`
     },
+
+    // ===== BACKGROUND — Size & Position =====
     {
-      id: 'math',
-      name: 'Math Equations',
-      icon: '∑',
-      description: 'Slide with mathematical expressions (KaTeX)',
+      id: 'bg-cover',
+      name: 'Background — Cover',
+      icon: '🖼️',
+      category: 'Background',
+      description: 'Full-screen background image scaled to fill (default)',
       markdown: `
-## Key Formula
+![bg](https://picsum.photos/1920/1080?random=1)
 
-The quadratic formula:
+# Full Background
 
-$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
-
-Where $a$, $b$, and $c$ are coefficients of $ax^2 + bx + c = 0$.`
+Text over a cover image`
     },
     {
-      id: 'quote',
-      name: 'Quote Slide',
-      icon: '💬',
-      description: 'Featured quotation',
+      id: 'bg-contain',
+      name: 'Background — Contain',
+      icon: '📐',
+      category: 'Background',
+      description: 'Background scaled to fit inside slide without cropping',
       markdown: `
-## Inspiration
+![bg contain](https://picsum.photos/800/600?random=2)
 
-> "Any sufficiently advanced technology is indistinguishable from magic."
->
-> — Arthur C. Clarke
+## Background Contain
 
----`
+Image scales to fit without cropping`
     },
     {
-      id: 'fit',
-      name: 'Big Word (Fit)',
-      icon: '🔠',
-      description: 'Single word or phrase stretched to fill the slide',
+      id: 'image-bg',
+      name: 'Background — Directive',
+      icon: '🌄',
+      category: 'Background',
+      description: 'Background via CSS backgroundImage directive',
       markdown: `
-<!-- backgroundColor: #000 -->
-<!-- color: #ff0 -->
+<!-- backgroundImage: url(https://via.placeholder.com/1920x1080/2d3436/ffffff?text=BG) -->
+<!-- color: #fff -->
 
-# <!-- fit --> DEMO TIME`
+# Big Visual Slide
+
+Text overlaid on a background image`
     },
     {
-      id: 'thanks',
-      name: 'Thank You / End',
-      icon: '🎉',
-      description: 'Closing slide with contact info',
+      id: 'bg-color',
+      name: 'Background — Solid Color',
+      icon: '🎨',
+      category: 'Background',
+      description: 'Custom background color + text color via directives',
       markdown: `
-# Thank You! :tada:
+<!-- backgroundColor: #264653 -->
+<!-- color: #e9c46a -->
 
-**Your Name**
-your.email@example.com
+# Custom Colors
 
-:globe: yourwebsite.com
-:link: github.com/yourusername`
+Use directives to set **background** and **text** colors.
+
+- \`backgroundColor: #264653\`
+- \`color: #e9c46a\``
+    },
+    {
+      id: 'bg-gradient-css',
+      name: 'Background — Gradient',
+      icon: '🌈',
+      category: 'Background',
+      description: 'CSS linear-gradient via backgroundImage directive',
+      markdown: `
+<!-- backgroundImage: linear-gradient(135deg, #667eea 0%, #764ba2 100%) -->
+<!-- color: #fff -->
+
+# Gradient Background
+
+Using CSS \`linear-gradient\` via the \`backgroundImage\` directive`
+    },
+
+    // ===== BACKGROUND — Split =====
+    {
+      id: 'bg-left',
+      name: 'Split BG — Left',
+      icon: '◧',
+      category: 'Split BG',
+      description: 'Image fills the left half, content on the right',
+      markdown: `
+![bg left](https://picsum.photos/720/540?random=3)
+
+# Split Left
+
+- Content goes on the right side
+- Image fills the left half
+- Great for visual storytelling`
+    },
+    {
+      id: 'bg-right',
+      name: 'Split BG — Right',
+      icon: '◨',
+      category: 'Split BG',
+      description: 'Image fills the right half, content on the left',
+      markdown: `
+![bg right](https://picsum.photos/720/540?random=4)
+
+# Split Right
+
+- Content on the left
+- Image on the right half
+- Clean two-panel layout`
+    },
+    {
+      id: 'bg-split-size',
+      name: 'Split BG — Custom %',
+      icon: '↔️',
+      category: 'Split BG',
+      description: 'Split background with custom width (e.g. left:33%)',
+      markdown: `
+![bg left:33%](https://picsum.photos/720/540?random=5)
+
+# Custom Split Size
+
+Use \`left:33%\` or \`right:40%\` to control the image panel width.
+
+- Narrow image panel
+- More space for content
+- Flexible layouts`
+    },
+    {
+      id: 'bg-split-multiple',
+      name: 'Split BG — Multi Image',
+      icon: '🧩',
+      category: 'Split BG',
+      description: 'Split layout with multiple images stacked on one side',
+      markdown: `
+![bg right](https://picsum.photos/720/540?random=6)
+![bg](https://picsum.photos/720/540?random=7)
+
+# Split + Multiple
+
+Multiple images stack on the right side, content stays on the left.`
+    },
+
+    // ===== BACKGROUND — Multiple =====
+    {
+      id: 'bg-multiple',
+      name: 'Multi BG — Horizontal',
+      icon: '🔲',
+      category: 'Multi BG',
+      description: 'Multiple background images arranged side by side',
+      markdown: `
+![bg](https://fakeimg.pl/800x600/0288d1/fff/?text=A)
+![bg](https://fakeimg.pl/800x600/02669d/fff/?text=B)
+![bg](https://fakeimg.pl/800x600/67b8e3/fff/?text=C)
+
+## Multiple Backgrounds`
+    },
+    {
+      id: 'bg-multiple-vertical',
+      name: 'Multi BG — Vertical',
+      icon: '📊',
+      category: 'Multi BG',
+      description: 'Multiple backgrounds stacked vertically',
+      markdown: `
+![bg vertical](https://fakeimg.pl/800x600/e74c3c/fff/?text=Top)
+![bg](https://fakeimg.pl/800x600/2ecc71/fff/?text=Middle)
+![bg](https://fakeimg.pl/800x600/3498db/fff/?text=Bottom)
+
+## Vertical Backgrounds`
+    },
+
+    // ===== BACKGROUND — Filters =====
+    {
+      id: 'bg-filter-blur',
+      name: 'Filter — Blur',
+      icon: '🌫️',
+      category: 'BG Filter',
+      description: 'Blurred background image with text overlay',
+      markdown: `
+![bg blur:8px](https://picsum.photos/1920/1080?random=8)
+
+<!-- color: #fff -->
+
+# Blurred Background
+
+Text stands out with a blurred image behind`
+    },
+    {
+      id: 'bg-filter-grayscale',
+      name: 'Filter — Grayscale',
+      icon: '🔳',
+      category: 'BG Filter',
+      description: 'Black & white background using grayscale filter',
+      markdown: `
+![bg grayscale](https://picsum.photos/1920/1080?random=9)
+
+<!-- color: #fff -->
+
+# Grayscale Background
+
+Classic monochrome look using \`grayscale\` filter`
+    },
+    {
+      id: 'bg-filter-sepia',
+      name: 'Filter — Sepia + Brightness',
+      icon: '🎞️',
+      category: 'BG Filter',
+      description: 'Combined filters for a vintage look',
+      markdown: `
+![bg sepia:0.8 brightness:0.7](https://picsum.photos/1920/1080?random=10)
+
+<!-- color: #f5e6d3 -->
+
+# Vintage Look
+
+Multiple filters: \`sepia:0.8 brightness:0.7\``
     },
   ];
 
-  /** Render the templates gallery into a container */
+  // Category badge colors
+  const categoryColors = {
+    'Basic': '#cba6f7',
+    'Content': '#a6e3a1',
+    'Code': '#fab387',
+    'Data': '#89b4fa',
+    'Media': '#f9e2af',
+    'Layout': '#94e2d5',
+    'Background': '#f38ba8',
+    'Split BG': '#eba0ac',
+    'Multi BG': '#cba6f7',
+    'BG Filter': '#74c7ec',
+  };
+
+  /** Render the templates gallery into a container grouped by category */
   function renderGallery(container, onSelect) {
     container.innerHTML = '';
+
+    // Group templates by category
+    const groups = [];
+    const seen = new Set();
     templates.forEach(tpl => {
-      const card = document.createElement('div');
-      card.className = 'template-card';
-      card.innerHTML = `
-        <div class="template-card-preview">${tpl.icon}</div>
-        <div class="template-card-info">
-          <h4>${tpl.name}</h4>
-          <p>${tpl.description}</p>
-        </div>
-      `;
-      card.addEventListener('click', () => onSelect(tpl));
-      container.appendChild(card);
+      const cat = tpl.category || 'Other';
+      if (!seen.has(cat)) {
+        seen.add(cat);
+        groups.push({ category: cat, items: [] });
+      }
+      groups.find(g => g.category === cat).items.push(tpl);
+    });
+
+    groups.forEach(group => {
+      // Section header
+      const header = document.createElement('div');
+      header.className = 'tpl-section-header';
+      const badgeColor = categoryColors[group.category] || '#a6adc8';
+      header.innerHTML = `<span class="tpl-section-dot" style="background:${badgeColor}"></span>${group.category}`;
+      container.appendChild(header);
+
+      // Cards grid
+      const grid = document.createElement('div');
+      grid.className = 'tpl-section-grid';
+      group.items.forEach(tpl => {
+        const card = document.createElement('div');
+        card.className = 'template-card';
+
+        // Build a mini markdown preview (first few meaningful lines)
+        const previewLines = tpl.markdown
+          .replace(/^---[\s\S]*?---/, '')
+          .replace(/<!--[\s\S]*?-->/g, '')
+          .trim()
+          .split('\n')
+          .filter(l => l.trim())
+          .slice(0, 4)
+          .map(l => {
+            const e = l.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            if (l.match(/^#{1,3}\s/)) return '<span style="color:#cba6f7;font-weight:700">' + e + '</span>';
+            if (l.match(/^[-*]\s/)) return '<span style="color:#a6e3a1">' + e + '</span>';
+            if (l.match(/^\d+\.\s/)) return '<span style="color:#f9e2af">' + e + '</span>';
+            if (l.match(/^[|>]/)) return '<span style="color:#89b4fa">' + e + '</span>';
+            if (l.match(/^```/)) return '<span style="color:#fab387">' + e + '</span>';
+            if (l.match(/^!\[/)) return '<span style="color:#f38ba8">' + e + '</span>';
+            return '<span style="color:#9399b2">' + e + '</span>';
+          })
+          .join('<br>');
+
+        const badgeCol = categoryColors[tpl.category] || '#a6adc8';
+
+        card.innerHTML = `
+          <div class="template-card-preview">
+            <div class="tpl-preview-code">${previewLines}</div>
+            <span class="tpl-preview-icon">${tpl.icon}</span>
+          </div>
+          <div class="template-card-info">
+            <div class="tpl-card-title-row">
+              <span class="tpl-type-badge" style="background:${badgeCol}">${tpl.category}</span>
+              <h4>${tpl.name}</h4>
+            </div>
+            <p>${tpl.description}</p>
+          </div>
+        `;
+        card.addEventListener('click', () => onSelect(tpl));
+        grid.appendChild(card);
+      });
+      container.appendChild(grid);
     });
   }
 

@@ -269,6 +269,53 @@
   font-weight: 500;
 }
 
+/* ===== HEADER / FOOTER / LOGO OVERLAYS ===== */
+.slide-frame .slide-header-overlay {
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  right: 20px;
+  font-size: 0.7em;
+  color: var(--slide-muted, #6a737d);
+  font-weight: 500;
+  text-align: left;
+  z-index: 5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.slide-frame .slide-footer-overlay {
+  position: absolute;
+  bottom: 10px;
+  left: 20px;
+  font-size: 0.7em;
+  color: var(--slide-muted, #6a737d);
+  font-weight: 500;
+  text-align: left;
+  z-index: 5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
+}
+.slide-frame > img.slide-logo-overlay {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  max-height: 36px;
+  max-width: 120px;
+  object-fit: contain;
+  z-index: 5;
+  border-radius: 3px;
+  box-shadow: none;
+}
+/* In bg-image slides keep overlays readable */
+.slide-frame.bg-image .slide-header-overlay,
+.slide-frame.bg-image .slide-footer-overlay {
+  color: rgba(255,255,255,.8);
+  text-shadow: 0 1px 4px rgba(0,0,0,.6);
+}
+
 /* ===== PROGRESS BAR ===== */
 .slide-progress {
   position: absolute;

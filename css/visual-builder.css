@@ -31,6 +31,38 @@
   border-radius: 3px;
 }
 
+/* Header / Footer overlays on canvas */
+.canvas-header-overlay {
+  position: absolute;
+  top: 8px;
+  left: 16px;
+  right: 16px;
+  font-size: 11px;
+  color: var(--slide-muted, #999);
+  font-weight: 500;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 10;
+  opacity: 0.75;
+}
+.canvas-footer-overlay {
+  position: absolute;
+  bottom: 8px;
+  left: 16px;
+  font-size: 11px;
+  color: var(--slide-muted, #999);
+  font-weight: 500;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
+  z-index: 10;
+  opacity: 0.75;
+}
+
 /* Elements on the visual canvas */
 .ve-element {
   position: relative;
@@ -330,47 +362,120 @@
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
 }
 
-/* ===== Image Grid Layout (Card fan style) ===== */
-.image-grid-container {
+/* ===== Image Combine Layout (Source stack → Result) ===== */
+.image-combine-container {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0;
+  padding: 24px 12px 16px;
+  position: relative;
+}
+.cmb-sources {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  gap: 0;
+  min-width: 200px;
+}
+.cmb-source {
+  text-align: center;
+  background: #fff;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 200ms;
+  position: relative;
+}
+.cmb-source:not(:first-child) {
+  margin-top: -30px;
+}
+.cmb-source img {
+  max-width: 220px;
+  max-height: 180px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+}
+.cmb-arrow {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6c63ff, #e040fb);
+  color: #fff;
+  font-size: 28px;
+  box-shadow: 0 4px 16px rgba(108,99,255,0.4);
+  z-index: 5;
+  margin: 0 12px;
+}
+.cmb-result {
+  text-align: center;
+  background: #fff;
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 10px 36px rgba(0,0,0,0.2), 0 3px 10px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 1;
+}
+.cmb-result img {
+  max-width: 320px;
+  max-height: 280px;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+}
+.cmb-label {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ===== Image Grid Layout (Card gallery style) ===== */
+.image-grid-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
   padding: 24px 16px 16px;
   position: relative;
+  flex-wrap: wrap;
 }
 .ig-item {
   text-align: center;
   flex: 0 0 auto;
   background: #fff;
-  border-radius: 12px;
-  padding: 8px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1);
-  transition: transform 200ms, z-index 0ms;
+  border-radius: 16px;
+  padding: 10px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform 200ms, box-shadow 200ms;
   position: relative;
 }
 .ig-item:hover {
-  transform: rotate(0deg) scale(1.05) !important;
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22), 0 4px 12px rgba(0,0,0,0.12);
   z-index: 10;
 }
-.ig-item:nth-child(1) { transform: rotate(-6deg) translateX(15px); z-index: 1; }
-.ig-item:nth-child(2) { transform: rotate(0deg) translateY(-8px); z-index: 3; }
-.ig-item:nth-child(3) { transform: rotate(5deg) translateX(-15px); z-index: 2; }
-.ig-item:nth-child(4) { transform: rotate(-3deg) translateX(8px); z-index: 1; }
-.ig-item:nth-child(5) { transform: rotate(4deg) translateX(-8px); z-index: 1; }
-.ig-item:nth-child(n+6) { transform: rotate(2deg); z-index: 1; }
 .ig-item img {
-  width: 200px;
+  width: 280px;
+  height: 220px;
   max-width: 100%;
-  max-height: 180px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 12px;
   display: block;
 }
 .ig-caption {
   display: block;
-  margin-top: 4px;
-  font-size: 11px;
+  margin-top: 6px;
+  font-size: 12px;
   color: #555;
   font-weight: 600;
 }

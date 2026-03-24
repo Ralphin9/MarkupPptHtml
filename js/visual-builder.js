@@ -34,10 +34,14 @@ window.VisualBuilder = (function () {
     hr:        { type: 'hr', content: '' },
     fittext:   { type: 'fittext', content: 'BIG TEXT' },
     imageCompare: { type: 'imageCompare', leftImage: 'https://via.placeholder.com/400x250/264653/ffffff?text=Before', rightImage: 'https://via.placeholder.com/400x250/e76f51/ffffff?text=After', leftLabel: 'Before', rightLabel: 'After' },
+    imageCombine: { type: 'imageCombine', sourceImages: [
+      { url: 'https://via.placeholder.com/300x250/264653/ffffff?text=Source+1', label: 'Source 1' },
+      { url: 'https://via.placeholder.com/250x200/2a9d8f/ffffff?text=Source+2', label: 'Source 2' },
+    ], resultImage: 'https://via.placeholder.com/400x300/e76f51/ffffff?text=Result', resultLabel: 'Result' },
     imageGrid: { type: 'imageGrid', images: [
-      { url: 'https://via.placeholder.com/300x200/264653/ffffff?text=Image+1', caption: 'Image 1' },
-      { url: 'https://via.placeholder.com/300x200/2a9d8f/ffffff?text=Image+2', caption: 'Image 2' },
-      { url: 'https://via.placeholder.com/300x200/e9c46a/333333?text=Image+3', caption: 'Image 3' },
+      { url: 'https://via.placeholder.com/300x200/264653/ffffff?text=Image+1', caption: 'Image 1', width: 280, height: 220 },
+      { url: 'https://via.placeholder.com/300x200/2a9d8f/ffffff?text=Image+2', caption: 'Image 2', width: 280, height: 220 },
+      { url: 'https://via.placeholder.com/300x200/e9c46a/333333?text=Image+3', caption: 'Image 3', width: 280, height: 220 },
     ] },
   };
 
@@ -402,6 +406,8 @@ window.VisualBuilder = (function () {
 
     // Render logo overlay
     renderLogoOverlay(canvas);
+    // Render header/footer overlays
+    renderHeaderFooterOverlays(canvas);
   }
 
   function renderLogoOverlay(canvas) {
@@ -420,6 +426,27 @@ window.VisualBuilder = (function () {
     img.onerror = function () { this.style.display = 'none'; };
     overlay.appendChild(img);
     canvas.appendChild(overlay);
+  }
+
+  function renderHeaderFooterOverlays(canvas) {
+    // Remove existing header/footer overlays
+    canvas.querySelectorAll('.canvas-header-overlay, .canvas-footer-overlay').forEach(el => el.remove());
+
+    const globals = window.DirectivesPanel?.getGlobalDirectives();
+    if (!globals) return;
+
+    if (globals.header) {
+      const h = document.createElement('div');
+      h.className = 'canvas-header-overlay';
+      h.textContent = globals.header;
+      canvas.appendChild(h);
+    }
+    if (globals.footer) {
+      const f = document.createElement('div');
+      f.className = 'canvas-footer-overlay';
+      f.textContent = globals.footer;
+      canvas.appendChild(f);
+    }
   }
 
   // ===== Render element to HTML preview =====
@@ -512,11 +539,28 @@ window.VisualBuilder = (function () {
           <div class="ic-side"><img src="${rightUrl}" alt="${rightLabel}"><span class="ic-label">${rightLabel}</span></div>
         </div>`;
       }
+      case 'imageCombine': {
+        const srcs = el.sourceImages || [];
+        const srcCards = srcs.map((s, idx) => {
+          const scale = 1 - idx * 0.12;
+          return `<div class="cmb-source" style="z-index:${srcs.length - idx};transform:scale(${scale.toFixed(2)}) translateY(${idx * 8}px)"><img src="${encodeURI(s.url || '')}" alt="${escapeHtml(s.label || '')}"><span class="cmb-label">${escapeHtml(s.label || '')}</span></div>`;
+        }).join('');
+        const resUrl = encodeURI(el.resultImage || '');
+        const resLabel = escapeHtml(el.resultLabel || 'Result');
+        return `<div class="image-combine-container">
+          <div class="cmb-sources">${srcCards}</div>
+          <div class="cmb-arrow"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg></div>
+          <div class="cmb-result"><img src="${resUrl}" alt="${resLabel}"><span class="cmb-label">${resLabel}</span></div>
+        </div>`;
+      }
       case 'imageGrid': {
         const imgs = el.images || [];
-        const gridItems = imgs.map(img =>
-          `<div class="ig-item"><img src="${encodeURI(img.url || '')}" alt="${escapeHtml(img.caption || '')}"><span class="ig-caption">${escapeHtml(img.caption || '')}</span></div>`
-        ).join('');
+        const gridItems = imgs.map(img => {
+          const w = img.width ? `width:${img.width}px;` : '';
+          const h = img.height ? `height:${img.height}px;` : '';
+          const imgStyle = (w || h) ? ` style="${w}${h}object-fit:cover"` : '';
+          return `<div class="ig-item"><img src="${encodeURI(img.url || '')}" alt="${escapeHtml(img.caption || '')}"${imgStyle}><span class="ig-caption">${escapeHtml(img.caption || '')}</span></div>`;
+        }).join('');
         return `<div class="image-grid-container">${gridItems}</div>`;
       }
       default:
@@ -797,6 +841,81 @@ window.VisualBuilder = (function () {
         continue;
       }
 
+      // Image Compare HTML
+      if (line.match(/^<div class="image-compare-container">/i)) {
+        const htmlLines = [];
+        let depth = 0;
+        while (i < lines.length) {
+          htmlLines.push(lines[i]);
+          if (lines[i].match(/<div/i)) depth++;
+          if (lines[i].match(/<\/div>/i)) depth--;
+          i++;
+          if (depth <= 0) break;
+        }
+        const full = htmlLines.join('\n');
+        const srcRe = /<img\s+src="([^"]*)"\s+alt="([^"]*)"/gi;
+        const matches = [...full.matchAll(srcRe)];
+        elements.push({
+          id: ++elementIdCounter, type: 'imageCompare',
+          leftImage: matches[0]?.[1] || '', rightImage: matches[1]?.[1] || '',
+          leftLabel: matches[0]?.[2] || 'Before', rightLabel: matches[1]?.[2] || 'After',
+        });
+        continue;
+      }
+
+      // Image Combine HTML
+      if (line.match(/^<div class="image-combine-container">/i)) {
+        const htmlLines = [];
+        let depth = 0;
+        while (i < lines.length) {
+          htmlLines.push(lines[i]);
+          if (lines[i].match(/<div/i)) depth++;
+          if (lines[i].match(/<\/div>/i)) depth--;
+          i++;
+          if (depth <= 0) break;
+        }
+        const full = htmlLines.join('\n');
+        const srcRe = /<div class="cmb-source"><img\s+src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>.*?<\/div>/gi;
+        const sourceImages = [];
+        let sm;
+        while ((sm = srcRe.exec(full)) !== null) {
+          sourceImages.push({ url: sm[1], label: sm[2] || '' });
+        }
+        const resMatch = full.match(/<div class="cmb-result"><img\s+src="([^"]*)"[^>]*alt="([^"]*)"/);
+        elements.push({
+          id: ++elementIdCounter, type: 'imageCombine',
+          sourceImages,
+          resultImage: resMatch?.[1] || '',
+          resultLabel: resMatch?.[2] || 'Result',
+        });
+        continue;
+      }
+
+      // Image Grid HTML
+      if (line.match(/^<div class="image-grid-container">/i)) {
+        const htmlLines = [];
+        let depth = 0;
+        while (i < lines.length) {
+          htmlLines.push(lines[i]);
+          if (lines[i].match(/<div/i)) depth++;
+          if (lines[i].match(/<\/div>/i)) depth--;
+          i++;
+          if (depth <= 0) break;
+        }
+        const full = htmlLines.join('\n');
+        const itemRe = /<div class="ig-item"><img\s+src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>.*?<\/div>/gi;
+        const images = [];
+        let m;
+        while ((m = itemRe.exec(full)) !== null) {
+          const tag = m[0];
+          const wm = tag.match(/width:\s*(\d+)px/);
+          const hm = tag.match(/height:\s*(\d+)px/);
+          images.push({ url: m[1], caption: m[2] || '', width: wm ? parseInt(wm[1]) : 280, height: hm ? parseInt(hm[1]) : 220 });
+        }
+        elements.push({ id: ++elementIdCounter, type: 'imageGrid', images });
+        continue;
+      }
+
       // Default: text paragraph
       const textLines = [];
       while (i < lines.length && lines[i].trim() && !lines[i].match(/^[#>`|!$*\-+\d][\s.#]|^```|^\$\$|^<div|^[-*_]{3,}$/)) {
@@ -836,5 +955,6 @@ window.VisualBuilder = (function () {
     get selectedElementId() { return selectedElementId; },
     set selectedElementId(val) { selectedElementId = val; },
     renderElementHTML,
+    parseMarkdownToElements,
   };
 })();

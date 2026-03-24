@@ -323,9 +323,21 @@ window.SlideParser = (function () {
         const rl = el.rightLabel || 'After';
         return '<div class="image-compare-container">\n<div class="ic-side"><img src="' + left + '" alt="' + ll + '"><span class="ic-label">' + ll + '</span></div>\n<div class="ic-arrow"><span class="ic-arrow-icon">⟷</span></div>\n<div class="ic-side"><img src="' + right + '" alt="' + rl + '"><span class="ic-label">' + rl + '</span></div>\n</div>';
       }
+      case 'imageCombine': {
+        const srcs = el.sourceImages || [];
+        const srcItems = srcs.map(s => '<div class="cmb-source"><img src="' + (s.url || '') + '" alt="' + (s.label || '') + '"><span class="cmb-label">' + (s.label || '') + '</span></div>').join('\n');
+        const res = el.resultImage || '';
+        const rl = el.resultLabel || 'Result';
+        return '<div class="image-combine-container">\n<div class="cmb-sources">\n' + srcItems + '\n</div>\n<div class="cmb-arrow"><span class="cmb-arrow-icon">⟶</span></div>\n<div class="cmb-result"><img src="' + res + '" alt="' + rl + '"><span class="cmb-label">' + rl + '</span></div>\n</div>';
+      }
       case 'imageGrid': {
         const imgs = el.images || [];
-        const items = imgs.map(img => '<div class="ig-item"><img src="' + (img.url || '') + '" alt="' + (img.caption || '') + '"><span class="ig-caption">' + (img.caption || '') + '</span></div>').join('\n');
+        const items = imgs.map(img => {
+          const w = img.width ? 'width:' + img.width + 'px;' : '';
+          const h = img.height ? 'height:' + img.height + 'px;' : '';
+          const st = (w || h) ? ' style="' + w + h + 'object-fit:cover"' : '';
+          return '<div class="ig-item"><img src="' + (img.url || '') + '" alt="' + (img.caption || '') + '"' + st + '><span class="ig-caption">' + (img.caption || '') + '</span></div>';
+        }).join('\n');
         return '<div class="image-grid-container">\n' + items + '\n</div>';
       }
       default:

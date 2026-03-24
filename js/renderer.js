@@ -44,6 +44,30 @@ window.SlideRenderer = (function () {
     return theme === 'gradient';
   }
 
+  /** Build header/footer/logo overlays HTML */
+  function buildOverlaysHTML(slide, slideNumber, totalSlides) {
+    let overlays = '';
+    if (slide.header) {
+      overlays += `<div class="slide-header-overlay">${escapeHTML(slide.header)}</div>`;
+    }
+    if (slide.footer) {
+      overlays += `<div class="slide-footer-overlay">${escapeHTML(slide.footer)}</div>`;
+    }
+    if (slide.logo) {
+      overlays += `<img class="slide-logo-overlay" src="${encodeURI(slide.logo)}" alt="logo" onerror="this.style.display='none'">`;
+    }
+    if (slide.paginate !== false) {
+      overlays += `<span class="slide-number">${slideNumber} / ${totalSlides}</span>`;
+    }
+    overlays += `<div class="slide-progress" style="width:${(slideNumber / totalSlides) * 100}%"></div>`;
+    return overlays;
+  }
+
+  /** Escape HTML for safe text rendering */
+  function escapeHTML(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   /** Render a single slide to HTML string */
   function renderSlideHTML(slide, slideNumber, totalSlides) {
     const theme = slide.theme;
@@ -70,6 +94,7 @@ window.SlideRenderer = (function () {
     }
 
     let content = slide.html;
+    const overlays = buildOverlaysHTML(slide, slideNumber, totalSlides);
 
     // For split-layout (bg left/right)
     if (slide.bgImage && (slide.bgImage.position === 'left' || slide.bgImage.position === 'right')) {
@@ -87,16 +112,14 @@ window.SlideRenderer = (function () {
       return `<div class="slide-frame ${themeClass(theme)} ${bgClass} ${typeClass} bg-image ${extraClass}"
         style="${existingStyle}background-image:url('${encodeURI(slide.bgImage.url)}');background-size:cover;background-position:center;">
         ${content}
-        <span class="slide-number">${slideNumber} / ${totalSlides}</span>
-        <div class="slide-progress" style="width:${(slideNumber / totalSlides) * 100}%"></div>
+        ${overlays}
       </div>`;
     }
 
     return `<div class="slide-frame ${themeClass(theme)} ${bgClass} ${typeClass} ${extraClass}"
       style="${inlineStyle}">
       ${content}
-      <span class="slide-number">${slideNumber} / ${totalSlides}</span>
-      <div class="slide-progress" style="width:${(slideNumber / totalSlides) * 100}%"></div>
+      ${overlays}
     </div>`;
   }
 

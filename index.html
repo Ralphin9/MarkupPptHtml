@@ -131,6 +131,9 @@
           <div class="element-item" draggable="true" data-element="imageCompare">
             <span class="el-icon">↔</span><span class="el-label">Image Compare</span>
           </div>
+          <div class="element-item" draggable="true" data-element="imageCombine">
+            <span class="el-icon">⊕</span><span class="el-label">Image Combine</span>
+          </div>
           <div class="element-item" draggable="true" data-element="imageGrid">
             <span class="el-icon">▦</span><span class="el-label">Image Grid</span>
           </div>
@@ -305,15 +308,30 @@
             <label style="margin-top:6px">Right Label</label>
             <input type="text" id="prop-compare-right-label" placeholder="After">
           </div>
+          <div class="prop-group hidden" id="prop-combine-group">
+            <label>Source Images <span class="drop-grid-hint">(drop images below)</span></label>
+            <div class="img-drop-target img-drop-target-grid" id="drop-combine-sources">
+              <div id="combine-src-previews" class="grid-drop-previews"></div>
+              <span class="img-drop-hint">Drop source images here</span>
+            </div>
+            <div id="combine-source-cards" class="grid-image-cards"></div>
+            <label style="margin-top:10px">Result Image</label>
+            <div class="img-drop-target" id="drop-combine-result" data-field="prop-combine-result">
+              <div class="img-drop-preview" id="preview-combine-result"></div>
+              <span class="img-drop-hint">Drop result image here</span>
+            </div>
+            <input type="text" id="prop-combine-result" placeholder="Result image URL">
+            <label style="margin-top:6px">Result Label</label>
+            <input type="text" id="prop-combine-result-label" placeholder="Result">
+          </div>
           <div class="prop-group hidden" id="prop-grid-group">
             <label>Images <span class="drop-grid-hint">(drop images below)</span></label>
             <div class="img-drop-target img-drop-target-grid" id="drop-grid-images">
               <div id="grid-drop-previews" class="grid-drop-previews"></div>
               <span class="img-drop-hint">Drop images here to add</span>
             </div>
-            <textarea id="prop-grid-urls" rows="3" placeholder="https://example.com/img1.jpg&#10;https://example.com/img2.jpg"></textarea>
-            <label style="margin-top:6px">Captions (one per line)</label>
-            <textarea id="prop-grid-captions" rows="3" placeholder="Caption 1&#10;Caption 2"></textarea>
+            <label class="grid-sync-label"><input type="checkbox" id="grid-sync-sizes"> Sync all W &amp; H</label>
+            <div id="grid-image-cards" class="grid-image-cards"></div>
           </div>
         </div>
       </div>
