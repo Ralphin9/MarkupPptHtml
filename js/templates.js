@@ -549,6 +549,217 @@ Classic monochrome look using \`grayscale\` filter`
 
 Multiple filters: \`sepia:0.8 brightness:0.7\``
     },
+
+    // ===== TUTORIAL MAKER =====
+    {
+      id: 'tutorial-js',
+      name: 'Code Tutorial — JS',
+      icon: '📖',
+      category: 'Tutorial Maker',
+      description: 'Dark IDE-style slide with code + annotation callouts',
+      markdown: `
+<!-- class: tutorial-layout -->
+<!-- backgroundColor: #0d1117 -->
+<!-- color: #e6edf3 -->
+
+## Async / Await in JavaScript
+
+\`\`\`javascript
+async function loadUser(id) {
+  const response = await fetch(\`/api/users/\${id}\`);
+  const user = await response.json();
+  return user;
+}
+\`\`\`
+
+<div class="tutorial-annotations">
+<div class="tutorial-annotation-row"><span class="tut-num">1</span><span><span class="tut-label">async</span> — marks the function as asynchronous, it always returns a Promise.</span></div>
+<div class="tutorial-annotation-row"><span class="tut-num">2</span><span><span class="tut-label">await fetch()</span> — pauses execution until the HTTP request resolves.</span></div>
+<div class="tutorial-annotation-row"><span class="tut-num">3</span><span><span class="tut-label">response.json()</span> — parses the response body as JSON (also async).</span></div>
+</div>`
+    },
+    {
+      id: 'tutorial-python',
+      name: 'Code Tutorial — Python',
+      icon: '🐍',
+      category: 'Tutorial Maker',
+      description: 'Python snippet with numbered explanation boxes',
+      markdown: `
+<!-- class: tutorial-layout -->
+<!-- backgroundColor: #0d1117 -->
+<!-- color: #e6edf3 -->
+
+## List Comprehensions in Python
+
+\`\`\`python
+numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# Square even numbers only
+squares = [x**2 for x in numbers if x % 2 == 0]
+
+print(squares)  # [4, 16, 36, 64, 100]
+\`\`\`
+
+<div class="tutorial-annotations">
+<div class="tutorial-annotation-row"><span class="tut-num">1</span><span><span class="tut-label">[x**2 …]</span> — the output expression; computes the square of each item.</span></div>
+<div class="tutorial-annotation-row"><span class="tut-num">2</span><span><span class="tut-label">for x in numbers</span> — iterates over every element in the list.</span></div>
+<div class="tutorial-annotation-row"><span class="tut-num">3</span><span><span class="tut-label">if x % 2 == 0</span> — filter: only even numbers pass through.</span></div>
+</div>`
+    },
+    {
+      id: 'tutorial-steps',
+      name: 'Code Walkthrough — Steps',
+      icon: '🪜',
+      category: 'Tutorial Maker',
+      description: 'Step-by-step code walkthrough with numbered badges',
+      markdown: `
+<!-- class: tutorial-layout -->
+<!-- backgroundColor: #0d1117 -->
+<!-- color: #e6edf3 -->
+
+## Setting Up Express.js
+
+<div class="tutorial-annotation-row" style="margin-bottom:8px"><span class="tutorial-step">1</span><span>Install the package</span></div>
+
+\`\`\`bash
+npm install express
+\`\`\`
+
+<div class="tutorial-annotation-row" style="margin:8px 0"><span class="tutorial-step green">2</span><span>Create your server file</span></div>
+
+\`\`\`javascript
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+
+app.listen(3000);
+\`\`\`
+
+<div class="tutorial-annotation-row" style="margin:8px 0"><span class="tutorial-step orange">3</span><span>Run it with <code>node server.js</code></span></div>`
+    },
+    {
+      id: 'tutorial-callouts',
+      name: 'Code + Callout Boxes',
+      icon: '💡',
+      category: 'Tutorial Maker',
+      description: 'Code snippet with colorful callout explanation boxes',
+      markdown: `
+<!-- class: tutorial-layout -->
+<!-- backgroundColor: #0d1117 -->
+<!-- color: #e6edf3 -->
+
+## React useState Hook
+
+\`\`\`jsx
+const [count, setCount] = useState(0);
+\`\`\`
+
+<div class="tutorial-callout" style="margin-top:10px;margin-bottom:6px">
+<strong>count</strong> — the current state value (reads from state).
+</div>
+<div class="tutorial-callout green" style="margin-bottom:6px">
+<strong>setCount</strong> — the setter function. Call it to update state and re-render.
+</div>
+<div class="tutorial-callout orange">
+<strong>useState(0)</strong> — the initial value is <code>0</code>. Can be any type: number, string, object, or array.
+</div>`
+    },
+    {
+      id: 'tutorial-before-after',
+      name: 'Refactor Tutorial',
+      icon: '⚖️',
+      category: 'Tutorial Maker',
+      description: 'Before & after code comparison in tutorial style',
+      markdown: `
+<!-- class: tutorial-layout -->
+<!-- backgroundColor: #0d1117 -->
+<!-- color: #e6edf3 -->
+
+## Refactoring: Callbacks → Async/Await
+
+**Before (callback hell):**
+\`\`\`javascript
+getUser(id, (err, user) => {
+  getPosts(user.id, (err, posts) => {
+    getComments(posts[0].id, (err, comments) => {
+      console.log(comments);
+    });
+  });
+});
+\`\`\`
+
+**After (async/await):**
+\`\`\`javascript
+const user = await getUser(id);
+const posts = await getPosts(user.id);
+const comments = await getComments(posts[0].id);
+console.log(comments);
+\`\`\`
+
+<div class="tutorial-callout green" style="margin-top:8px">Much cleaner! Linear flow is easier to read, debug, and maintain.</div>`
+    },
+    {
+      id: 'tutorial-terminal',
+      name: 'Terminal Tutorial',
+      icon: '🖥️',
+      category: 'Tutorial Maker',
+      description: 'Terminal-style tutorial with command + output',
+      markdown: `
+<!-- class: tutorial-layout -->
+<!-- backgroundColor: #0d1117 -->
+<!-- color: #e6edf3 -->
+
+## Git: Undo Your Last Commit
+
+<div class="tutorial-terminal">
+<div class="tutorial-terminal-bar"><span class="tutorial-terminal-title">Terminal</span></div>
+<div class="tutorial-terminal-body">
+<div><span class="prompt">$</span> <span class="cmd">git log --oneline -3</span></div>
+<div class="output">a1b2c3d Add new feature (← this one was a mistake)</div>
+<div class="output">e4f5g6h Fix typo in README</div>
+<div style="margin:6px 0"></div>
+<div><span class="prompt">$</span> <span class="cmd">git reset --soft HEAD~1</span></div>
+<div class="success">✓ Commit removed, changes kept in staging area</div>
+</div>
+</div>
+
+<div class="tutorial-annotations" style="margin-top:10px">
+<div class="tutorial-annotation-row"><span class="tut-num">1</span><span><span class="tut-label">--soft</span> keeps your changes staged. Use <code>--hard</code> to discard them.</span></div>
+<div class="tutorial-annotation-row"><span class="tut-num">2</span><span><span class="tut-label">HEAD~1</span> means "one commit before HEAD". Use <code>HEAD~2</code> for two commits.</span></div>
+</div>`
+    },
+    {
+      id: 'tutorial-concept',
+      name: 'Concept Explainer',
+      icon: '🧠',
+      category: 'Tutorial Maker',
+      description: 'Explain a programming concept with visual structure',
+      markdown: `
+<!-- class: tutorial-layout -->
+<!-- backgroundColor: #0d1117 -->
+<!-- color: #e6edf3 -->
+
+## How Promises Work
+
+\`\`\`javascript
+const promise = new Promise((resolve, reject) => {
+  setTimeout(() => resolve("Done!"), 1000);
+});
+
+promise
+  .then(result => console.log(result))
+  .catch(error => console.error(error));
+\`\`\`
+
+<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+<div class="tutorial-callout" style="flex:1;min-width:160px"><strong>Pending</strong><br>Initial state — neither fulfilled nor rejected</div>
+<div class="tutorial-callout green" style="flex:1;min-width:160px"><strong>Fulfilled</strong><br><code>resolve()</code> called → <code>.then()</code> runs</div>
+<div class="tutorial-callout red" style="flex:1;min-width:160px"><strong>Rejected</strong><br><code>reject()</code> called → <code>.catch()</code> runs</div>
+</div>`
+    },
   ];
 
   // Category badge colors
@@ -563,6 +774,7 @@ Multiple filters: \`sepia:0.8 brightness:0.7\``
     'Split BG': '#eba0ac',
     'Multi BG': '#cba6f7',
     'BG Filter': '#74c7ec',
+    'Tutorial Maker': '#58a6ff',
   };
 
   /** Render the templates gallery into a container grouped by category */

@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MarkupPptHtml — Visual Presentation Builder</title>
 
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+
   <!-- Markdown Parser -->
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
   <!-- Syntax Highlighting -->
@@ -22,6 +27,7 @@
   <link rel="stylesheet" href="css/themes.css">
   <link rel="stylesheet" href="css/slides.css">
   <link rel="stylesheet" href="css/visual-builder.css">
+  <link rel="stylesheet" href="css/tutorial-builder.css">
 </head>
 <body>
   <!-- ========== TOP HEADER BAR ========== -->
@@ -40,6 +46,9 @@
         <button class="mode-btn" data-mode="split" title="Split View">
           <span>⬜</span> Split
         </button>
+        <button class="mode-btn" data-mode="tutorial" title="Tutorial Builder — annotate code like ExplainDev">
+          <span>💡</span> Tutorial
+        </button>
       </div>
     </div>
     <div class="header-right">
@@ -49,6 +58,8 @@
         <option value="gaia">Gaia</option>
         <option value="uncover">Uncover</option>
         <option value="gradient">Gradient</option>
+        <option value="tutorial">Tutorial (IDE)</option>
+        <option value="neon">Neon</option>
       </select>
       <button id="btn-templates" title="Templates">📋 Templates</button>
       <button id="btn-present" title="Present (F5)">▶ Present</button>
@@ -195,6 +206,107 @@
       <div id="markdown-panel" class="canvas-area hidden">
         <textarea id="markdown-editor" spellcheck="false" placeholder="Write Markdown here..."></textarea>
       </div>
+
+      <!-- ====== TUTORIAL BUILDER PANEL ====== -->
+      <div id="tutorial-panel" class="hidden">
+        <!-- Toolbar -->
+        <div id="tut-toolbar">
+          <div class="tut-tool-group">
+            <input id="tut-title-input" type="text" value="Code Tutorial" placeholder="Tutorial title…" title="Slide title">
+          </div>
+          <div class="tut-sep"></div>
+          <div class="tut-tool-group">
+            <select id="tut-lang-select" title="Code language">
+              <option value="javascript">JavaScript</option>
+              <option value="typescript">TypeScript</option>
+              <option value="python">Python</option>
+              <option value="bash">Bash / Shell</option>
+              <option value="html">HTML</option>
+              <option value="css">CSS</option>
+              <option value="json">JSON</option>
+              <option value="sql">SQL</option>
+              <option value="java">Java</option>
+              <option value="csharp">C#</option>
+              <option value="cpp">C++</option>
+              <option value="go">Go</option>
+              <option value="rust">Rust</option>
+              <option value="ruby">Ruby</option>
+              <option value="php">PHP</option>
+              <option value="swift">Swift</option>
+            </select>
+          </div>
+          <div class="tut-sep"></div>
+          <div class="tut-tool-group">
+            <button id="tut-annotate-btn" class="tut-btn primary" title="Select text in the editor, then click to add an annotation callout">
+              💡 Annotate Selection
+            </button>
+            <button id="tut-add-text-btn" class="tut-btn" title="Add a free-floating text callout">
+              + Text
+            </button>
+          </div>
+          <div class="tut-sep"></div>
+          <div class="tut-tool-group">
+            <button id="tut-export-btn" class="tut-btn success" title="Download slide as PNG image">
+              📸 Download PNG
+            </button>
+            <button id="tut-clear-btn" class="tut-btn" title="Remove all annotations">
+              🗑 Clear
+            </button>
+          </div>
+          <span id="tut-hint">Select code in the editor → click Annotate Selection → drag callouts &amp; edit text</span>
+        </div>
+
+        <!-- Split: editor left, canvas right -->
+        <div id="tut-split">
+
+          <!-- Left: code editor -->
+          <div id="tut-editor-panel">
+            <div id="tut-editor-panel-header">Code Editor</div>
+            <textarea
+              id="tut-code-editor"
+              spellcheck="false"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              placeholder="Paste or type your code here…&#10;Select any portion and click &#34;Annotate Selection&#34; to explain it.">
+            </textarea>
+          </div>
+
+          <!-- Right: visual canvas -->
+          <div id="tut-canvas-panel">
+            <div id="tut-slide">
+              <!-- Title -->
+              <div id="tut-slide-title-el" contenteditable="true" spellcheck="false">Code Tutorial</div>
+
+              <!-- Code block -->
+              <div id="tut-slide-code-wrap">
+                <div id="tut-slide-code-bar">
+                  <span id="tut-slide-code-lang-badge">javascript</span>
+                </div>
+                <pre id="tut-slide-code-pre"><code id="tut-code-display"></code></pre>
+              </div>
+
+              <!-- Empty state -->
+              <div id="tut-empty-hint">
+                <span class="hint-icon">💡</span>
+                <p>Select code in the editor and click<br><strong>Annotate Selection</strong> to add a callout</p>
+              </div>
+
+              <!-- Arrows SVG overlay -->
+              <svg id="tut-arrows-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+
+              <!-- Draggable annotation cards -->
+              <div id="tut-annot-layer"></div>
+
+              <!-- Export overlay -->
+              <div id="tut-exporting-overlay" class="hidden">
+                ⏳ Generating PNG…
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /#tut-split -->
+      </div><!-- /#tutorial-panel -->
     </section>
 
     <!-- ====== RIGHT PANEL ====== -->
@@ -453,6 +565,7 @@ section { font-family: 'Helvetica Neue'; }
   <script src="js/visual-builder.js"></script>
   <script src="js/image-manager.js"></script>
   <script src="js/directives-panel.js"></script>
+  <script src="js/tutorial-builder.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

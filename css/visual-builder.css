@@ -9,8 +9,8 @@
   color: var(--slide-fg, #333);
   font-family: var(--slide-font, 'Segoe UI', system-ui, sans-serif);
   padding: 40px 48px;
-  border-radius: 6px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  border-radius: 8px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
   position: relative;
   overflow-y: auto;
 }

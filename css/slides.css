@@ -325,3 +325,245 @@
   background: var(--slide-accent, #0366d6);
   transition: width 0.3s ease;
 }
+
+/* ======================================================
+   TUTORIAL MAKER — Code Tutorial Slide Style
+   Inspired by ExplainDev/tutorial-maker:
+   Beautiful code-centric slides with annotation callouts
+   ====================================================== */
+
+/* ===== TUTORIAL LAYOUT ===== */
+.slide-frame.tutorial-layout {
+  --tut-bg: #0d1117;
+  --tut-surface: #161b22;
+  --tut-border: #30363d;
+  --tut-text: #e6edf3;
+  --tut-muted: #8b949e;
+  --tut-accent: #58a6ff;
+  --tut-green: #3fb950;
+  --tut-orange: #d29922;
+  --tut-purple: #bc8cff;
+  --tut-red: #f85149;
+  --tut-yellow: #e3b341;
+  background: var(--tut-bg) !important;
+  color: var(--tut-text) !important;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif !important;
+  gap: 0.5em;
+}
+
+/* Title bar inside tutorial slides */
+.slide-frame.tutorial-layout h1 {
+  font-size: 1.6em;
+  font-weight: 800;
+  color: var(--tut-text);
+  margin-bottom: 0.2em;
+  line-height: 1.2;
+}
+.slide-frame.tutorial-layout h2 {
+  font-size: 1.2em;
+  font-weight: 700;
+  color: var(--tut-accent);
+  margin-bottom: 0.15em;
+}
+.slide-frame.tutorial-layout h3 {
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--tut-muted);
+  margin-bottom: 0.1em;
+}
+.slide-frame.tutorial-layout p {
+  color: var(--tut-muted);
+  font-size: 0.85em;
+}
+
+/* ===== TUTORIAL CODE BLOCK ===== */
+.slide-frame.tutorial-layout pre {
+  background: var(--tut-surface) !important;
+  border: 1px solid var(--tut-border);
+  border-radius: 10px;
+  padding: 0 0 12px 0;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+  font-size: 0.88em;
+  overflow: hidden;
+  position: relative;
+}
+.slide-frame.tutorial-layout pre::before {
+  content: '';
+  display: flex;
+  height: 36px;
+  background: linear-gradient(180deg, #1c2128, #161b22);
+  border-bottom: 1px solid var(--tut-border);
+  margin-bottom: 12px;
+  background-image:
+    radial-gradient(circle at 16px 18px, #ff5f57 5.5px, transparent 5.5px),
+    radial-gradient(circle at 36px 18px, #febc2e 5.5px, transparent 5.5px),
+    radial-gradient(circle at 56px 18px, #28c840 5.5px, transparent 5.5px);
+}
+.slide-frame.tutorial-layout code {
+  padding: 0 16px;
+  display: block;
+  font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 1em;
+  line-height: 1.65;
+  color: var(--tut-text);
+}
+
+/* ===== TUTORIAL CALLOUT BOXES ===== */
+/* Usage: <div class="tutorial-callout [color]">text</div> */
+.tutorial-callout {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(88,166,255,0.1);
+  border: 1px solid rgba(88,166,255,0.35);
+  border-radius: 8px;
+  font-size: 0.8em;
+  color: #c9d1d9;
+  line-height: 1.45;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  max-width: 100%;
+}
+.tutorial-callout::before {
+  content: '‣';
+  font-size: 1.1em;
+  color: var(--tut-accent, #58a6ff);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.tutorial-callout.green  { background:rgba(63,185,80,.1);  border-color:rgba(63,185,80,.35);  }
+.tutorial-callout.green::before  { color:#3fb950; }
+.tutorial-callout.orange { background:rgba(210,153,34,.1); border-color:rgba(210,153,34,.35); }
+.tutorial-callout.orange::before { color:#d29922; }
+.tutorial-callout.purple { background:rgba(188,140,255,.1);border-color:rgba(188,140,255,.35);}
+.tutorial-callout.purple::before { color:#bc8cff; }
+.tutorial-callout.red    { background:rgba(248,81,73,.1);  border-color:rgba(248,81,73,.35);  }
+.tutorial-callout.red::before    { color:#f85149; }
+.tutorial-callout.yellow { background:rgba(227,179,65,.1); border-color:rgba(227,179,65,.35); }
+.tutorial-callout.yellow::before { color:#e3b341; }
+
+/* ===== TUTORIAL STEP BADGES ===== */
+/* Usage: <span class="tutorial-step">1</span> */
+.tutorial-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--tut-accent, #58a6ff);
+  color: #0d1117;
+  font-size: 0.7em;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(88,166,255,0.2);
+  line-height: 1;
+}
+.tutorial-step.green  { background:#3fb950; box-shadow:0 0 0 3px rgba(63,185,80,.2); }
+.tutorial-step.orange { background:#d29922; box-shadow:0 0 0 3px rgba(210,153,34,.2); }
+.tutorial-step.purple { background:#bc8cff; box-shadow:0 0 0 3px rgba(188,140,255,.2); }
+
+/* ===== TUTORIAL ANNOTATION LIST ===== */
+/* Numbered annotation rows below code */
+.tutorial-annotations {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.tutorial-annotation-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.78em;
+  color: #c9d1d9;
+  line-height: 1.4;
+}
+.tutorial-annotation-row .tut-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(88,166,255,0.15);
+  border: 1px solid rgba(88,166,255,0.4);
+  color: #58a6ff;
+  font-size: 0.75em;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.tutorial-annotation-row .tut-label {
+  font-weight: 600;
+  color: #e6edf3;
+}
+
+/* ===== TUTORIAL HIGHLIGHT (annotated line glow) ===== */
+/* Wrap a line in: <mark class="tut-hl">...</mark> */
+.slide-frame.tutorial-layout .tut-hl {
+  background: rgba(88,166,255,0.15);
+  border-left: 3px solid #58a6ff;
+  padding-left: 10px;
+  margin-left: -13px;
+  border-radius: 0 3px 3px 0;
+  display: inline-block;
+  width: calc(100% + 13px);
+  color: inherit;
+}
+.slide-frame.tutorial-layout .tut-hl.green  { background:rgba(63,185,80,.15);  border-color:#3fb950; }
+.slide-frame.tutorial-layout .tut-hl.orange { background:rgba(210,153,34,.15); border-color:#d29922; }
+.slide-frame.tutorial-layout .tut-hl.purple { background:rgba(188,140,255,.15);border-color:#bc8cff; }
+
+/* ===== TERMINAL SLIDE ===== */
+.tutorial-terminal {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  overflow: hidden;
+  font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+}
+.tutorial-terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: linear-gradient(180deg, #1c2128, #161b22);
+  border-bottom: 1px solid #30363d;
+}
+.tutorial-terminal-bar::before {
+  content: '';
+  width: 12px; height: 12px; border-radius: 50%; background: #ff5f57;
+  box-shadow: 20px 0 0 #febc2e, 40px 0 0 #28c840;
+}
+.tutorial-terminal-title {
+  margin-left: 36px;
+  font-size: 0.75em;
+  color: #8b949e;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.tutorial-terminal-body {
+  padding: 14px 18px;
+  font-size: 0.82em;
+  line-height: 1.7;
+  color: #c9d1d9;
+}
+.tutorial-terminal-body .prompt { color: #3fb950; }
+.tutorial-terminal-body .cmd    { color: #e6edf3; font-weight: 600; }
+.tutorial-terminal-body .output { color: #8b949e; }
+.tutorial-terminal-body .error  { color: #f85149; }
+.tutorial-terminal-body .success{ color: #3fb950; }
+
+/* ===== TUTORIAL THEME (dark IDE look) ===== */
+.slide-theme-tutorial {
+  --slide-bg: #0d1117;
+  --slide-fg: #e6edf3;
+  --slide-heading: #58a6ff;
+  --slide-accent: #58a6ff;
+  --slide-code-bg: #161b22;
+  --slide-code-fg: #c9d1d9;
+  --slide-border: #30363d;
+  --slide-muted: #8b949e;
+  --slide-font: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+

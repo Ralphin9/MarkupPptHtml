@@ -62,3 +62,29 @@
   --slide-muted: rgba(255,255,255,0.4);
   --slide-font: 'Inter', system-ui, sans-serif;
 }
+
+/* ===== THEME: TUTORIAL (GitHub Dark / IDE style) ===== */
+.slide-theme-tutorial {
+  --slide-bg: #0d1117;
+  --slide-fg: #e6edf3;
+  --slide-heading: #58a6ff;
+  --slide-accent: #58a6ff;
+  --slide-code-bg: #161b22;
+  --slide-code-fg: #c9d1d9;
+  --slide-border: #30363d;
+  --slide-muted: #8b949e;
+  --slide-font: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ===== THEME: NEON (vibrant dark) ===== */
+.slide-theme-neon {
+  --slide-bg: #0a0a12;
+  --slide-fg: #f0f0ff;
+  --slide-heading: #00f5ff;
+  --slide-accent: #ff00aa;
+  --slide-code-bg: #12121e;
+  --slide-code-fg: #e0e0ff;
+  --slide-border: rgba(0,245,255,0.15);
+  --slide-muted: rgba(255,255,255,0.35);
+  --slide-font: 'Inter', system-ui, sans-serif;
+}

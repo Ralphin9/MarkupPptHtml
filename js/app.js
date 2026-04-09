@@ -45,6 +45,7 @@
     window.ImageManager.init(onImageInsert);
     window.DirectivesPanel.init(onDirectivesChange);
     window.Presenter.init();
+    window.TutorialBuilder.init();
   }
 
   // ===== Mode Switcher =====
@@ -63,28 +64,50 @@
     document.querySelectorAll('.mode-btn').forEach(b =>
       b.classList.toggle('active', b.dataset.mode === mode));
 
-    const visualCanvas = document.getElementById('visual-canvas-wrapper');
-    const markdownPanel = document.getElementById('markdown-panel');
-    const visualToolbar = document.getElementById('visual-toolbar-area');
+    const visualCanvas    = document.getElementById('visual-canvas-wrapper');
+    const markdownPanel   = document.getElementById('markdown-panel');
+    const tutorialPanel   = document.getElementById('tutorial-panel');
+    const visualToolbar   = document.getElementById('visual-toolbar-area');
+    const leftPanel       = document.getElementById('left-panel');
+    const rightPanel      = document.getElementById('right-panel');
+    const centerHeader    = document.querySelector('.center-header');
 
-    if (mode === 'visual') {
-      visualCanvas.classList.remove('hidden');
-      markdownPanel.classList.add('hidden');
-      visualToolbar.classList.remove('hidden');
-      visualCanvas.classList.remove('split-mode');
-      markdownPanel.classList.remove('split-mode');
-    } else if (mode === 'markdown') {
-      visualCanvas.classList.add('hidden');
-      markdownPanel.classList.remove('hidden');
-      visualToolbar.classList.add('hidden');
-      syncVisualToMarkdown();
-    } else if (mode === 'split') {
-      visualCanvas.classList.remove('hidden');
-      markdownPanel.classList.remove('hidden');
-      visualToolbar.classList.remove('hidden');
-      visualCanvas.classList.add('split-mode');
-      markdownPanel.classList.add('split-mode');
-      syncVisualToMarkdown();
+    // Reset all
+    [visualCanvas, markdownPanel].forEach(el => {
+      if (el) { el.classList.add('hidden'); el.classList.remove('split-mode'); }
+    });
+    if (tutorialPanel) tutorialPanel.classList.add('hidden');
+    if (visualToolbar) visualToolbar.classList.remove('hidden');
+
+    if (mode === 'tutorial') {
+      // Tutorial mode: hide side panels, show full-width tutorial builder
+      if (leftPanel)    leftPanel.style.display  = 'none';
+      if (rightPanel)   rightPanel.style.display = 'none';
+      if (centerHeader) centerHeader.style.display = 'none';
+      if (tutorialPanel) tutorialPanel.classList.remove('hidden');
+      // Refresh arrows after layout stabilises
+      requestAnimationFrame(() => window.TutorialBuilder.updateArrows());
+    } else {
+      // Restore side panels
+      if (leftPanel)    leftPanel.style.display  = '';
+      if (rightPanel)   rightPanel.style.display = '';
+      if (centerHeader) centerHeader.style.display = '';
+
+      if (mode === 'visual') {
+        visualCanvas.classList.remove('hidden');
+        visualToolbar.classList.remove('hidden');
+      } else if (mode === 'markdown') {
+        markdownPanel.classList.remove('hidden');
+        visualToolbar.classList.add('hidden');
+        syncVisualToMarkdown();
+      } else if (mode === 'split') {
+        visualCanvas.classList.remove('hidden');
+        markdownPanel.classList.remove('hidden');
+        visualToolbar.classList.remove('hidden');
+        visualCanvas.classList.add('split-mode');
+        markdownPanel.classList.add('split-mode');
+        syncVisualToMarkdown();
+      }
     }
   }
 
