@@ -18,9 +18,66 @@ window.TutorialBuilder = (function () {
   let annotations   = [];   // {id, text, targetLine, x, y, color, fontSize, minWidth}
   let annIdCounter  = 0;
   let selectedId    = null;
-  let dragging      = null; // {ann, el, startX, startY, origX, origY}
-  let resizing      = null; // {ann, el, startX, startW}
-  let renderPending = null;
+  let dragging         = null; // {ann, el, startX, startY, origX, origY}
+  let resizing         = null; // {ann, el, startX, startW}
+  let renderPending    = null;
+  let codeWrapDragging = false;
+  let codeWrapResizing = false;
+  const codeWrapState  = { x: 36, y: 80, w: 460 };
+  // Keep the last meaningful selection so toolbar clicks don't collapse it.
+  let savedSel = { start: 0, end: 0 };
+  let savedCaret = 0;
+
+  function updateSavedSel() {
+    if (!codeEditor) return;
+    const start = codeEditor.selectionStart ?? 0;
+    const end = codeEditor.selectionEnd ?? start;
+    savedCaret = start;
+
+    // Only replace the saved range when the editor has an actual selection.
+    if (start !== end) {
+      savedSel = { start, end };
+    }
+  }
+
+  function getSelectionSnapshot() {
+    if (!codeEditor) return { start: 0, end: 0 };
+    const start = codeEditor.selectionStart ?? 0;
+    const end = codeEditor.selectionEnd ?? start;
+
+    if (start !== end) {
+      return { start, end };
+    }
+    if (savedSel.start !== savedSel.end) {
+      return savedSel;
+    }
+    return { start: savedCaret, end: savedCaret };
+  }
+
+  function getRenderedSelectionSnapshot() {
+    const sel = window.getSelection ? window.getSelection() : null;
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
+
+    const range = sel.getRangeAt(0);
+    const container = range.commonAncestorContainer;
+    const inRenderedCode = codeDisplayEl && codeDisplayEl.contains(container.nodeType === 1 ? container : container.parentNode);
+    if (!inRenderedCode) return null;
+
+    const getLineEl = (node) => {
+      if (!node) return null;
+      if (node.nodeType === 1) return node.closest('.tut-line');
+      return node.parentElement ? node.parentElement.closest('.tut-line') : null;
+    };
+
+    const startLineEl = getLineEl(range.startContainer);
+    if (!startLineEl) return null;
+
+    return {
+      selectedText: sel.toString().trim(),
+      targetLine: Number(startLineEl.dataset.line),
+      source: 'rendered',
+    };
+  }
 
   // ── DOM refs (bound in init) ────────────────────────────────────────────
   let codeEditor, slideEl, codeDisplayEl, arrowsSvg, annotLayer,
@@ -34,6 +91,21 @@ window.TutorialBuilder = (function () {
     purple: '#bc8cff',
     red:    '#f85149',
   };
+
+  const FONT_FAMILIES = {
+    sans: `Inter, 'Segoe UI', system-ui, sans-serif`,
+    mono: `'Fira Code', 'Cascadia Code', 'Consolas', monospace`,
+    serif: `'Georgia', 'Times New Roman', serif`,
+  };
+
+  const FONT_LABELS = {
+    sans: 'Sans',
+    mono: 'Mono',
+    serif: 'Serif',
+  };
+
+  const LINE_PATTERNS = ['solid', 'dashed', 'dotted'];
+  const PATH_STYLES = ['smooth', 'line', 'grid'];
 
   // ── Public API ───────────────────────────────────────────────────────────
   function init() {
@@ -51,10 +123,17 @@ window.TutorialBuilder = (function () {
     if (!codeEditor) return; // panel not yet in DOM
 
     // Wire toolbar buttons
-    document.getElementById('tut-annotate-btn').addEventListener('click', addAnnotationFromSelection);
+    const annotBtn = document.getElementById('tut-annotate-btn');
+    annotBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      updateSavedSel();
+      addAnnotationFromSelection();
+    });
     document.getElementById('tut-add-text-btn').addEventListener('click', addFreeText);
     document.getElementById('tut-clear-btn').addEventListener('click', clearAll);
     document.getElementById('tut-export-btn').addEventListener('click', exportPNG);
+    document.getElementById('tut-insert-btn')?.addEventListener('click', insertToSlide);
 
     // Title sync
     titleInput.addEventListener('input', () => {
@@ -68,9 +147,14 @@ window.TutorialBuilder = (function () {
       scheduleRender();
     });
 
-    // Code editor → live render
+    // Code editor → live render + track selection
     codeEditor.addEventListener('input', scheduleRender);
     codeEditor.addEventListener('scroll', updateArrows);
+    codeEditor.addEventListener('select', updateSavedSel);
+    codeEditor.addEventListener('keyup', updateSavedSel);
+    codeEditor.addEventListener('mouseup', updateSavedSel);
+    codeEditor.addEventListener('focus', updateSavedSel);
+    codeEditor.addEventListener('blur', updateSavedSel);
 
     // Click outside deselects
     slideEl.addEventListener('mousedown', (e) => {
@@ -79,6 +163,23 @@ window.TutorialBuilder = (function () {
 
     // Keyboard shortcuts
     document.addEventListener('keydown', onKeyDown);
+
+    // Code wrap — draggable & resizable floating card
+    const cwEl  = document.getElementById('tut-slide-code-wrap');
+    const cwBar = document.getElementById('tut-slide-code-bar');
+    const cwRsz = document.getElementById('tut-code-wrap-resize');
+    if (cwEl) {
+      applyCWPos();
+      if (cwBar) cwBar.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        startCodeWrapDrag(e);
+      });
+      if (cwRsz) cwRsz.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        startCodeWrapResize(e);
+      });
+    }
 
     // Seed with starter code
     codeEditor.value =
@@ -117,6 +218,12 @@ window.TutorialBuilder = (function () {
     ).join('\n');
 
     codeDisplayEl.innerHTML = html;
+    // Re-apply persistent highlights for existing annotations.
+    annotations.forEach(ann => {
+      if (ann.targetLine != null && ann.highlightEnabled !== false) {
+        setLineHighlight(ann.targetLine, ann.color, ann.selectedText);
+      }
+    });
     updateArrows();
     updateEmptyHint();
   }
@@ -127,16 +234,23 @@ window.TutorialBuilder = (function () {
 
   // ── Annotations ──────────────────────────────────────────────────────────
   function addAnnotationFromSelection() {
-    const start  = codeEditor.selectionStart;
-    const end    = codeEditor.selectionEnd;
-    const selectedText = codeEditor.value.substring(start, end).trim();
+    const renderedSnap = getRenderedSelectionSnapshot();
+    let selectedText = '';
+    let targetLine = 0;
 
-    // Determine line number from cursor/selection start
-    const beforeSel   = codeEditor.value.substring(0, start);
-    const targetLine  = (beforeSel.match(/\n/g) || []).length;
+    if (renderedSnap) {
+      selectedText = renderedSnap.selectedText;
+      targetLine = renderedSnap.targetLine;
+    } else {
+      const snap  = getSelectionSnapshot();
+      const start = snap.start;
+      const end   = snap.end;
+      selectedText = codeEditor.value.substring(start, end).trim();
 
-    // Highlight that line on the slide temporarily
-    highlightLine(targetLine, 'blue', 1800);
+      // Determine line number from the start of the selection
+      const beforeSel = codeEditor.value.substring(0, start);
+      targetLine = (beforeSel.match(/\n/g) || []).length;
+    }
 
     // Build initial annotation text
     let initialText;
@@ -147,33 +261,212 @@ window.TutorialBuilder = (function () {
       initialText = 'Explain this code…';
     }
 
-    createAnnotation(initialText, targetLine);
+    createAnnotation(initialText, targetLine, selectedText);
+
+    const sel = window.getSelection ? window.getSelection() : null;
+    if (sel && sel.rangeCount > 0) sel.removeAllRanges();
+  }
+
+  function clearInlineHighlights(lineEl) {
+    if (!lineEl) return;
+    lineEl.querySelectorAll('.tut-inline-highlight').forEach((el) => {
+      el.replaceWith(...el.childNodes);
+    });
+    lineEl.normalize();
+  }
+
+  function findTextRange(lineEl, needle) {
+    if (!lineEl || !needle) return null;
+    const haystack = lineEl.textContent || '';
+    const normalizedNeedle = needle.trim();
+    if (!normalizedNeedle) return null;
+
+    let startIndex = haystack.indexOf(normalizedNeedle);
+    if (startIndex < 0) {
+      const compactHaystack = haystack.replace(/\s+/g, ' ');
+      const compactNeedle = normalizedNeedle.replace(/\s+/g, ' ');
+      startIndex = compactHaystack.indexOf(compactNeedle);
+      if (startIndex < 0) return null;
+    }
+
+    const endIndex = startIndex + normalizedNeedle.length;
+    const walker = document.createTreeWalker(lineEl, NodeFilter.SHOW_TEXT);
+    let currentOffset = 0;
+    let startNode = null;
+    let startOffset = 0;
+    let endNode = null;
+    let endOffset = 0;
+
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      const length = node.textContent.length;
+      const nodeStart = currentOffset;
+      const nodeEnd = currentOffset + length;
+
+      if (!startNode && startIndex >= nodeStart && startIndex <= nodeEnd) {
+        startNode = node;
+        startOffset = startIndex - nodeStart;
+      }
+
+      if (!endNode && endIndex >= nodeStart && endIndex <= nodeEnd) {
+        endNode = node;
+        endOffset = endIndex - nodeStart;
+        break;
+      }
+
+      currentOffset = nodeEnd;
+    }
+
+    if (!startNode || !endNode) return null;
+    return { startNode, startOffset, endNode, endOffset };
+  }
+
+  function applyInlineHighlight(lineEl, color, selectedText) {
+    const match = findTextRange(lineEl, selectedText);
+    if (!match) return false;
+
+    const range = document.createRange();
+    range.setStart(match.startNode, match.startOffset);
+    range.setEnd(match.endNode, match.endOffset);
+
+    const marker = document.createElement('span');
+    marker.className = `tut-inline-highlight ${color}`;
+    marker.dataset.selectedText = selectedText;
+    const fragment = range.extractContents();
+    marker.appendChild(fragment);
+    range.insertNode(marker);
+    return true;
+  }
+
+  function setLineHighlight(lineIndex, color, selectedText = '') {
+    if (lineIndex == null) return;
+    const lineEl = codeDisplayEl.querySelector(`[data-line="${lineIndex}"]`);
+    if (!lineEl) return;
+    clearInlineHighlights(lineEl);
+    lineEl.classList.remove('green', 'orange', 'purple', 'red', 'blue');
+    lineEl.classList.remove('highlighted');
+
+    if (selectedText && applyInlineHighlight(lineEl, color, selectedText)) {
+      return;
+    }
+
+    lineEl.classList.add('highlighted', color);
+  }
+
+  function clearLineHighlight(lineIndex) {
+    if (lineIndex == null) return;
+    const lineEl = codeDisplayEl.querySelector(`[data-line="${lineIndex}"]`);
+    if (!lineEl) return;
+    clearInlineHighlights(lineEl);
+    lineEl.classList.remove('highlighted', 'green', 'orange', 'purple', 'red', 'blue');
+  }
+
+  function cycleOption(current, values) {
+    const idx = values.indexOf(current);
+    return values[(idx + 1) % values.length];
+  }
+
+  function syncAnnotationVisuals(el, ann) {
+    if (!el) return;
+    el.className = `tut-callout${ann.highlightEnabled === false ? ' no-highlight' : ''} color-${ann.color}` +
+      (selectedId === ann.id ? ' selected' : '');
+    el.style.left = ann.x + 'px';
+    el.style.top = ann.y + 'px';
+    el.style.minWidth = ann.minWidth + 'px';
+    el.style.setProperty('--tut-bubble-opacity', ann.opacity);
+
+    const textEl = el.querySelector('.tut-callout-text');
+    if (textEl) {
+      textEl.style.fontSize = ann.fontSize + 'px';
+      textEl.style.fontFamily = FONT_FAMILIES[ann.fontFamily] || FONT_FAMILIES.sans;
+    }
+
+    const lineBtn = el.querySelector('[data-role="line-style"]');
+    if (lineBtn) lineBtn.textContent = ann.linePattern;
+
+    const pathBtn = el.querySelector('[data-role="path-style"]');
+    if (pathBtn) pathBtn.textContent = ann.pathStyle;
+
+    const fontBtn = el.querySelector('[data-role="font-family"]');
+    if (fontBtn) fontBtn.textContent = FONT_LABELS[ann.fontFamily] || 'Sans';
+
+    const hlBtn = el.querySelector('[data-role="highlight-toggle"]');
+    if (hlBtn) {
+      hlBtn.textContent = ann.highlightEnabled === false ? 'No HL' : 'HL';
+      hlBtn.classList.toggle('active', ann.highlightEnabled !== false);
+    }
+
+    const arrowBtn = el.querySelector('[data-role="arrow-toggle"]');
+    if (arrowBtn) {
+      arrowBtn.textContent = ann.arrowEnabled === false ? 'No Arrow' : 'Arrow';
+      arrowBtn.classList.toggle('active', ann.arrowEnabled !== false);
+    }
+
+    const opacityBtn = el.querySelector('[data-role="opacity-level"]');
+    if (opacityBtn) opacityBtn.textContent = `${Math.round((ann.opacity || 0.92) * 100)}%`;
+
+    el.querySelectorAll('.tut-color-dot').forEach(d => d.classList.toggle('active', d.dataset.color === ann.color));
   }
 
   function addFreeText() {
     createAnnotation('Add your text here…', null);
   }
 
-  function createAnnotation(text, targetLine) {
+  function createAnnotation(text, targetLine, selectedText = '') {
     ++annIdCounter;
     const count = annotations.length;
 
-    // Place to the right of the code block with vertical stagger
+    // Place the callout to the right of the code-block widget, aligned
+    // vertically with the target line (or staggered if no specific line).
+    let initX = 640;
+    let initY = 60 + count * 100;
+
+    const codeWrap = document.getElementById('tut-slide-code-wrap');
+    if (codeWrap && slideEl) {
+      const cwRect = codeWrap.getBoundingClientRect();
+      const sr     = slideEl.getBoundingClientRect();
+      // Only trust the rect when the panel is actually visible (non-zero size)
+      if (cwRect.width > 0) {
+        initX = cwRect.right - sr.left + 24 + (count % 2) * 12;
+
+        if (targetLine != null) {
+          const lineEl = codeDisplayEl.querySelector(`[data-line="${targetLine}"]`);
+          if (lineEl) {
+            const lr = lineEl.getBoundingClientRect();
+            initY = Math.max(20, lr.top - sr.top - 24);
+          }
+        }
+        // Stagger subsequent callouts downward so they don't overlap
+        initY += Math.floor(count / 2) * 120;
+      }
+    }
+
     const ann = {
       id:        annIdCounter,
       text,
       targetLine,
-      x:         620 + (count % 2) * 20,
-      y:         60  + count * 90,
+      selectedText,
+      x:         initX,
+      y:         initY,
       color:     'blue',
       fontSize:  13,
       minWidth:  180,
+      fontFamily: 'sans',
+      opacity: 0.92,
+      linePattern: 'dashed',
+      pathStyle: 'smooth',
+      arrowEnabled: targetLine != null,
+      highlightEnabled: targetLine != null,
     };
 
     annotations.push(ann);
+    if (targetLine != null && ann.highlightEnabled !== false) {
+      setLineHighlight(targetLine, ann.color, ann.selectedText);
+    }
     renderAnnotation(ann);
     selectAnnotation(ann.id);
-    updateArrows();
+    // Defer arrow update to next frame so DOM layout is complete
+    requestAnimationFrame(() => updateArrows());
     updateEmptyHint();
   }
 
@@ -181,7 +474,7 @@ window.TutorialBuilder = (function () {
     const el = document.createElement('div');
     el.className = `tut-callout color-${ann.color}`;
     el.dataset.id = ann.id;
-    el.style.cssText = `left:${ann.x}px;top:${ann.y}px;min-width:${ann.minWidth}px;`;
+    el.style.cssText = `left:${ann.x}px;top:${ann.y}px;min-width:${ann.minWidth}px;--tut-bubble-opacity:${ann.opacity};`;
 
     el.innerHTML = `
       <div class="tut-drag-handle" title="Drag to move"></div>
@@ -190,6 +483,12 @@ window.TutorialBuilder = (function () {
         <div class="tut-callout-controls">
           <button class="tut-cc-btn" data-action="smaller" title="Smaller text (A-)">A-</button>
           <button class="tut-cc-btn" data-action="larger"  title="Larger text (A+)">A+</button>
+          <button class="tut-cc-btn" data-action="font" data-role="font-family" title="Cycle font family">Sans</button>
+          <button class="tut-cc-btn" data-action="opacity" data-role="opacity-level" title="Cycle box opacity">92%</button>
+          <button class="tut-cc-btn" data-action="toggle-arrow" data-role="arrow-toggle" title="Toggle arrow">Arrow</button>
+          <button class="tut-cc-btn" data-action="line-style" data-role="line-style" title="Cycle line style">dashed</button>
+          <button class="tut-cc-btn" data-action="path-style" data-role="path-style" title="Cycle path style">smooth</button>
+          <button class="tut-cc-btn" data-action="toggle-highlight" data-role="highlight-toggle" title="Toggle code highlight">HL</button>
           <span class="tut-color-pick">
             ${Object.keys(COLORS).map(c =>
               `<span class="tut-color-dot${ann.color===c?' active':''}" data-color="${c}" title="${c}"></span>`
@@ -202,7 +501,7 @@ window.TutorialBuilder = (function () {
     `;
 
     // Apply font size
-    el.querySelector('.tut-callout-text').style.fontSize = ann.fontSize + 'px';
+  syncAnnotationVisuals(el, ann);
 
     // ── Select on click ──
     el.addEventListener('mousedown', (e) => {
@@ -251,15 +550,35 @@ window.TutorialBuilder = (function () {
       const action = btn.dataset.action;
       if (action === 'smaller') {
         ann.fontSize = Math.max(9, ann.fontSize - 1);
-        el.querySelector('.tut-callout-text').style.fontSize = ann.fontSize + 'px';
         updateArrows();
       } else if (action === 'larger') {
         ann.fontSize = Math.min(24, ann.fontSize + 1);
-        el.querySelector('.tut-callout-text').style.fontSize = ann.fontSize + 'px';
+        updateArrows();
+      } else if (action === 'font') {
+        ann.fontFamily = cycleOption(ann.fontFamily, Object.keys(FONT_FAMILIES));
+      } else if (action === 'opacity') {
+        const levels = [0.72, 0.84, 0.92, 1];
+        ann.opacity = cycleOption(ann.opacity, levels);
+      } else if (action === 'line-style') {
+        ann.linePattern = cycleOption(ann.linePattern, LINE_PATTERNS);
+      } else if (action === 'path-style') {
+        ann.pathStyle = cycleOption(ann.pathStyle, PATH_STYLES);
+      } else if (action === 'toggle-arrow') {
+        ann.arrowEnabled = ann.arrowEnabled === false;
+      } else if (action === 'toggle-highlight') {
+        ann.highlightEnabled = ann.highlightEnabled === false;
+        if (ann.targetLine != null) {
+          if (ann.highlightEnabled === false) clearLineHighlight(ann.targetLine);
+          else setLineHighlight(ann.targetLine, ann.color, ann.selectedText);
+        }
         updateArrows();
       } else if (action === 'delete') {
         deleteAnnotation(ann.id);
+        return;
       }
+
+      syncAnnotationVisuals(el, ann);
+      updateArrows();
     });
 
     // ── Color dots ──
@@ -268,10 +587,10 @@ window.TutorialBuilder = (function () {
       dot.addEventListener('click', (e) => {
         const color = dot.dataset.color;
         ann.color = color;
-        el.className = `tut-callout selected color-${color}`;
-        el.querySelectorAll('.tut-color-dot').forEach(d => d.classList.toggle('active', d.dataset.color === color));
-        // Re-highlight target line in new color
-        if (ann.targetLine != null) highlightLine(ann.targetLine, color, 1200);
+        if (ann.targetLine != null && ann.highlightEnabled !== false) {
+          setLineHighlight(ann.targetLine, color, ann.selectedText);
+        }
+        syncAnnotationVisuals(el, ann);
         updateArrows();
       });
     });
@@ -284,6 +603,10 @@ window.TutorialBuilder = (function () {
     annotLayer.querySelectorAll('.tut-callout').forEach(el => {
       el.classList.toggle('selected', el.dataset.id == id);
     });
+    annotations.forEach(ann => {
+      const el = annotLayer.querySelector(`[data-id="${ann.id}"]`);
+      if (el) syncAnnotationVisuals(el, ann);
+    });
   }
 
   function deselectAll() {
@@ -292,11 +615,16 @@ window.TutorialBuilder = (function () {
   }
 
   function deleteAnnotation(id) {
+    const ann = annotations.find(a => a.id === id);
     annotations = annotations.filter(a => a.id !== id);
     const el = annotLayer.querySelector(`[data-id="${id}"]`);
     if (el) el.remove();
-    const lineEl = codeDisplayEl.querySelector('.tut-line.highlighted');
-    if (lineEl) lineEl.classList.remove('highlighted', 'green', 'orange', 'purple', 'red');
+    // Only remove highlight if no other annotation targets the same line
+    if (ann && ann.targetLine != null) {
+      const stillUsed = annotations.find(a => a.targetLine === ann.targetLine && a.highlightEnabled !== false);
+      if (!stillUsed) clearLineHighlight(ann.targetLine);
+      else setLineHighlight(stillUsed.targetLine, stillUsed.color, stillUsed.selectedText);
+    }
     selectedId = null;
     updateArrows();
     updateEmptyHint();
@@ -304,6 +632,10 @@ window.TutorialBuilder = (function () {
 
   function clearAll() {
     if (annotations.length > 0 && !confirm('Clear all annotations?')) return;
+    // Remove all line highlights
+    codeDisplayEl.querySelectorAll('.tut-line.highlighted').forEach(el => {
+      el.classList.remove('highlighted', 'green', 'orange', 'purple', 'red', 'blue');
+    });
     annotations = [];
     annotLayer.innerHTML = '';
     selectedId = null;
@@ -360,6 +692,52 @@ window.TutorialBuilder = (function () {
     document.addEventListener('mouseup', onUp);
   }
 
+  // ── Code-wrap drag & resize ───────────────────────────────────────────────
+  function applyCWPos() {
+    const el = document.getElementById('tut-slide-code-wrap');
+    if (!el) return;
+    el.style.left  = codeWrapState.x + 'px';
+    el.style.top   = codeWrapState.y + 'px';
+    el.style.width = codeWrapState.w + 'px';
+  }
+
+  function startCodeWrapDrag(e) {
+    const startX = e.clientX, startY = e.clientY;
+    const origX  = codeWrapState.x, origY = codeWrapState.y;
+    codeWrapDragging = true;
+    const onMove = (ev) => {
+      codeWrapState.x = origX + (ev.clientX - startX);
+      codeWrapState.y = origY + (ev.clientY - startY);
+      applyCWPos();
+      updateArrows();
+    };
+    const onUp = () => {
+      codeWrapDragging = false;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+
+  function startCodeWrapResize(e) {
+    const startX = e.clientX;
+    const origW  = codeWrapState.w;
+    codeWrapResizing = true;
+    const onMove = (ev) => {
+      codeWrapState.w = Math.max(180, origW + (ev.clientX - startX));
+      applyCWPos();
+      updateArrows();
+    };
+    const onUp = () => {
+      codeWrapResizing = false;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+
   // ── Line highlight flash ──────────────────────────────────────────────────
   function highlightLine(lineIndex, color, duration) {
     const lineEl = codeDisplayEl.querySelector(`[data-line="${lineIndex}"]`);
@@ -380,7 +758,7 @@ window.TutorialBuilder = (function () {
     const slideRect = slideEl.getBoundingClientRect();
 
     annotations.forEach(ann => {
-      if (ann.targetLine == null) return;
+      if (ann.targetLine == null || ann.arrowEnabled === false) return;
       const lineEl     = codeDisplayEl.querySelector(`[data-line="${ann.targetLine}"]`);
       const calloutEl  = annotLayer.querySelector(`[data-id="${ann.id}"]`);
       if (!lineEl || !calloutEl) return;
@@ -388,11 +766,36 @@ window.TutorialBuilder = (function () {
       const lineRect    = lineEl.getBoundingClientRect();
       const calloutRect = calloutEl.getBoundingClientRect();
 
-      // Compute positions relative to the slide element
-      const x1 = lineRect.right  - slideRect.left + 4;
-      const y1 = lineRect.top    + lineRect.height / 2 - slideRect.top;
-      const x2 = calloutRect.left - slideRect.left - 4;
-      const y2 = calloutRect.top  + calloutRect.height / 2 - slideRect.top;
+      // Arrow ends at the nearest horizontal edge of the callout, vertically centred.
+      const annLeft  = calloutRect.left  - slideRect.left;
+      const annRight = calloutRect.right - slideRect.left;
+      const y2 = calloutRect.top + calloutRect.height / 2 - slideRect.top;
+
+      // Arrow starts from the selected token when available.
+      const codeWrap = document.getElementById('tut-slide-code-wrap');
+      const codeWrapRect = codeWrap ? codeWrap.getBoundingClientRect() : lineRect;
+      const inlineHighlight = ann.selectedText
+        ? lineEl.querySelector(`.tut-inline-highlight[data-selected-text="${CSS.escape(ann.selectedText)}"]`) || lineEl.querySelector('.tut-inline-highlight')
+        : null;
+
+      let x1;
+      let y1;
+      if (inlineHighlight) {
+        const tokenRect = inlineHighlight.getBoundingClientRect();
+        const tokenLeft = tokenRect.left - slideRect.left;
+        const tokenRight = tokenRect.right - slideRect.left;
+        const noteIsRight = annLeft >= tokenRight;
+        x1 = noteIsRight ? tokenRight + 4 : tokenLeft - 4;
+        y1 = tokenRect.top + tokenRect.height / 2 - slideRect.top;
+      } else {
+        const noteIsRight = annLeft >= (codeWrapRect.right - slideRect.left);
+        x1 = noteIsRight
+          ? codeWrapRect.right - slideRect.left + 4
+          : codeWrapRect.left - slideRect.left - 4;
+        y1 = lineRect.top + lineRect.height / 2 - slideRect.top;
+      }
+
+      const x2 = (annLeft >= x1 - 10) ? annLeft - 4 : annRight + 4;
 
       const arrowColor = COLORS[ann.color] || COLORS.blue;
       const markerId   = `marker-${ann.id}`;
@@ -414,19 +817,35 @@ window.TutorialBuilder = (function () {
       defs.appendChild(marker);
       arrowsSvg.appendChild(defs);
 
-      // Bezier curve: control points curve outward naturally
-      const dist = x2 - x1;
-      const cx1  = x1 + Math.max(dist * 0.55, 40);
-      const cy1  = y1;
-      const cx2  = x2 - Math.max(dist * 0.25, 20);
-      const cy2  = y2;
+      let pathData = '';
+      if (ann.pathStyle === 'line') {
+        pathData = `M${x1},${y1} L${x2},${y2}`;
+      } else if (ann.pathStyle === 'grid') {
+        const midX = x1 + (x2 - x1) * 0.45;
+        pathData = `M${x1},${y1} L${midX},${y1} L${midX},${y2} L${x2},${y2}`;
+      } else {
+        const pull = Math.min(Math.max(Math.abs(x2 - x1) * 0.5, 40), 140);
+        let cx1, cy1, cx2, cy2;
+        if (x2 >= x1) {
+          cx1 = x1 + pull;       cy1 = y1;
+          cx2 = x2 - pull * 0.4; cy2 = y2;
+        } else {
+          cx1 = x1 - pull;       cy1 = y1;
+          cx2 = x2 + pull * 0.4; cy2 = y2;
+        }
+        pathData = `M${x1},${y1} C${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`;
+      }
+
+      let dash = null;
+      if (ann.linePattern === 'dashed') dash = '6,4';
+      if (ann.linePattern === 'dotted') dash = '2,5';
 
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', `M${x1},${y1} C${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`);
+      path.setAttribute('d', pathData);
       path.setAttribute('stroke', arrowColor);
       path.setAttribute('stroke-width', '1.5');
       path.setAttribute('fill', 'none');
-      path.setAttribute('stroke-dasharray', '5,3');
+      if (dash) path.setAttribute('stroke-dasharray', dash);
       path.setAttribute('opacity', '0.75');
       path.setAttribute('marker-end', `url(#${markerId})`);
 
@@ -473,28 +892,80 @@ window.TutorialBuilder = (function () {
       return;
     }
 
+    const exportBtn = document.getElementById('tut-export-btn');
+    const originalExportLabel = exportBtn ? exportBtn.innerHTML : '';
+
     // Temporarily hide UI-only elements
-    const controls = annotLayer.querySelectorAll('.tut-callout-controls, .tut-drag-handle, .tut-resize-handle');
+    const controls = annotLayer.querySelectorAll(
+      '.tut-callout-controls, .tut-drag-handle, .tut-resize-handle'
+    );
     controls.forEach(el => { el.style.opacity = '0'; el.style.pointerEvents = 'none'; });
+
+    const emptyHintWasHidden = emptyHint ? emptyHint.classList.contains('hidden') : true;
+    if (emptyHint) emptyHint.classList.add('hidden');
+
+    // Hide code-wrap interactive chrome
+    const cwResize = document.getElementById('tut-code-wrap-resize');
+    if (cwResize) cwResize.style.display = 'none';
+
     const hadSelected = selectedId;
     deselectAll();
-    if (exporting) exporting.classList.remove('hidden');
+    if (exportBtn) {
+      exportBtn.disabled = true;
+      exportBtn.innerHTML = '⏳ Generating PNG…';
+    }
 
-    html2canvas(slideEl, {
+    // Snapshot the full canvas panel so absolutely-positioned elements are included
+    const captureEl = slideEl;
+    const slideRect = captureEl.getBoundingClientRect();
+
+    html2canvas(captureEl, {
       backgroundColor: '#0d1117',
       scale: 2,
       useCORS: true,
-      allowTaint: false,
+      allowTaint: true,
       logging: false,
+      width:  Math.ceil(slideRect.width),
+      height: Math.ceil(slideRect.height),
+      scrollX: 0,
+      scrollY: 0,
+      onclone: (clonedDoc) => {
+        const clonedOverlay = clonedDoc.getElementById('tut-exporting-overlay');
+        if (clonedOverlay) clonedOverlay.style.display = 'none';
+
+        const clonedEmptyHint = clonedDoc.getElementById('tut-empty-hint');
+        if (clonedEmptyHint) clonedEmptyHint.style.display = 'none';
+
+        clonedDoc.querySelectorAll(
+          '.tut-callout-controls, .tut-drag-handle, .tut-resize-handle, #tut-code-wrap-resize'
+        ).forEach((el) => {
+          el.style.display = 'none';
+          el.style.opacity = '0';
+        });
+      },
     }).then(canvas => {
+      const filename = sanitizeFilename(titleInput ? titleInput.value : 'tutorial') + '.png';
+      const dataUrl  = canvas.toDataURL('image/png');
+
+      // Must be in DOM for Firefox / Chrome to trigger the download
       const link = document.createElement('a');
-      link.download = sanitizeFilename(titleInput ? titleInput.value : 'tutorial') + '.png';
-      link.href = canvas.toDataURL('image/png');
+      link.download = filename;
+      link.href = dataUrl;
+      link.style.display = 'none';
+      document.body.appendChild(link);
       link.click();
+      setTimeout(() => document.body.removeChild(link), 100);
     }).catch(err => {
       console.error('Tutorial export failed:', err);
+      alert('PNG export failed. Check the browser console for details.');
     }).finally(() => {
       controls.forEach(el => { el.style.opacity = ''; el.style.pointerEvents = ''; });
+      if (cwResize) cwResize.style.display = '';
+      if (emptyHint && !emptyHintWasHidden) emptyHint.classList.remove('hidden');
+      if (exportBtn) {
+        exportBtn.disabled = false;
+        exportBtn.innerHTML = originalExportLabel;
+      }
       if (exporting) exporting.classList.add('hidden');
       if (hadSelected != null) selectAnnotation(hadSelected);
     });
@@ -502,6 +973,95 @@ window.TutorialBuilder = (function () {
 
   function sanitizeFilename(name) {
     return (name || 'tutorial').replace(/[^a-z0-9_\-]/gi, '-').substring(0, 60) || 'tutorial';
+  }
+
+  // ── Insert to Slide (add as image element to current Visual Builder slide) ───
+  function insertToSlide() {
+    if (!window.html2canvas) {
+      alert('html2canvas is not loaded. Cannot generate image.');
+      return;
+    }
+
+    const insertBtn = document.getElementById('tut-insert-btn');
+    const originalLabel = insertBtn ? insertBtn.innerHTML : '';
+
+    // Temporarily hide UI controls
+    const controls = annotLayer.querySelectorAll(
+      '.tut-callout-controls, .tut-drag-handle, .tut-resize-handle'
+    );
+    controls.forEach(el => { el.style.opacity = '0'; el.style.pointerEvents = 'none'; });
+
+    const emptyHintWasHidden = emptyHint ? emptyHint.classList.contains('hidden') : true;
+    if (emptyHint) emptyHint.classList.add('hidden');
+
+    const cwResize = document.getElementById('tut-code-wrap-resize');
+    if (cwResize) cwResize.style.display = 'none';
+
+    const hadSelected = selectedId;
+    deselectAll();
+
+    if (insertBtn) {
+      insertBtn.disabled = true;
+      insertBtn.innerHTML = '⏳ Generating…';
+    }
+
+    const captureEl = slideEl;
+    const slideRect = captureEl.getBoundingClientRect();
+
+    html2canvas(captureEl, {
+      backgroundColor: '#0d1117',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      width: Math.ceil(slideRect.width),
+      height: Math.ceil(slideRect.height),
+      scrollX: 0,
+      scrollY: 0,
+      onclone: (clonedDoc) => {
+        const clonedOverlay = clonedDoc.getElementById('tut-exporting-overlay');
+        if (clonedOverlay) clonedOverlay.style.display = 'none';
+        const clonedEmptyHint = clonedDoc.getElementById('tut-empty-hint');
+        if (clonedEmptyHint) clonedEmptyHint.style.display = 'none';
+        clonedDoc.querySelectorAll(
+          '.tut-callout-controls, .tut-drag-handle, .tut-resize-handle, #tut-code-wrap-resize'
+        ).forEach((el) => {
+          el.style.display = 'none';
+          el.style.opacity = '0';
+        });
+      },
+    }).then(canvas => {
+      const dataUrl = canvas.toDataURL('image/png');
+      const name = sanitizeFilename(titleInput ? titleInput.value : 'tutorial');
+
+      // Insert as image element in current Visual Builder slide
+      if (window.VisualBuilder) {
+        const el = window.VisualBuilder.addElement('image');
+        if (el) {
+          window.VisualBuilder.updateElement(el.id, { url: dataUrl, alt: name });
+        }
+        // Switch to Visual mode so user sees the result
+        const visualRadio = document.querySelector('input[name="mode"][value="visual"]');
+        if (visualRadio) {
+          visualRadio.checked = true;
+          visualRadio.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      } else {
+        alert('Visual Builder not available.');
+      }
+    }).catch(err => {
+      console.error('Tutorial insert failed:', err);
+      alert('Insert to slide failed. Check the browser console.');
+    }).finally(() => {
+      controls.forEach(el => { el.style.opacity = ''; el.style.pointerEvents = ''; });
+      if (cwResize) cwResize.style.display = '';
+      if (emptyHint && !emptyHintWasHidden) emptyHint.classList.remove('hidden');
+      if (insertBtn) {
+        insertBtn.disabled = false;
+        insertBtn.innerHTML = originalLabel;
+      }
+      if (hadSelected != null) selectAnnotation(hadSelected);
+    });
   }
 
   return { init, updateArrows };
