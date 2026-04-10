@@ -33,7 +33,7 @@
   <!-- ========== TOP HEADER BAR ========== -->
   <header id="app-header">
     <div class="header-left">
-      <h1 class="logo"><span class="logo-icon">📊</span> MarkupPptHtml</h1>
+      <h1 class="logo"><span class="logo-icon">📊</span> MarkupPptHtml | Marp | ExplainDev | Obsidianmd</h1>
     </div>
     <div class="header-center">
       <div class="mode-switcher">
@@ -515,6 +515,14 @@
               <option value="">None</option><option value="invert">invert</option><option value="lead">lead</option>
             </select>
           </div>
+          <div class="prop-group">
+            <label>Slide Header</label>
+            <input type="text" id="dir-slide-header" placeholder="Overrides global header for this slide">
+          </div>
+          <div class="prop-group">
+            <label>Slide Footer</label>
+            <input type="text" id="dir-slide-footer" placeholder="Overrides global footer for this slide">
+          </div>
         </div>
       </div>
 
@@ -523,6 +531,26 @@
         <div class="props-form">
           <h4 class="section-title">Custom CSS</h4>
           <p class="tab-hint">Marpit theme-css compatible</p>
+          <div class="prop-group">
+            <label>Quick Hashtags</label>
+            <div id="css-tags" class="css-tags">
+              <button type="button" class="css-tag-btn" data-class="tag-spotlight" data-css=".slide-frame.tag-spotlight { box-shadow: inset 0 0 0 3px rgba(255,255,255,0.18); }\n.slide-frame.tag-spotlight h1, .slide-frame.tag-spotlight h2 { color: #ffd166; }">#spotlight</button>
+              <button type="button" class="css-tag-btn" data-class="tag-clean" data-css=".slide-frame.tag-clean { background: #ffffff !important; color: #0f172a !important; }\n.slide-frame.tag-clean h1, .slide-frame.tag-clean h2 { color: #0b3b66; }">#clean</button>
+              <button type="button" class="css-tag-btn" data-class="tag-center" data-css=".slide-frame.tag-center { justify-content: center; text-align: center; }">#center</button>
+              <button type="button" class="css-tag-btn" data-class="tag-code" data-css=".slide-frame.tag-code pre { border: 1px solid rgba(180,190,254,0.35); box-shadow: 0 0 0 1px rgba(180,190,254,0.18), 0 12px 30px rgba(0,0,0,0.35); }">#code</button>
+              <button type="button" class="css-tag-btn" data-class="tag-title" data-css=".slide-frame.tag-title { justify-content: center; text-align: center; }\n.slide-frame.tag-title h1 { font-size: 3.2em; letter-spacing: -0.02em; margin-bottom: 0.2em; }\n.slide-frame.tag-title p { font-size: 1.2em; opacity: 0.9; }">#title</button>
+              <button type="button" class="css-tag-btn" data-class="tag-warning" data-css=".slide-frame.tag-warning { background: linear-gradient(135deg, #2b1300, #4a1d00) !important; color: #ffe8cc !important; }\n.slide-frame.tag-warning h1, .slide-frame.tag-warning h2 { color: #ffcf66 !important; }\n.slide-frame.tag-warning blockquote, .slide-frame.tag-warning pre { border-color: rgba(255,207,102,0.4); }">#warning</button>
+              <button type="button" class="css-tag-btn" data-class="tag-demo" data-css=".slide-frame.tag-demo { background: radial-gradient(circle at 12% 10%, rgba(91,192,190,0.16), transparent 44%), #0f172a !important; }\n.slide-frame.tag-demo h1, .slide-frame.tag-demo h2 { color: #67e8f9; }\n.slide-frame.tag-demo .slide-number { background: rgba(103,232,249,0.16); border-radius: 999px; padding: 2px 8px; }">#demo</button>
+              <button type="button" class="css-tag-btn" data-class="tag-two-column" data-css=".slide-frame.tag-two-column .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 2.2rem; align-items: start; }\n.slide-frame.tag-two-column .columns .col { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 1rem; }">#two-column</button>
+              <button type="button" class="css-tag-btn" data-class="tag-minimal" data-css=".slide-frame.tag-minimal { box-shadow: none; background-image: none !important; }\n.slide-frame.tag-minimal h1, .slide-frame.tag-minimal h2 { font-weight: 700; letter-spacing: -0.01em; }\n.slide-frame.tag-minimal .slide-progress, .slide-frame.tag-minimal .slide-number { display: none; }">#minimal</button>
+              <button type="button" class="css-tag-btn" data-class="tag-focus" data-css=".slide-frame.tag-focus { justify-content: center; }\n.slide-frame.tag-focus h1, .slide-frame.tag-focus h2 { font-size: 2.6em; line-height: 1.1; }\n.slide-frame.tag-focus p, .slide-frame.tag-focus li { font-size: 1.15em; }">#focus</button>
+            </div>
+            <div class="css-tag-scope">
+              <label><input type="radio" name="css-tag-scope" value="current" checked> Current page</label>
+              <label><input type="radio" name="css-tag-scope" value="all"> All pages</label>
+            </div>
+            <button type="button" id="btn-clear-css-tags" class="btn-tag-remove">Remove Hashtag Styles</button>
+          </div>
           <textarea id="custom-css-editor" rows="15" placeholder="/* Custom presentation styles */
 section { font-family: 'Helvetica Neue'; }
 .columns { display:flex; gap:2em; }

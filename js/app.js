@@ -851,17 +851,95 @@
 
   // ===== Custom CSS =====
   function setupCustomCSS() {
-    document.getElementById('btn-apply-css')?.addEventListener('click', () => {
-      const css = document.getElementById('custom-css-editor')?.value;
-      if (!css) return;
+    const editor = document.getElementById('custom-css-editor');
+
+    const ensureCustomStyleTag = () => {
       let existing = document.getElementById('custom-user-css');
       if (!existing) {
         existing = document.createElement('style');
         existing.id = 'custom-user-css';
         document.head.appendChild(existing);
       }
-      existing.textContent = css;
+      return existing;
+    };
+
+    const buildPreviewCss = (css) => {
+      const marpitAlias = String(css || '')
+        .replace(/:root\b/g, '.slide-frame')
+        .replace(/(^|[,{]\s*)section(?=[\s.#:[,{>+~]|$)/gm, '$1.slide-frame');
+      return css + '\n\n/* Live preview Marpit aliases */\n' + marpitAlias;
+    };
+
+    const applyCustomCss = (css) => {
+      if (!css) return;
+      const styleTag = ensureCustomStyleTag();
+      styleTag.textContent = buildPreviewCss(css);
+      window.DirectivesPanel.setGlobalDirectives({ customStyle: css, style: css });
+    };
+
+    document.getElementById('btn-apply-css')?.addEventListener('click', () => {
+      const css = editor?.value;
+      if (!css) return;
+      applyCustomCss(css);
       toast('Custom CSS applied');
+    });
+
+    const addClassToken = (existing, token) => {
+      const list = String(existing || '').split(/\s+/).filter(Boolean);
+      if (!list.includes(token)) list.push(token);
+      return list.join(' ');
+    };
+
+    const removeTagTokens = (existing) => String(existing || '').split(/\s+/).filter(Boolean).filter(t => !t.startsWith('tag-')).join(' ');
+
+    document.querySelectorAll('#css-tags .css-tag-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const classToken = btn.dataset.class;
+        const cssSnippet = btn.dataset.css || '';
+        if (!classToken || !editor) return;
+
+        if (cssSnippet && !editor.value.includes(cssSnippet)) {
+          editor.value = (editor.value ? editor.value + '\n\n' : '') + cssSnippet;
+        }
+        applyCustomCss(editor.value);
+
+        const scope = document.querySelector('input[name="css-tag-scope"]:checked')?.value || 'current';
+        if (scope === 'all') {
+          window.VisualBuilder.slideModels.forEach(slide => {
+            slide.directives = slide.directives || {};
+            slide.directives.class = addClassToken(slide.directives.class, classToken);
+          });
+        } else {
+          const slide = window.VisualBuilder.getActiveSlide();
+          if (slide) {
+            slide.directives = slide.directives || {};
+            slide.directives.class = addClassToken(slide.directives.class, classToken);
+          }
+        }
+
+        window.DirectivesPanel.renderSlideDirectives();
+        onDirectivesChange();
+        toast('#' + classToken.replace(/^tag-/, '') + ' applied to ' + (scope === 'all' ? 'all pages' : 'current page'));
+      });
+    });
+
+    document.getElementById('btn-clear-css-tags')?.addEventListener('click', () => {
+      const scope = document.querySelector('input[name="css-tag-scope"]:checked')?.value || 'current';
+      if (scope === 'all') {
+        window.VisualBuilder.slideModels.forEach(slide => {
+          slide.directives = slide.directives || {};
+          slide.directives.class = removeTagTokens(slide.directives.class);
+        });
+      } else {
+        const slide = window.VisualBuilder.getActiveSlide();
+        if (slide) {
+          slide.directives = slide.directives || {};
+          slide.directives.class = removeTagTokens(slide.directives.class);
+        }
+      }
+      window.DirectivesPanel.renderSlideDirectives();
+      onDirectivesChange();
+      toast('Hashtag styles removed from ' + (scope === 'all' ? 'all pages' : 'current page'));
     });
   }
 
@@ -933,6 +1011,8 @@
       // Render elements to HTML
       let html = '';
       slide.elements.forEach(el => {
+        // Background images are rendered by slide.bgImage, so skip inline duplication.
+        if (el.type === 'image' && el.bgMode) return;
         html += window.VisualBuilder.renderElementHTML(el);
       });
 
@@ -948,6 +1028,8 @@
           bgImage = {
             url: el.url,
             position: el.bgMode.replace('bg ', '').replace('bg', 'cover') || 'cover',
+            sizing: el.sizing || '',
+            filters: Array.isArray(el.filters) ? [...el.filters] : [],
           };
         }
       });
@@ -958,8 +1040,8 @@
         theme,
         directives: { ...slide.directives },
         bgImage,
-        header: globals.header || '',
-        footer: globals.footer || '',
+        header: slide.directives?.header || globals.header || '',
+        footer: slide.directives?.footer || globals.footer || '',
         logo: globals.logo || '',
         paginate: globals.paginate,
       };
@@ -1039,6 +1121,11 @@
   // ===== Keyboard Shortcuts =====
   function setupKeyboardShortcuts() {
     document.addEventListener('keydown', (e) => {
+      const presenterMode = document.getElementById('presenter-mode');
+      if (presenterMode && !presenterMode.classList.contains('hidden')) {
+        return;
+      }
+
       // Don't capture when in text inputs
       const tag = e.target.tagName;
       const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';

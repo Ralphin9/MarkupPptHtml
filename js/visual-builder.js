@@ -330,7 +330,8 @@ window.VisualBuilder = (function () {
     // Apply slide theme styling to the canvas (always, even for empty slides)
     const canvas = document.getElementById('visual-canvas');
     const theme = slide.directives?.theme || 'default';
-    canvas.className = 'slide-canvas-visual slide-theme-' + theme;
+    const classTokens = String(slide.directives?.class || '').split(/\s+/).filter(Boolean).join(' ');
+    canvas.className = 'slide-canvas-visual slide-theme-' + theme + (classTokens ? ' ' + classTokens : '');
 
     // Apply per-slide directives as inline styles
     const dirs = slide.directives || {};
@@ -369,6 +370,10 @@ window.VisualBuilder = (function () {
       content.className = 've-content';
       content.innerHTML = renderElementHTML(el);
       div.appendChild(content);
+
+      if (el.type === 'image' && !el.bgMode) {
+        attachImageResizeHandle(div, el);
+      }
 
       // Click to select
       div.addEventListener('click', (e) => {
@@ -428,23 +433,80 @@ window.VisualBuilder = (function () {
     canvas.appendChild(overlay);
   }
 
+  function attachImageResizeHandle(container, el) {
+    const img = container.querySelector('.ve-content img');
+    if (!img) return;
+
+    const handle = document.createElement('span');
+    handle.className = 've-image-resize-handle';
+    handle.title = 'Drag to resize image';
+    handle.draggable = false;
+    container.appendChild(handle);
+
+    handle.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const rect = img.getBoundingClientRect();
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startW = Math.max(80, rect.width);
+      const startH = Math.max(60, rect.height);
+      let nextW = startW;
+      let nextH = startH;
+
+      const onMove = (ev) => {
+        ev.preventDefault();
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        nextW = Math.max(80, Math.round(startW + dx));
+        nextH = Math.max(60, Math.round(startH + dy));
+        img.style.maxWidth = 'none';
+        img.style.maxHeight = 'none';
+        img.style.width = nextW + 'px';
+        img.style.height = nextH + 'px';
+      };
+
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        updateElement(el.id, { width: nextW, height: nextH });
+      };
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  }
+
   function renderHeaderFooterOverlays(canvas) {
     // Remove existing header/footer overlays
     canvas.querySelectorAll('.canvas-header-overlay, .canvas-footer-overlay').forEach(el => el.remove());
 
     const globals = window.DirectivesPanel?.getGlobalDirectives();
     if (!globals) return;
+    const slide = getActiveSlide();
+    const headerText = slide?.directives?.header || globals.header;
+    const footerText = slide?.directives?.footer || globals.footer;
 
-    if (globals.header) {
+    const renderOverlayMarkdown = (text) => {
+      const src = String(text || '').trim();
+      if (!src) return '';
+      if (typeof marked !== 'undefined' && typeof marked.parseInline === 'function') {
+        return marked.parseInline(src);
+      }
+      return escapeHtml(src);
+    };
+
+    if (headerText) {
       const h = document.createElement('div');
       h.className = 'canvas-header-overlay';
-      h.textContent = globals.header;
+      h.innerHTML = renderOverlayMarkdown(headerText);
       canvas.appendChild(h);
     }
-    if (globals.footer) {
+    if (footerText) {
       const f = document.createElement('div');
       f.className = 'canvas-footer-overlay';
-      f.textContent = globals.footer;
+      f.innerHTML = renderOverlayMarkdown(footerText);
       canvas.appendChild(f);
     }
   }
@@ -476,7 +538,7 @@ window.VisualBuilder = (function () {
       }
       case 'fragments': {
         const items = (el.content || 'Item').split('\n').filter(Boolean);
-        return '<ul>' + items.map(i => '<li class="fragment">' + escapeHtml(i.replace(/^[*-]\s*/, '')) + '</li>').join('') + '</ul>';
+        return '<ul data-marpit-fragments="' + items.length + '">' + items.map((i, idx) => '<li class="fragment" data-marpit-fragment="' + (idx + 1) + '">' + escapeHtml(i.replace(/^[*-]\s*/, '')) + '</li>').join('') + '</ul>';
       }
       case 'code': {
         const lang = el.language ? ' class="language-' + el.language + '"' : '';
@@ -490,9 +552,41 @@ window.VisualBuilder = (function () {
       }
       case 'image': {
         let style = '';
-        if (el.sizing) style += 'max-width:' + (el.sizing.includes('%') || el.sizing.includes('px') ? el.sizing : '') + ';';
-        if (el.width) style += 'width:' + el.width + (el.width.match(/\d$/) ? 'px' : '') + ';';
-        if (el.height) style += 'height:' + el.height + (el.height.match(/\d$/) ? 'px' : '') + ';';
+        const sizing = String(el.sizing || '').trim().toLowerCase();
+        const hasExplicitSize = sizing.includes('%') || sizing.includes('px');
+        const hasManualDimensions = el.width !== undefined && el.width !== null && el.width !== '';
+
+        // Map Marpit-style sizing controls into concrete CSS behavior in the visual canvas.
+        if (hasExplicitSize) {
+          style += 'max-width:' + sizing + ';';
+        } else if (sizing === 'cover' || sizing === 'contain' || sizing === 'fit' || sizing === 'auto') {
+          const fitMap = {
+            cover: 'cover',
+            contain: 'contain',
+            fit: 'fill',
+            auto: 'scale-down',
+          };
+          style += 'width:100%;';
+          style += 'height:' + (sizing === 'cover' ? '320px' : '260px') + ';';
+          style += 'object-fit:' + fitMap[sizing] + ';';
+          style += 'object-position:center;';
+          style += 'display:block;';
+        }
+
+        if (hasManualDimensions) {
+          style += 'max-width:none;';
+          style += 'max-height:none;';
+          style += 'display:block;';
+        }
+
+        if (el.width !== undefined && el.width !== null && el.width !== '') {
+          const widthVal = String(el.width).trim();
+          style += 'width:' + widthVal + (/^\d+(\.\d+)?$/.test(widthVal) ? 'px' : '') + ';';
+        }
+        if (el.height !== undefined && el.height !== null && el.height !== '') {
+          const heightVal = String(el.height).trim();
+          style += 'height:' + heightVal + (/^\d+(\.\d+)?$/.test(heightVal) ? 'px' : '') + ';';
+        }
         let filterStyle = '';
         if (el.filters && el.filters.length) {
           filterStyle = 'filter:' + el.filters.map(f => {

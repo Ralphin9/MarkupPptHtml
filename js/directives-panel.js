@@ -60,7 +60,7 @@ window.DirectivesPanel = (function () {
   function bindSlideControls() {
     const ids = [
       'dir-bg-color', 'dir-bg-color-text', 'dir-text-color', 'dir-text-color-text',
-      'dir-bg-image', 'dir-bg-size', 'dir-class',
+      'dir-bg-image', 'dir-bg-size', 'dir-class', 'dir-slide-header', 'dir-slide-footer',
     ];
 
     ids.forEach(id => {
@@ -107,12 +107,16 @@ window.DirectivesPanel = (function () {
     const bgImage  = document.getElementById('dir-bg-image');
     const bgSize   = document.getElementById('dir-bg-size');
     const cls      = document.getElementById('dir-class');
+    const hdr      = document.getElementById('dir-slide-header');
+    const ftr      = document.getElementById('dir-slide-footer');
 
     if (bgColor)  dirs.backgroundColor = bgColor.value.trim();
     if (txtColor) dirs.color = txtColor.value.trim();
     if (bgImage)  dirs.backgroundImage = bgImage.value.trim();
     if (bgSize)   dirs.backgroundSize = bgSize.value.trim();
     if (cls)      dirs.class = cls.value.trim();
+    if (hdr)      dirs.header = hdr.value.trim();
+    if (ftr)      dirs.footer = ftr.value.trim();
 
     slide.directives = dirs;
   }
@@ -148,6 +152,8 @@ window.DirectivesPanel = (function () {
     setValue('dir-bg-image', dirs.backgroundImage || '');
     setValue('dir-bg-size', dirs.backgroundSize || '');
     setValue('dir-class', dirs.class || '');
+    setValue('dir-slide-header', dirs.header || '');
+    setValue('dir-slide-footer', dirs.footer || '');
 
     // Sync pickers
     const bgPicker = document.getElementById('dir-bg-color');

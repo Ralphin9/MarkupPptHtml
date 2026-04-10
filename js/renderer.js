@@ -48,10 +48,10 @@ window.SlideRenderer = (function () {
   function buildOverlaysHTML(slide, slideNumber, totalSlides) {
     let overlays = '';
     if (slide.header) {
-      overlays += `<div class="slide-header-overlay">${escapeHTML(slide.header)}</div>`;
+      overlays += `<div class="slide-header-overlay">${renderInlineMarkdown(slide.header)}</div>`;
     }
     if (slide.footer) {
-      overlays += `<div class="slide-footer-overlay">${escapeHTML(slide.footer)}</div>`;
+      overlays += `<div class="slide-footer-overlay">${renderInlineMarkdown(slide.footer)}</div>`;
     }
     if (slide.logo) {
       overlays += `<img class="slide-logo-overlay" src="${encodeURI(slide.logo)}" alt="logo" onerror="this.style.display='none'">`;
@@ -65,7 +65,17 @@ window.SlideRenderer = (function () {
 
   /** Escape HTML for safe text rendering */
   function escapeHTML(str) {
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /** Render inline markdown used by header/footer directives. */
+  function renderInlineMarkdown(text) {
+    const src = String(text ?? '').trim();
+    if (!src) return '';
+    if (typeof marked !== 'undefined' && typeof marked.parseInline === 'function') {
+      return marked.parseInline(src);
+    }
+    return escapeHTML(src);
   }
 
   /** Render a single slide to HTML string */
@@ -74,6 +84,7 @@ window.SlideRenderer = (function () {
     const dirs = slide.directives || {};
     const inlineStyle = buildInlineStyles(dirs);
     const bgClass = isGradientTheme(theme) ? 'bg-gradient' : 'bg-solid';
+    const directiveClasses = String(dirs.class || '').split(/\s+/).filter(Boolean).join(' ');
 
     let typeClass = 'slide-type-' + slide.type;
     let extraClass = '';
@@ -88,8 +99,8 @@ window.SlideRenderer = (function () {
       }
     }
 
-    // Invert class
-    if (dirs.class === 'invert' || dirs.class === 'lead') {
+    // Keep existing visual behavior for invert/lead presets.
+    if (directiveClasses.split(/\s+/).some(c => c === 'invert' || c === 'lead')) {
       extraClass += ' slide-invert';
     }
 
@@ -105,18 +116,30 @@ window.SlideRenderer = (function () {
         : textSide + imgSide;
     }
 
-    // For bg-image (cover)
-    if (slide.bgImage && slide.bgImage.position === 'cover') {
-      // inline the bg image
+    // For bg-image (cover/contain/fit)
+    if (slide.bgImage && !['left', 'right'].includes(slide.bgImage.position)) {
+      const position = (slide.bgImage.position || 'cover').toLowerCase();
+      const sizing = (slide.bgImage.sizing || '').toLowerCase();
+      let bgSize = 'cover';
+      if (sizing) {
+        if (sizing === 'fit') bgSize = '100% 100%';
+        else if (['cover', 'contain', 'auto'].includes(sizing) || sizing.includes('%') || sizing.includes('px')) bgSize = sizing;
+      } else if (position === 'contain') {
+        bgSize = 'contain';
+      } else if (position === 'fit') {
+        bgSize = '100% 100%';
+      }
+
+      const bgPos = position === 'left' ? 'left center' : position === 'right' ? 'right center' : 'center';
       const existingStyle = inlineStyle ? inlineStyle + ';' : '';
-      return `<div class="slide-frame ${themeClass(theme)} ${bgClass} ${typeClass} bg-image ${extraClass}"
-        style="${existingStyle}background-image:url('${encodeURI(slide.bgImage.url)}');background-size:cover;background-position:center;">
+      return `<div class="slide-frame ${themeClass(theme)} ${bgClass} ${typeClass} ${directiveClasses} bg-image ${extraClass}"
+        style="${existingStyle}background-image:url('${encodeURI(slide.bgImage.url)}');background-size:${bgSize};background-position:${bgPos};background-repeat:no-repeat;">
         ${content}
         ${overlays}
       </div>`;
     }
 
-    return `<div class="slide-frame ${themeClass(theme)} ${bgClass} ${typeClass} ${extraClass}"
+    return `<div class="slide-frame ${themeClass(theme)} ${bgClass} ${typeClass} ${directiveClasses} ${extraClass}"
       style="${inlineStyle}">
       ${content}
       ${overlays}

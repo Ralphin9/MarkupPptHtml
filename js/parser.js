@@ -154,8 +154,14 @@ window.SlideParser = (function () {
   function processFragments(html, rawMd) {
     // Check if any lines start with * (not **)
     if (!rawMd.match(/^\*\s+[^\*]/m)) return html;
-    // Wrap <li> items that came from * in fragment class
-    return html.replace(/<li>/g, '<li class="fragment">');
+    // Wrap <li> items with Marpit-compatible fragment attributes.
+    let count = 0;
+    const withItems = html.replace(/<li>/g, () => {
+      count += 1;
+      return '<li class="fragment" data-marpit-fragment="' + count + '">';
+    });
+    if (count === 0) return html;
+    return withItems.replace(/<ul>/, '<ul data-marpit-fragments="' + count + '">');
   }
 
   // ===== Handle bg images from Marpit syntax =====
