@@ -1,0 +1,57 @@
+/* ===== AWESOME-MARP THEME: PURPLE ===== */
+/* Inspired by https://github.com/favourhong/Awesome-Marp */
+
+.slide-theme-awesome-marp-purple {
+  --slide-bg: #f3e5f5;
+  --slide-fg: #2e0a38;
+  --slide-heading: #7b1fa2;
+  --slide-accent: #9c27b0;
+  --slide-code-bg: #e1bee7;
+  --slide-code-fg: #4a0072;
+  --slide-border: #ce93d8;
+  --slide-muted: #9c6aab;
+  --slide-font: 'Calibri', 'Arial', sans-serif;
+}
+
+.slide-theme-awesome-marp-purple.slide-frame {
+  background: var(--slide-bg);
+  color: var(--slide-fg);
+  font-family: var(--slide-font);
+  border-top: 5px solid var(--slide-accent);
+}
+
+.slide-theme-awesome-marp-purple .slide-frame h1,
+.slide-theme-awesome-marp-purple .slide-frame h2,
+.slide-theme-awesome-marp-purple .slide-frame h3,
+.slide-theme-awesome-marp-purple h1,
+.slide-theme-awesome-marp-purple h2,
+.slide-theme-awesome-marp-purple h3 {
+  color: var(--slide-heading);
+  border-bottom: 2px solid var(--slide-accent);
+  padding-bottom: 6px;
+  margin-bottom: 16px;
+}
+
+.slide-theme-awesome-marp-purple pre,
+.slide-theme-awesome-marp-purple code {
+  background: var(--slide-code-bg);
+  color: var(--slide-code-fg);
+  border-radius: 4px;
+}
+
+.slide-theme-awesome-marp-purple blockquote {
+  border-left: 4px solid var(--slide-accent);
+  background: rgba(156,39,176,0.07);
+  padding: 8px 16px;
+  color: var(--slide-muted);
+  border-radius: 0 6px 6px 0;
+}
+
+.slide-theme-awesome-marp-purple a {
+  color: var(--slide-accent);
+}
+
+.slide-theme-awesome-marp-purple .slide-number {
+  color: var(--slide-muted);
+}
+

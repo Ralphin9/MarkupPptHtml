@@ -825,12 +825,37 @@
     if (badge) badge.textContent = total + ' slide' + (total !== 1 ? 's' : '');
   }
 
+  // ===== Awesome-Marp Dynamic Theme Loader =====
+  const AWESOME_MARP_THEMES = [
+    'awesome-marp-blue',
+    'awesome-marp-dark',
+    'awesome-marp-green',
+    'awesome-marp-red',
+    'awesome-marp-purple',
+    'awesome-marp-brown',
+  ];
+
+  function loadAwesomeMarpTheme(theme) {
+    // Remove any previously loaded Awesome-Marp theme link
+    const existing = document.getElementById('awesome-marp-theme-link');
+    if (existing) existing.remove();
+
+    if (!AWESOME_MARP_THEMES.includes(theme)) return;
+
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.id = 'awesome-marp-theme-link';
+    link.href = 'themes/' + theme + '.css';
+    document.head.appendChild(link);
+  }
+
   // ===== Theme Select (header) =====
   function setupThemeSelect() {
     const sel = document.getElementById('theme-select');
     if (!sel) return;
     sel.addEventListener('change', () => {
       const theme = sel.value;
+      loadAwesomeMarpTheme(theme);
       window.DirectivesPanel.setGlobalDirectives({ theme });
       // Also set dir-theme in directives panel
       const dirTheme = document.getElementById('dir-theme');
@@ -842,6 +867,7 @@
     const dirTheme = document.getElementById('dir-theme');
     if (dirTheme) {
       dirTheme.addEventListener('change', () => {
+        loadAwesomeMarpTheme(dirTheme.value);
         sel.value = dirTheme.value;
         window.DirectivesPanel.setGlobalDirectives({ theme: dirTheme.value });
         onDirectivesChange();
