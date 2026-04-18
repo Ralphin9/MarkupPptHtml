@@ -362,12 +362,24 @@
   box-shadow: 0 0 0 2px rgba(88,166,255,.2), 0 6px 24px rgba(0,0,0,.5);
 }
 .tut-callout.color-green  .tut-callout-bubble { border-color: rgba(63,185,80,.5); }
+.tut-callout.color-green  .tut-callout-bubble {
+  background: #e6ffe9;
+}
 .tut-callout.color-green.selected  .tut-callout-bubble { border-color: #3fb950; box-shadow: 0 0 0 2px rgba(63,185,80,.2), 0 6px 24px rgba(0,0,0,.5); }
 .tut-callout.color-orange .tut-callout-bubble { border-color: rgba(210,153,34,.5); }
+.tut-callout.color-orange .tut-callout-bubble {
+  background: #fff8e1;
+}
 .tut-callout.color-orange.selected .tut-callout-bubble { border-color: #d29922; box-shadow: 0 0 0 2px rgba(210,153,34,.2), 0 6px 24px rgba(0,0,0,.5); }
 .tut-callout.color-purple .tut-callout-bubble { border-color: rgba(188,140,255,.5); }
+.tut-callout.color-purple .tut-callout-bubble {
+  background: #f5e9ff;
+}
 .tut-callout.color-purple.selected .tut-callout-bubble { border-color: #bc8cff; box-shadow: 0 0 0 2px rgba(188,140,255,.2), 0 6px 24px rgba(0,0,0,.5); }
 .tut-callout.color-red    .tut-callout-bubble { border-color: rgba(248,81,73,.5); }
+.tut-callout.color-red    .tut-callout-bubble {
+  background: #fff0f3;
+}
 .tut-callout.color-red.selected    .tut-callout-bubble { border-color: #f85149; box-shadow: 0 0 0 2px rgba(248,81,73,.2), 0 6px 24px rgba(0,0,0,.5); }
 
 /* Accent stripe */
@@ -406,6 +418,26 @@
 /* Callout text (contenteditable) */
 .tut-callout-text {
   color: #c9d1d9;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.18);
+}
+.tut-callout.color-green  .tut-callout-text {
+  color: #174a1c;
+}
+.tut-callout.color-orange .tut-callout-text {
+  color: #6b4400;
+}
+.tut-callout.color-purple .tut-callout-text {
+  color: #2e0a38;
+}
+.tut-callout.color-red    .tut-callout-text {
+  color: #6b1a1a;
+}
+.tut-callout.color-blue   .tut-callout-bubble {
+  background: #e3f2fd;
+}
+.tut-callout.color-blue   .tut-callout-text {
+  color: #0d2e5e;
+}
   font-size: 12px;
   line-height: 1.5;
   outline: none;
@@ -413,6 +445,10 @@
   min-height: 1.5em;
   word-break: break-word;
 }
+.tut-callout.color-green  .tut-callout-text { color: #174a1c; } /* dark green for light green bg */
+.tut-callout.color-orange .tut-callout-text { color: #6b4400; } /* dark orange/brown for orange bg */
+.tut-callout.color-purple .tut-callout-text { color: #2e0a38; } /* deep purple for light purple bg */
+.tut-callout.color-red    .tut-callout-text { color: #6b1a1a; } /* dark red for light red bg */
 .tut-callout-text:focus { cursor: text; }
 .tut-callout-text strong { color: #e6edf3; }
 .tut-callout-text code {

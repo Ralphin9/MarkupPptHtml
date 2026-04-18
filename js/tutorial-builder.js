@@ -703,10 +703,18 @@ window.TutorialBuilder = (function () {
       updateArrows();
     };
 
+
     const onUp = () => {
+      // Ensure annotation position and DOM are in sync
+      if (dragging) {
+        dragging.ann.x = parseInt(dragging.el.style.left, 10) || 0;
+        dragging.ann.y = parseInt(dragging.el.style.top, 10) || 0;
+      }
       dragging = null;
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
+      // Force a final arrow update
+      updateArrows();
     };
 
     document.addEventListener('mousemove', onMove);
@@ -806,101 +814,109 @@ window.TutorialBuilder = (function () {
       if (ann.targetLine == null || ann.arrowEnabled === false) return;
       const lineEl     = codeDisplayEl.querySelector(`[data-line="${ann.targetLine}"]`);
       const calloutEl  = annotLayer.querySelector(`[data-id="${ann.id}"]`);
-      if (!lineEl || !calloutEl) return;
-      // Only draw arrow if callout is visible (opacity not '0')
-      const style = window.getComputedStyle(calloutEl);
-      if (style.opacity === '0' || style.display === 'none' || style.visibility === 'hidden') return;
+      annotations.forEach(ann => {
+        if (ann.targetLine == null || ann.arrowEnabled === false) return;
+        const lineEl     = codeDisplayEl.querySelector(`[data-line="${ann.targetLine}"]`);
+        const calloutEl  = annotLayer.querySelector(`[data-id="${ann.id}"]`);
+        if (!lineEl || !calloutEl) return;
+        // Only draw arrow if callout is visible (opacity not '0')
+        const style = window.getComputedStyle(calloutEl);
+        if (style.opacity === '0' || style.display === 'none' || style.visibility === 'hidden') return;
 
+        const lineRect    = lineEl.getBoundingClientRect();
+        const calloutRect = calloutEl.getBoundingClientRect();
+        const annLeft  = calloutRect.left  - slideRect.left;
+        const annRight = calloutRect.right - slideRect.left;
 
-      const lineRect    = lineEl.getBoundingClientRect();
-      const calloutRect = calloutEl.getBoundingClientRect();
-
-      // Arrow ends at the nearest horizontal edge of the callout, vertically centred, but clamped to the callout box.
-      const annLeft  = calloutRect.left  - slideRect.left;
-      const annRight = calloutRect.right - slideRect.left;
-      // Clamp y2 to be within the callout box
-      let y2 = calloutRect.top + calloutRect.height / 2 - slideRect.top;
-      const calloutTop = calloutRect.top - slideRect.top;
-      const calloutBottom = calloutRect.bottom - slideRect.top;
-      if (y2 < calloutTop + 8) y2 = calloutTop + 8; // 8px padding
-      if (y2 > calloutBottom - 8) y2 = calloutBottom - 8;
-
-      // Arrow starts from the selected token when available.
-      const codeWrap = document.getElementById('tut-slide-code-wrap');
-      const codeWrapRect = codeWrap ? codeWrap.getBoundingClientRect() : lineRect;
-      const inlineHighlight = ann.selectedText
-        ? lineEl.querySelector(`.tut-inline-highlight[data-selected-text="${CSS.escape(ann.selectedText)}"]`) || lineEl.querySelector('.tut-inline-highlight')
-        : null;
-
-
-      let x1;
-      let y1;
-      if (inlineHighlight) {
-        const tokenRect = inlineHighlight.getBoundingClientRect();
-        const tokenLeft = tokenRect.left - slideRect.left;
-        const tokenRight = tokenRect.right - slideRect.left;
-        const noteIsRight = annLeft >= tokenRight;
-        x1 = noteIsRight ? tokenRight + 4 : tokenLeft - 4;
-        y1 = tokenRect.top + tokenRect.height / 2 - slideRect.top;
-      } else {
-        const noteIsRight = annLeft >= (codeWrapRect.right - slideRect.left);
-        x1 = noteIsRight
-          ? codeWrapRect.right - slideRect.left + 4
-          : codeWrapRect.left - slideRect.left - 4;
-        y1 = lineRect.top + lineRect.height / 2 - slideRect.top;
-      }
-      // Clamp y1 to be within the callout box vertical bounds (with padding)
-      if (y1 < calloutTop + 8) y1 = calloutTop + 8;
-      if (y1 > calloutBottom - 8) y1 = calloutBottom - 8;
-
-      const x2 = (annLeft >= x1 - 10) ? annLeft - 4 : annRight + 4;
-
-      const arrowColor = COLORS[ann.color] || COLORS.blue;
-      const markerId   = `marker-${ann.id}`;
-
-      // Arrowhead marker
-      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-      const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-      marker.setAttribute('id', markerId);
-      marker.setAttribute('markerWidth', '6');
-      marker.setAttribute('markerHeight', '6');
-      marker.setAttribute('refX', '5');
-      marker.setAttribute('refY', '3');
-      marker.setAttribute('orient', 'auto');
-      const arrowPoly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-      arrowPoly.setAttribute('points', '0 0, 6 3, 0 6');
-      arrowPoly.setAttribute('fill', arrowColor);
-      arrowPoly.setAttribute('opacity', '0.8');
-      marker.appendChild(arrowPoly);
-      defs.appendChild(marker);
-      arrowsSvg.appendChild(defs);
-
-      let pathData = '';
-      if (ann.pathStyle === 'line') {
-        pathData = `M${x1},${y1} L${x2},${y2}`;
-      } else if (ann.pathStyle === 'grid') {
-        const midX = x1 + (x2 - x1) * 0.45;
-        pathData = `M${x1},${y1} L${midX},${y1} L${midX},${y2} L${x2},${y2}`;
-      } else {
-        const pull = Math.min(Math.max(Math.abs(x2 - x1) * 0.5, 40), 140);
-        let cx1, cy1, cx2, cy2;
-        if (x2 >= x1) {
-          cx1 = x1 + pull;       cy1 = y1;
-          cx2 = x2 - pull * 0.4; cy2 = y2;
-        } else {
-          cx1 = x1 - pull;       cy1 = y1;
-          cx2 = x2 + pull * 0.4; cy2 = y2;
+        // Arrow starts from the highlighted token if present, else the line
+        let x1, y1;
+        let inlineHighlight = null;
+        if (ann.selectedText) {
+          // Try to find the exact highlighted token span
+          inlineHighlight = lineEl.querySelector(`.tut-inline-highlight[data-selected-text="${CSS.escape(ann.selectedText)}"]`) || lineEl.querySelector('.tut-inline-highlight');
         }
-        pathData = `M${x1},${y1} C${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`;
-      }
+        if (inlineHighlight) {
+          const tokenRect = inlineHighlight.getBoundingClientRect();
+          x1 = (tokenRect.left + tokenRect.right) / 2 - slideRect.left;
+          y1 = tokenRect.top + tokenRect.height / 2 - slideRect.top;
+        } else {
+          x1 = lineRect.right - slideRect.left + 4;
+          y1 = lineRect.top + lineRect.height / 2 - slideRect.top;
+        }
 
-      let dash = null;
-      if (ann.linePattern === 'dashed') dash = '6,4';
-      if (ann.linePattern === 'dotted') dash = '2,5';
+        // Arrow endpoint: always at the closest point on the callout border to the token/line
+        let x2, y2;
+        // Callout bounding box
+        const calloutTop = calloutRect.top - slideRect.top;
+        const calloutBottom = calloutRect.bottom - slideRect.top;
+        // Clamp y2 to the callout's vertical bounds
+        y2 = Math.max(calloutTop, Math.min(y1, calloutBottom));
+        // Find nearest horizontal edge
+        const distLeft = Math.abs(annLeft - x1);
+        const distRight = Math.abs(annRight - x1);
+        if (distLeft < distRight) {
+          x2 = annLeft - 4;
+        } else {
+          x2 = annRight + 4;
+        }
 
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', pathData);
-      path.setAttribute('stroke', arrowColor);
+        const arrowColor = COLORS[ann.color] || COLORS.blue;
+        const markerId   = `marker-${ann.id}`;
+
+        // Remove any existing marker for this annotation
+        arrowsSvg.querySelectorAll(`#${markerId}`).forEach(m => m.remove());
+        // Remove any existing path for this annotation
+        arrowsSvg.querySelectorAll(`.arrow-path-${ann.id}`).forEach(p => p.remove());
+
+        // Arrowhead marker
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+        marker.setAttribute('id', markerId);
+        marker.setAttribute('markerWidth', '8');
+        marker.setAttribute('markerHeight', '8');
+        marker.setAttribute('refX', '7');
+        marker.setAttribute('refY', '3.5');
+        marker.setAttribute('orient', 'auto');
+        marker.setAttribute('markerUnits', 'strokeWidth');
+        marker.innerHTML = `<path d="M0,0 L7,3.5 L0,7 Z" fill="${arrowColor}" />`;
+        defs.appendChild(marker);
+        arrowsSvg.appendChild(defs);
+
+        let pathData = '';
+        if (ann.pathStyle === 'line') {
+          pathData = `M${x1},${y1} L${x2},${y2}`;
+        } else if (ann.pathStyle === 'grid') {
+          const midX = x1 + (x2 - x1) * 0.45;
+          pathData = `M${x1},${y1} L${midX},${y1} L${midX},${y2} L${x2},${y2}`;
+        } else {
+          const pull = Math.min(Math.max(Math.abs(x2 - x1) * 0.5, 40), 140);
+          let cx1, cy1, cx2, cy2;
+          if (x2 >= x1) {
+            cx1 = x1 + pull;       cy1 = y1;
+            cx2 = x2 - pull * 0.4; cy2 = y2;
+          } else {
+            cx1 = x1 - pull;       cy1 = y1;
+            cx2 = x2 + pull * 0.4; cy2 = y2;
+          }
+          pathData = `M${x1},${y1} C${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`;
+        }
+
+        let dash = null;
+        if (ann.linePattern === 'dashed') dash = '6,4';
+        if (ann.linePattern === 'dotted') dash = '2,5';
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', pathData);
+        path.setAttribute('stroke', arrowColor);
+        path.setAttribute('stroke-width', '1.5');
+        path.setAttribute('fill', 'none');
+        if (dash) path.setAttribute('stroke-dasharray', dash);
+        path.setAttribute('opacity', '0.75');
+        path.setAttribute('marker-end', `url(#${markerId})`);
+
+        path.classList.add(`arrow-path-${ann.id}`);
+        arrowsSvg.appendChild(path);
+      });
       path.setAttribute('stroke-width', '1.5');
       path.setAttribute('fill', 'none');
       if (dash) path.setAttribute('stroke-dasharray', dash);
