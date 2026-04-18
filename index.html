@@ -22,6 +22,8 @@
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
   <!-- html2canvas for PNG export -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <!-- gif.js for animated GIF export -->
+  <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
 
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/themes.css">
@@ -256,9 +258,15 @@
             <button id="tut-export-btn" class="tut-btn success" title="Download slide as PNG image">
               📸 Download PNG
             </button>
+            <button id="tut-export-gif-btn" class="tut-btn" title="Export as animated GIF">
+              🎞 Export GIF
+            </button>
             <button id="tut-insert-btn" class="tut-btn primary" title="Insert as image element in current slide">
               📥 Insert to Slide
             </button>
+             <button id="tut-insert-interactive-btn" class="tut-btn" title="Insert as interactive tutorial element in current slide">
+               🧩 Insert as Interactive Tutorial
+             </button>
             <button id="tut-clear-btn" class="tut-btn" title="Remove all annotations">
               🗑 Clear
             </button>
@@ -311,6 +319,12 @@
               <!-- Export overlay -->
               <div id="tut-exporting-overlay" class="hidden">
                 ⏳ Generating PNG…
+              </div>
+
+              <!-- GIF export overlay -->
+              <div id="tut-gif-overlay" class="hidden">
+                <span id="tut-gif-status">🎞 Preparing GIF…</span>
+                <div id="tut-gif-progress-bar"><div id="tut-gif-progress-fill"></div></div>
               </div>
             </div>
           </div>

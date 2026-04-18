@@ -1,3 +1,83 @@
+/* ===== Interactive Tutorial Elements ===== */
+.tutorial-group {
+  position: relative;
+  margin: 18px 0;
+  background: #23272e;
+  border-radius: 10px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.13);
+  padding: 18px 18px 28px 18px;
+  overflow: visible;
+}
+.tutorial-title {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #cba6f7;
+  margin-bottom: 8px;
+  letter-spacing: 0.01em;
+}
+.tutorial-code-wrap {
+  position: relative;
+  z-index: 1;
+}
+.tutorial-code-block {
+  background: #181a20;
+  color: #f8f8f2;
+  border-radius: 7px;
+  padding: 14px 16px 14px 36px;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+  position: relative;
+  overflow-x: auto;
+}
+.tutorial-code-block .tut-line {
+  display: block;
+  position: relative;
+  min-height: 1.3em;
+  padding-left: 0.5em;
+}
+.tutorial-callouts-layer {
+  position: absolute;
+  left: 0; top: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.tut-callout {
+  position: absolute;
+  min-width: 120px;
+  max-width: 340px;
+  pointer-events: auto;
+  z-index: 10;
+  transition: box-shadow 0.15s;
+}
+.tut-callout-bubble {
+  background: #fffbe7;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  padding: 10px 14px;
+  border: 2px solid #f5e0dc;
+  position: relative;
+}
+.tut-callout-text {
+  color: #23272e;
+  font-size: 1em;
+  font-family: inherit;
+  line-height: 1.5;
+}
+.tut-callout.color-yellow .tut-callout-bubble { border-color: #f9e2af; background: #fffbe7; }
+.tut-callout.color-green .tut-callout-bubble { border-color: #a6e3a1; background: #f0fff4; }
+.tut-callout.color-blue .tut-callout-bubble { border-color: #89b4fa; background: #e3f2fd; }
+.tut-callout.color-red .tut-callout-bubble { border-color: #f38ba8; background: #fff0f3; }
+.tut-callout.color-purple .tut-callout-bubble { border-color: #cba6f7; background: #f5e9ff; }
+.tutorial-placeholder {
+  background: repeating-linear-gradient(135deg,#eee 0 12px,#f5e0dc 12px 24px);
+  color: #b4b4b4;
+  border-radius: 8px;
+  padding: 18px;
+  text-align: center;
+  font-size: 1.1em;
+}
 /* ===== VISUAL BUILDER: Drop Zone Elements ===== */
 
 /* Visual canvas (slide area) */

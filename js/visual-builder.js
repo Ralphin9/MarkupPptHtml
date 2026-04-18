@@ -20,6 +20,7 @@ window.VisualBuilder = (function () {
 
   // ===== Default element content =====
   const ELEMENT_DEFAULTS = {
+      tutorial: { type: 'tutorial', tutorialData: { code: '', lang: 'javascript', title: '', annotations: [] } },
     heading:   { type: 'heading', content: 'Slide Title', level: 2 },
     text:      { type: 'text', content: 'Your text content here.' },
     bullets:   { type: 'bullets', content: 'First point\nSecond point\nThird point' },
@@ -514,6 +515,43 @@ window.VisualBuilder = (function () {
   // ===== Render element to HTML preview =====
   function renderElementHTML(el) {
     switch (el.type) {
+        case 'tutorial': {
+          // Render code block and callouts as overlays
+          if (!el.tutorialData) return '<div class="tutorial-placeholder">[Tutorial]</div>';
+          const td = el.tutorialData;
+          // Syntax highlight code
+          let codeHtml = '';
+          if (typeof hljs !== 'undefined') {
+            try {
+              codeHtml = hljs.highlight(td.code, { language: td.lang || 'javascript' }).value;
+            } catch {
+              codeHtml = escapeHtml(td.code);
+            }
+          } else {
+            codeHtml = escapeHtml(td.code);
+          }
+          // Wrap lines for annotation targeting
+          const lines = codeHtml.split('\n');
+          const codeLinesHtml = lines.map((line, i) => `<span class="tut-line" data-line="${i}">${line || '\u200b'}</span>`).join('\n');
+          // Render callouts
+          const calloutsHtml = (td.annotations || []).map(a =>
+            `<div class="tut-callout color-${a.color}"
+                  style="left:${a.x}px;top:${a.y}px;min-width:${a.minWidth}px;opacity:${a.opacity};font-size:${a.fontSize}px;font-family:${a.fontFamily};">
+                <div class="tut-callout-bubble">
+                  <div class="tut-callout-text">${a.text}</div>
+                </div>
+            </div>`
+          ).join('');
+          return `
+            <div class="tutorial-group">
+              <div class="tutorial-title">${escapeHtml(td.title || 'Code Tutorial')}</div>
+              <div class="tutorial-code-wrap">
+                <pre class="tutorial-code-block"><code class="language-${td.lang || 'javascript'}">${codeLinesHtml}</code></pre>
+              </div>
+              <div class="tutorial-callouts-layer">${calloutsHtml}</div>
+            </div>
+          `;
+        }
       case 'heading': {
         const tag = 'h' + (el.level || 2);
         const fit = el.fit ? ' class="fit-heading"' : '';

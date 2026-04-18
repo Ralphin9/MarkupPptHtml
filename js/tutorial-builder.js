@@ -133,7 +133,51 @@ window.TutorialBuilder = (function () {
     document.getElementById('tut-add-text-btn').addEventListener('click', addFreeText);
     document.getElementById('tut-clear-btn').addEventListener('click', clearAll);
     document.getElementById('tut-export-btn').addEventListener('click', exportPNG);
+    document.getElementById('tut-export-gif-btn')?.addEventListener('click', exportGIF);
     document.getElementById('tut-insert-btn')?.addEventListener('click', insertToSlide);
+
+      // Insert as Interactive Tutorial
+      document.getElementById('tut-insert-interactive-btn')?.addEventListener('click', insertInteractiveTutorial);
+  // ── Insert as Interactive Tutorial (structured data, not image) ──
+  function insertInteractiveTutorial() {
+    // Gather code and annotations
+    const code = codeEditor.value;
+    const lang = langSelect ? langSelect.value : 'javascript';
+    const tutorialData = {
+      code,
+      lang,
+      title: titleInput ? titleInput.value : '',
+      annotations: annotations.map(a => ({
+        text: a.text,
+        targetLine: a.targetLine,
+        x: a.x,
+        y: a.y,
+        color: a.color,
+        fontSize: a.fontSize,
+        minWidth: a.minWidth,
+        fontFamily: a.fontFamily,
+        opacity: a.opacity,
+        linePattern: a.linePattern,
+        pathStyle: a.pathStyle,
+        arrowEnabled: a.arrowEnabled,
+        highlightEnabled: a.highlightEnabled,
+        selectedText: a.selectedText,
+      }))
+    };
+
+    // Insert as a new 'tutorial' element in VisualBuilder
+    if (window.VisualBuilder) {
+      const el = window.VisualBuilder.addElement('tutorial');
+      if (el) {
+        window.VisualBuilder.updateElement(el.id, { tutorialData });
+      }
+      // Switch to Visual mode
+      const visualBtn = document.querySelector('.mode-btn[data-mode="visual"]');
+      if (visualBtn) visualBtn.click();
+    } else {
+      alert('Visual Builder not available.');
+    }
+  }
 
     // Title sync
     titleInput.addEventListener('input', () => {
@@ -757,19 +801,29 @@ window.TutorialBuilder = (function () {
 
     const slideRect = slideEl.getBoundingClientRect();
 
+
     annotations.forEach(ann => {
       if (ann.targetLine == null || ann.arrowEnabled === false) return;
       const lineEl     = codeDisplayEl.querySelector(`[data-line="${ann.targetLine}"]`);
       const calloutEl  = annotLayer.querySelector(`[data-id="${ann.id}"]`);
       if (!lineEl || !calloutEl) return;
+      // Only draw arrow if callout is visible (opacity not '0')
+      const style = window.getComputedStyle(calloutEl);
+      if (style.opacity === '0' || style.display === 'none' || style.visibility === 'hidden') return;
+
 
       const lineRect    = lineEl.getBoundingClientRect();
       const calloutRect = calloutEl.getBoundingClientRect();
 
-      // Arrow ends at the nearest horizontal edge of the callout, vertically centred.
+      // Arrow ends at the nearest horizontal edge of the callout, vertically centred, but clamped to the callout box.
       const annLeft  = calloutRect.left  - slideRect.left;
       const annRight = calloutRect.right - slideRect.left;
-      const y2 = calloutRect.top + calloutRect.height / 2 - slideRect.top;
+      // Clamp y2 to be within the callout box
+      let y2 = calloutRect.top + calloutRect.height / 2 - slideRect.top;
+      const calloutTop = calloutRect.top - slideRect.top;
+      const calloutBottom = calloutRect.bottom - slideRect.top;
+      if (y2 < calloutTop + 8) y2 = calloutTop + 8; // 8px padding
+      if (y2 > calloutBottom - 8) y2 = calloutBottom - 8;
 
       // Arrow starts from the selected token when available.
       const codeWrap = document.getElementById('tut-slide-code-wrap');
@@ -777,6 +831,7 @@ window.TutorialBuilder = (function () {
       const inlineHighlight = ann.selectedText
         ? lineEl.querySelector(`.tut-inline-highlight[data-selected-text="${CSS.escape(ann.selectedText)}"]`) || lineEl.querySelector('.tut-inline-highlight')
         : null;
+
 
       let x1;
       let y1;
@@ -794,6 +849,9 @@ window.TutorialBuilder = (function () {
           : codeWrapRect.left - slideRect.left - 4;
         y1 = lineRect.top + lineRect.height / 2 - slideRect.top;
       }
+      // Clamp y1 to be within the callout box vertical bounds (with padding)
+      if (y1 < calloutTop + 8) y1 = calloutTop + 8;
+      if (y1 > calloutBottom - 8) y1 = calloutBottom - 8;
 
       const x2 = (annLeft >= x1 - 10) ? annLeft - 4 : annRight + 4;
 
@@ -900,6 +958,11 @@ window.TutorialBuilder = (function () {
       '.tut-callout-controls, .tut-drag-handle, .tut-resize-handle'
     );
     controls.forEach(el => { el.style.opacity = '0'; el.style.pointerEvents = 'none'; });
+    // Remove hover/selected/active classes from all callouts
+    annotLayer.querySelectorAll('.tut-callout').forEach(el => {
+      el.classList.remove('hover', 'selected', 'active');
+      el.classList.add('no-accent'); // Hide accent stripe
+    });
 
     const emptyHintWasHidden = emptyHint ? emptyHint.classList.contains('hidden') : true;
     if (emptyHint) emptyHint.classList.add('hidden');
@@ -968,6 +1031,10 @@ window.TutorialBuilder = (function () {
       }
       if (exporting) exporting.classList.add('hidden');
       if (hadSelected != null) selectAnnotation(hadSelected);
+      // Restore accent stripe
+      annotLayer.querySelectorAll('.tut-callout').forEach(el => {
+        el.classList.remove('no-accent');
+      });
     });
   }
 
@@ -1062,6 +1129,163 @@ window.TutorialBuilder = (function () {
       }
       if (hadSelected != null) selectAnnotation(hadSelected);
     });
+  }
+
+  // ── Animated GIF Export ─────────────────────────────────────────────────
+  // Approach: reveal callouts one-by-one, capture each frame with html2canvas,
+  // then encode into an animated GIF using gif.js.
+  async function exportGIF() {
+    if (!window.html2canvas) {
+      alert('html2canvas is not loaded. Cannot export GIF.');
+      return;
+    }
+    if (typeof GIF === 'undefined') {
+      alert('gif.js is not loaded. Cannot export GIF.');
+      return;
+    }
+    if (annotations.length === 0) {
+      alert('No annotations to animate. Add at least one callout first.');
+      return;
+    }
+
+    const gifBtn = document.getElementById('tut-export-gif-btn');
+    const gifOverlay = document.getElementById('tut-gif-overlay');
+    const gifStatus = document.getElementById('tut-gif-status');
+    const gifFill = document.getElementById('tut-gif-progress-fill');
+
+    const setStatus = (msg, pct) => {
+      if (gifStatus) gifStatus.textContent = msg;
+      if (gifFill) gifFill.style.width = (pct || 0) + '%';
+    };
+
+    if (gifBtn) { gifBtn.disabled = true; gifBtn.innerHTML = '⏳ Exporting…'; }
+    if (gifOverlay) gifOverlay.classList.remove('hidden');
+    setStatus('🎞 Preparing frames…', 0);
+
+    // Hide UI chrome for capture
+    const controls = annotLayer.querySelectorAll(
+      '.tut-callout-controls, .tut-drag-handle, .tut-resize-handle'
+    );
+    controls.forEach(el => { el.style.opacity = '0'; el.style.pointerEvents = 'none'; });
+    // Remove hover/selected/active classes from all callouts
+    annotLayer.querySelectorAll('.tut-callout').forEach(el => {
+      el.classList.remove('hover', 'selected', 'active');
+    });
+    const cwResize = document.getElementById('tut-code-wrap-resize');
+    if (cwResize) cwResize.style.display = 'none';
+    const emptyHintWasHidden = emptyHint ? emptyHint.classList.contains('hidden') : true;
+    if (emptyHint) emptyHint.classList.add('hidden');
+    const hadSelected = selectedId;
+    deselectAll();
+
+    // Hide ALL callouts initially
+    const calloutEls = annotLayer.querySelectorAll('.tut-callout');
+    calloutEls.forEach(el => { el.style.opacity = '0'; });
+
+    const slideRect = slideEl.getBoundingClientRect();
+    const captureOpts = {
+      backgroundColor: '#0d1117',
+      scale: 1.5,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      width: Math.ceil(slideRect.width),
+      height: Math.ceil(slideRect.height),
+      scrollX: 0,
+      scrollY: 0,
+      onclone: (clonedDoc) => {
+        const ov = clonedDoc.getElementById('tut-gif-overlay');
+        if (ov) ov.style.display = 'none';
+        const ov2 = clonedDoc.getElementById('tut-exporting-overlay');
+        if (ov2) ov2.style.display = 'none';
+        clonedDoc.querySelectorAll('.tut-callout-controls, .tut-drag-handle, .tut-resize-handle, #tut-code-wrap-resize')
+          .forEach(el => { el.style.display = 'none'; });
+      },
+    };
+
+    const gif = new GIF({
+      workers: 2,
+      quality: 8,
+      workerScript: 'js/gif.worker.js',
+    });
+
+    const frames = [];
+    const totalFrames = annotations.length + 2; // opening frame + 1 per callout + final hold
+
+    try {
+      // Frame 0: no callouts (show only code)
+      setStatus('📷 Capturing base frame…', 5);
+      const f0 = await html2canvas(slideEl, captureOpts);
+      frames.push({ canvas: f0, delay: 800 });
+
+      // Reveal each callout step-by-step
+      for (let i = 0; i < annotations.length; i++) {
+        const ann = annotations[i];
+        // Show this callout with a fade-in animation
+        const calloutEl = annotLayer.querySelector(`.tut-callout[data-id="${ann.id}"]`);
+        if (calloutEl) {
+          calloutEl.style.transition = 'opacity 0s';
+          calloutEl.style.opacity = '1';
+        }
+        // Update arrows for current visible state
+        updateArrows();
+        // Small delay to let DOM settle
+        await new Promise(r => setTimeout(r, 80));
+
+        const pct = 10 + Math.round((i + 1) / annotations.length * 70);
+        setStatus(`📷 Capturing callout ${i + 1} / ${annotations.length}…`, pct);
+
+        const fc = await html2canvas(slideEl, captureOpts);
+        frames.push({ canvas: fc, delay: i === annotations.length - 1 ? 2000 : 900 });
+      }
+
+      // Final hold frame (all visible, longer delay)
+      setStatus('📷 Capturing final frame…', 85);
+      const fFinal = await html2canvas(slideEl, captureOpts);
+      frames.push({ canvas: fFinal, delay: 2500 });
+
+      // Add all frames to gif.js
+      setStatus('🔧 Encoding GIF…', 88);
+      frames.forEach(f => gif.addFrame(f.canvas, { delay: f.delay, copy: true }));
+
+      gif.on('progress', (p) => setStatus(`🔧 Encoding GIF… ${Math.round(p * 100)}%`, 88 + Math.round(p * 10)));
+
+      gif.on('finished', (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = sanitizeFilename(titleInput ? titleInput.value : 'tutorial') + '.gif';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+
+        setStatus('✅ Done!', 100);
+        setTimeout(() => {
+          if (gifOverlay) gifOverlay.classList.add('hidden');
+          if (gifBtn) { gifBtn.disabled = false; gifBtn.innerHTML = '🎞 Export GIF'; }
+        }, 1200);
+      });
+
+      gif.render();
+
+    } catch (err) {
+      console.error('GIF export failed:', err);
+      alert('GIF export failed: ' + err.message);
+      if (gifOverlay) gifOverlay.classList.add('hidden');
+      if (gifBtn) { gifBtn.disabled = false; gifBtn.innerHTML = '🎞 Export GIF'; }
+    } finally {
+      // Restore all callouts visible
+      calloutEls.forEach(el => { el.style.opacity = ''; el.style.transition = ''; });
+      controls.forEach(el => { el.style.opacity = ''; el.style.pointerEvents = ''; });
+      if (cwResize) cwResize.style.display = '';
+      if (emptyHint && !emptyHintWasHidden) emptyHint.classList.remove('hidden');
+      if (hadSelected != null) selectAnnotation(hadSelected);
+      // Restore accent stripe
+      annotLayer.querySelectorAll('.tut-callout').forEach(el => {
+        el.classList.remove('no-accent');
+      });
+    }
   }
 
   return { init, updateArrows };
