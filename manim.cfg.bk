@@ -1,0 +1,27 @@
+(.venv) PS D:\start2026\MarkupPptHtml> manim cfg write -o
+Manim Community v0.19.0
+
+                       Manim Configuration File Writer                       
+A configuration file at manim.cfg has been created.
+To save your config please save that file and place it in your current 
+working directory, from where you run the manim command.
+
+
+# Quality settings reference:
+#
+# quality value          | Resolution
+# -----------------------|------------
+# low_quality            | 480p15
+# medium_quality         | 720p30
+# high_quality           | 1080p60
+# production_quality     | 2160p60 (4K)
+#
+# CLI -q flag shorthand:
+#   -ql  =>  480p15   (low)
+#   -qm  =>  720p30   (medium)
+#   -qh  =>  1080p60  (high)
+#   -qk  =>  2160p60  (4K)
+
+[CLI]
+quality = fourk_quality
+
