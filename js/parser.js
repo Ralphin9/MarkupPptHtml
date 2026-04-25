@@ -230,6 +230,10 @@ window.SlideParser = (function () {
     if (globalDirectives.header) lines.push('header: ' + globalDirectives.header);
     if (globalDirectives.footer) lines.push('footer: ' + globalDirectives.footer);
     if (globalDirectives.math) lines.push('math: ' + globalDirectives.math);
+    if (globalDirectives.transition) {
+      const dur = globalDirectives.transitionDuration ? ' ' + globalDirectives.transitionDuration : '';
+      lines.push('transition: ' + globalDirectives.transition + dur);
+    }
     if (globalDirectives.style) lines.push('style: |\n  ' + globalDirectives.style.replace(/\n/g, '\n  '));
     lines.push('---');
     lines.push('');

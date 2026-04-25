@@ -814,115 +814,108 @@ window.TutorialBuilder = (function () {
       if (ann.targetLine == null || ann.arrowEnabled === false) return;
       const lineEl     = codeDisplayEl.querySelector(`[data-line="${ann.targetLine}"]`);
       const calloutEl  = annotLayer.querySelector(`[data-id="${ann.id}"]`);
-      annotations.forEach(ann => {
-        if (ann.targetLine == null || ann.arrowEnabled === false) return;
-        const lineEl     = codeDisplayEl.querySelector(`[data-line="${ann.targetLine}"]`);
-        const calloutEl  = annotLayer.querySelector(`[data-id="${ann.id}"]`);
-        if (!lineEl || !calloutEl) return;
-        // Only draw arrow if callout is visible (opacity not '0')
-        const style = window.getComputedStyle(calloutEl);
-        if (style.opacity === '0' || style.display === 'none' || style.visibility === 'hidden') return;
+      if (!lineEl || !calloutEl) return;
+      // Only draw arrow if callout is visible (opacity not '0')
+      const style = window.getComputedStyle(calloutEl);
+      if (style.opacity === '0' || style.display === 'none' || style.visibility === 'hidden') return;
 
-        const lineRect    = lineEl.getBoundingClientRect();
-        const calloutRect = calloutEl.getBoundingClientRect();
-        const annLeft  = calloutRect.left  - slideRect.left;
-        const annRight = calloutRect.right - slideRect.left;
+      const lineRect    = lineEl.getBoundingClientRect();
+      const calloutRect = calloutEl.getBoundingClientRect();
+      const annLeft  = calloutRect.left  - slideRect.left;
+      const annRight = calloutRect.right - slideRect.left;
 
-        // Arrow starts from the highlighted token if present, else the line
-        let x1, y1;
-        let inlineHighlight = null;
-        if (ann.selectedText) {
-          // Try to find the exact highlighted token span
-          inlineHighlight = lineEl.querySelector(`.tut-inline-highlight[data-selected-text="${CSS.escape(ann.selectedText)}"]`) || lineEl.querySelector('.tut-inline-highlight');
-        }
-        if (inlineHighlight) {
-          const tokenRect = inlineHighlight.getBoundingClientRect();
-          x1 = (tokenRect.left + tokenRect.right) / 2 - slideRect.left;
-          y1 = tokenRect.top + tokenRect.height / 2 - slideRect.top;
+      // Arrow starts from the highlighted token if present, else the line
+      let x1, y1;
+      let inlineHighlight = null;
+      if (ann.selectedText) {
+        // Try to find the exact highlighted token span
+        inlineHighlight = lineEl.querySelector(`.tut-inline-highlight[data-selected-text="${CSS.escape(ann.selectedText)}"]`) || lineEl.querySelector('.tut-inline-highlight');
+      }
+      if (inlineHighlight) {
+        const tokenRect = inlineHighlight.getBoundingClientRect();
+        const tokenLeft  = tokenRect.left  - slideRect.left;
+        const tokenRight = tokenRect.right - slideRect.left;
+        const tokenCenterX = (tokenLeft + tokenRight) / 2;
+        const calloutCenterX = (calloutRect.left + calloutRect.right) / 2 - slideRect.left;
+        // Anchor at the side of the token closest to the callout (left or right edge),
+        // not the center, so arrows don't pass through the highlight.
+        x1 = (calloutCenterX < tokenCenterX) ? tokenLeft : tokenRight;
+        y1 = tokenRect.top + tokenRect.height / 2 - slideRect.top;
+      } else {
+        x1 = lineRect.right - slideRect.left + 4;
+        y1 = lineRect.top + lineRect.height / 2 - slideRect.top;
+      }
+
+      // Arrow endpoint: always at the closest point on the callout border to the token/line
+      let x2, y2;
+      // Callout bounding box
+      const calloutTop = calloutRect.top - slideRect.top;
+      const calloutBottom = calloutRect.bottom - slideRect.top;
+      // Clamp y2 to the callout's vertical bounds
+      y2 = Math.max(calloutTop, Math.min(y1, calloutBottom));
+      // Find nearest horizontal edge
+      const distLeft = Math.abs(annLeft - x1);
+      const distRight = Math.abs(annRight - x1);
+      if (distLeft < distRight) {
+        x2 = annLeft - 4;
+      } else {
+        x2 = annRight + 4;
+      }
+
+      const arrowColor = COLORS[ann.color] || COLORS.blue;
+      const markerId   = `marker-${ann.id}`;
+
+      // Remove any existing marker for this annotation
+      arrowsSvg.querySelectorAll(`#${markerId}`).forEach(m => m.remove());
+      // Remove any existing path for this annotation
+      arrowsSvg.querySelectorAll(`.arrow-path-${ann.id}`).forEach(p => p.remove());
+
+      // Arrowhead marker
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+      marker.setAttribute('id', markerId);
+      marker.setAttribute('markerWidth', '8');
+      marker.setAttribute('markerHeight', '8');
+      marker.setAttribute('refX', '7');
+      marker.setAttribute('refY', '3.5');
+      marker.setAttribute('orient', 'auto');
+      marker.setAttribute('markerUnits', 'strokeWidth');
+      marker.innerHTML = `<path d="M0,0 L7,3.5 L0,7 Z" fill="${arrowColor}" />`;
+      defs.appendChild(marker);
+      arrowsSvg.appendChild(defs);
+
+      let pathData = '';
+      if (ann.pathStyle === 'line') {
+        pathData = `M${x1},${y1} L${x2},${y2}`;
+      } else if (ann.pathStyle === 'grid') {
+        const midX = x1 + (x2 - x1) * 0.45;
+        pathData = `M${x1},${y1} L${midX},${y1} L${midX},${y2} L${x2},${y2}`;
+      } else {
+        const pull = Math.min(Math.max(Math.abs(x2 - x1) * 0.5, 40), 140);
+        let cx1, cy1, cx2, cy2;
+        if (x2 >= x1) {
+          cx1 = x1 + pull;       cy1 = y1;
+          cx2 = x2 - pull * 0.4; cy2 = y2;
         } else {
-          x1 = lineRect.right - slideRect.left + 4;
-          y1 = lineRect.top + lineRect.height / 2 - slideRect.top;
+          cx1 = x1 - pull;       cy1 = y1;
+          cx2 = x2 + pull * 0.4; cy2 = y2;
         }
+        pathData = `M${x1},${y1} C${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`;
+      }
 
-        // Arrow endpoint: always at the closest point on the callout border to the token/line
-        let x2, y2;
-        // Callout bounding box
-        const calloutTop = calloutRect.top - slideRect.top;
-        const calloutBottom = calloutRect.bottom - slideRect.top;
-        // Clamp y2 to the callout's vertical bounds
-        y2 = Math.max(calloutTop, Math.min(y1, calloutBottom));
-        // Find nearest horizontal edge
-        const distLeft = Math.abs(annLeft - x1);
-        const distRight = Math.abs(annRight - x1);
-        if (distLeft < distRight) {
-          x2 = annLeft - 4;
-        } else {
-          x2 = annRight + 4;
-        }
+      let dash = null;
+      if (ann.linePattern === 'dashed') dash = '6,4';
+      if (ann.linePattern === 'dotted') dash = '2,5';
 
-        const arrowColor = COLORS[ann.color] || COLORS.blue;
-        const markerId   = `marker-${ann.id}`;
-
-        // Remove any existing marker for this annotation
-        arrowsSvg.querySelectorAll(`#${markerId}`).forEach(m => m.remove());
-        // Remove any existing path for this annotation
-        arrowsSvg.querySelectorAll(`.arrow-path-${ann.id}`).forEach(p => p.remove());
-
-        // Arrowhead marker
-        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-        marker.setAttribute('id', markerId);
-        marker.setAttribute('markerWidth', '8');
-        marker.setAttribute('markerHeight', '8');
-        marker.setAttribute('refX', '7');
-        marker.setAttribute('refY', '3.5');
-        marker.setAttribute('orient', 'auto');
-        marker.setAttribute('markerUnits', 'strokeWidth');
-        marker.innerHTML = `<path d="M0,0 L7,3.5 L0,7 Z" fill="${arrowColor}" />`;
-        defs.appendChild(marker);
-        arrowsSvg.appendChild(defs);
-
-        let pathData = '';
-        if (ann.pathStyle === 'line') {
-          pathData = `M${x1},${y1} L${x2},${y2}`;
-        } else if (ann.pathStyle === 'grid') {
-          const midX = x1 + (x2 - x1) * 0.45;
-          pathData = `M${x1},${y1} L${midX},${y1} L${midX},${y2} L${x2},${y2}`;
-        } else {
-          const pull = Math.min(Math.max(Math.abs(x2 - x1) * 0.5, 40), 140);
-          let cx1, cy1, cx2, cy2;
-          if (x2 >= x1) {
-            cx1 = x1 + pull;       cy1 = y1;
-            cx2 = x2 - pull * 0.4; cy2 = y2;
-          } else {
-            cx1 = x1 - pull;       cy1 = y1;
-            cx2 = x2 + pull * 0.4; cy2 = y2;
-          }
-          pathData = `M${x1},${y1} C${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`;
-        }
-
-        let dash = null;
-        if (ann.linePattern === 'dashed') dash = '6,4';
-        if (ann.linePattern === 'dotted') dash = '2,5';
-
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', pathData);
-        path.setAttribute('stroke', arrowColor);
-        path.setAttribute('stroke-width', '1.5');
-        path.setAttribute('fill', 'none');
-        if (dash) path.setAttribute('stroke-dasharray', dash);
-        path.setAttribute('opacity', '0.75');
-        path.setAttribute('marker-end', `url(#${markerId})`);
-
-        path.classList.add(`arrow-path-${ann.id}`);
-        arrowsSvg.appendChild(path);
-      });
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', pathData);
+      path.setAttribute('stroke', arrowColor);
       path.setAttribute('stroke-width', '1.5');
       path.setAttribute('fill', 'none');
       if (dash) path.setAttribute('stroke-dasharray', dash);
       path.setAttribute('opacity', '0.75');
       path.setAttribute('marker-end', `url(#${markerId})`);
-
+      path.classList.add(`arrow-path-${ann.id}`);
       arrowsSvg.appendChild(path);
 
       // Small dot at start (on the code line end)
@@ -1080,6 +1073,13 @@ window.TutorialBuilder = (function () {
     const cwResize = document.getElementById('tut-code-wrap-resize');
     if (cwResize) cwResize.style.display = 'none';
 
+    // Add no-accent so border-left renders in place of ::before pseudo-element
+    // (html2canvas cannot capture CSS pseudo-elements reliably)
+    annotLayer.querySelectorAll('.tut-callout').forEach(el => {
+      el.classList.remove('hover', 'selected', 'active');
+      el.classList.add('no-accent');
+    });
+
     const hadSelected = selectedId;
     deselectAll();
 
@@ -1124,11 +1124,8 @@ window.TutorialBuilder = (function () {
           window.VisualBuilder.updateElement(el.id, { url: dataUrl, alt: name });
         }
         // Switch to Visual mode so user sees the result
-        const visualRadio = document.querySelector('input[name="mode"][value="visual"]');
-        if (visualRadio) {
-          visualRadio.checked = true;
-          visualRadio.dispatchEvent(new Event('change', { bubbles: true }));
-        }
+        const visualBtn = document.querySelector('.mode-btn[data-mode="visual"]');
+        if (visualBtn) visualBtn.click();
       } else {
         alert('Visual Builder not available.');
       }
@@ -1143,6 +1140,10 @@ window.TutorialBuilder = (function () {
         insertBtn.disabled = false;
         insertBtn.innerHTML = originalLabel;
       }
+      // Restore accent stripe
+      annotLayer.querySelectorAll('.tut-callout').forEach(el => {
+        el.classList.remove('no-accent');
+      });
       if (hadSelected != null) selectAnnotation(hadSelected);
     });
   }
@@ -1183,9 +1184,11 @@ window.TutorialBuilder = (function () {
       '.tut-callout-controls, .tut-drag-handle, .tut-resize-handle'
     );
     controls.forEach(el => { el.style.opacity = '0'; el.style.pointerEvents = 'none'; });
-    // Remove hover/selected/active classes from all callouts
+    // Remove hover/selected/active classes from all callouts and add no-accent
+    // (html2canvas cannot reliably capture ::before pseudo-elements; use border-left fallback)
     annotLayer.querySelectorAll('.tut-callout').forEach(el => {
       el.classList.remove('hover', 'selected', 'active');
+      el.classList.add('no-accent');
     });
     const cwResize = document.getElementById('tut-code-wrap-resize');
     if (cwResize) cwResize.style.display = 'none';
@@ -1219,10 +1222,29 @@ window.TutorialBuilder = (function () {
       },
     };
 
+    // Build a Blob URL for the gif.js worker.
+    // Web Workers can't load local script files when the page is opened via file://,
+    // so we fetch the worker source and wrap it in a Blob URL (works on file:// and http://).
+    let workerUrl = 'js/gif.worker.js';
+    try {
+      const resp = await fetch('js/gif.worker.js');
+      if (resp.ok) {
+        const src = await resp.text();
+        workerUrl = URL.createObjectURL(new Blob([src], { type: 'application/javascript' }));
+      } else {
+        // Fallback to CDN if local fetch fails
+        const cdn = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js');
+        const src = await cdn.text();
+        workerUrl = URL.createObjectURL(new Blob([src], { type: 'application/javascript' }));
+      }
+    } catch (e) {
+      console.warn('Could not load gif.worker.js as blob, falling back to direct path:', e);
+    }
+
     const gif = new GIF({
       workers: 2,
       quality: 8,
-      workerScript: 'js/gif.worker.js',
+      workerScript: workerUrl,
     });
 
     const frames = [];

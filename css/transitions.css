@@ -1,0 +1,143 @@
+/* ==========================================================================
+   Marp Bespoke-style Slide Transitions
+   ---------------------------------------------------------------------------
+   Implements a curated subset of Marp CLI's built-in transitions using the
+   native View Transition API (https://www.w3.org/TR/css-view-transitions-1/).
+
+   Activated by setting the `transition` local directive on a slide:
+       <!-- transition: fade -->
+       <!-- _transition: cover 0.8s -->
+
+   In the presenter (and exported HTML), JavaScript wraps slide changes in
+   `document.startViewTransition()` and reads the directive to pick the
+   correct keyframes by toggling a `data-marp-transition="<name>"` attribute
+   on the document root.
+
+   Naming follows Marp's convention so user-defined custom keyframes named
+   `marp-transition-<name>` / `marp-incoming-transition-<name>` /
+   `marp-outgoing-transition-<name>` will Just Work alongside these.
+   ========================================================================== */
+
+/* Default View Transition customization: prevent the browser's default
+   cross-fade leaking through when a custom keyframe is selected. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--marp-transition-duration, 0.5s);
+  animation-timing-function: ease;
+  animation-fill-mode: both;
+  mix-blend-mode: normal;
+}
+
+/* Respect user motion preferences: collapse all transitions to a fade. */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-marp-transition]::view-transition-old(root),
+  :root[data-marp-transition]::view-transition-new(root) {
+    animation-name: marp-transition-fade !important;
+  }
+}
+
+/* ===== Helpers ===== */
+@keyframes marp-fade-in  { from { opacity: 0 } to { opacity: 1 } }
+@keyframes marp-fade-out { from { opacity: 1 } to { opacity: 0 } }
+
+/* ===== fade ===== */
+@keyframes marp-transition-fade { from { opacity: 1 } to { opacity: 0 } }
+:root[data-marp-transition="fade"]::view-transition-old(root) { animation-name: marp-fade-out; }
+:root[data-marp-transition="fade"]::view-transition-new(root) { animation-name: marp-fade-in; }
+
+/* ===== fade-out (current fades; new appears instantly) ===== */
+:root[data-marp-transition="fade-out"]::view-transition-old(root) { animation-name: marp-fade-out; }
+:root[data-marp-transition="fade-out"]::view-transition-new(root) { animation-name: marp-fade-in; animation-delay: var(--marp-transition-duration, 0.5s); }
+
+/* ===== slide ===== */
+@keyframes marp-out-slide { from { transform: translateX(0) } to { transform: translateX(calc(var(--marp-transition-direction, 1) * -100%)) } }
+@keyframes marp-in-slide  { from { transform: translateX(calc(var(--marp-transition-direction, 1) * 100%)) } to { transform: translateX(0) } }
+:root[data-marp-transition="slide"]::view-transition-old(root) { animation-name: marp-out-slide; }
+:root[data-marp-transition="slide"]::view-transition-new(root) { animation-name: marp-in-slide; }
+
+/* ===== push ===== */
+@keyframes marp-out-push { from { transform: translateY(0) } to { transform: translateY(calc(var(--marp-transition-direction, 1) * -100%)) } }
+@keyframes marp-in-push  { from { transform: translateY(calc(var(--marp-transition-direction, 1) * 100%)) } to { transform: translateY(0) } }
+:root[data-marp-transition="push"]::view-transition-old(root) { animation-name: marp-out-push; }
+:root[data-marp-transition="push"]::view-transition-new(root) { animation-name: marp-in-push; }
+
+/* ===== cover (new slide covers old) ===== */
+@keyframes marp-in-cover { from { transform: translateX(calc(var(--marp-transition-direction, 1) * 100%)) } to { transform: translateX(0) } }
+:root[data-marp-transition="cover"]::view-transition-old(root) { animation-name: marp-fade-out; }
+:root[data-marp-transition="cover"]::view-transition-new(root) { animation-name: marp-in-cover; z-index: 2; }
+
+/* ===== reveal (old slides off, revealing new beneath) ===== */
+@keyframes marp-out-reveal { from { transform: translateX(0) } to { transform: translateX(calc(var(--marp-transition-direction, 1) * -100%)) } }
+:root[data-marp-transition="reveal"]::view-transition-old(root) { animation-name: marp-out-reveal; z-index: 2; }
+:root[data-marp-transition="reveal"]::view-transition-new(root) { animation-name: marp-fade-in; }
+
+/* ===== wipe (clip-path) ===== */
+@keyframes marp-out-wipe { from { clip-path: inset(0 0 0 0) } to { clip-path: inset(0 100% 0 0) } }
+@keyframes marp-in-wipe  { from { clip-path: inset(0 0 0 100%) } to { clip-path: inset(0 0 0 0) } }
+:root[data-marp-transition="wipe"]::view-transition-old(root) { animation-name: marp-out-wipe; }
+:root[data-marp-transition="wipe"]::view-transition-new(root) { animation-name: marp-in-wipe; }
+
+/* ===== zoom (old shrinks, new grows) ===== */
+@keyframes marp-out-zoom { from { transform: scale(1); opacity: 1 } to { transform: scale(0); opacity: 0 } }
+@keyframes marp-in-zoom  { from { transform: scale(0); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+:root[data-marp-transition="zoom"]::view-transition-old(root) { animation-name: marp-out-zoom; }
+:root[data-marp-transition="zoom"]::view-transition-new(root) { animation-name: marp-in-zoom; }
+
+/* ===== rotate ===== */
+@keyframes marp-out-rotate { from { transform: rotate(0deg); opacity: 1 } to { transform: rotate(calc(var(--marp-transition-direction, 1) * 90deg)); opacity: 0 } }
+@keyframes marp-in-rotate  { from { transform: rotate(calc(var(--marp-transition-direction, 1) * -90deg)); opacity: 0 } to { transform: rotate(0deg); opacity: 1 } }
+:root[data-marp-transition="rotate"]::view-transition-old(root) { animation-name: marp-out-rotate; }
+:root[data-marp-transition="rotate"]::view-transition-new(root) { animation-name: marp-in-rotate; }
+
+/* ===== flip (3D Y axis) ===== */
+@keyframes marp-out-flip { from { transform: perspective(1200px) rotateY(0); opacity: 1 } to { transform: perspective(1200px) rotateY(calc(var(--marp-transition-direction, 1) * 90deg)); opacity: 0 } }
+@keyframes marp-in-flip  { from { transform: perspective(1200px) rotateY(calc(var(--marp-transition-direction, 1) * -90deg)); opacity: 0 } to { transform: perspective(1200px) rotateY(0); opacity: 1 } }
+:root[data-marp-transition="flip"]::view-transition-old(root) { animation-name: marp-out-flip; }
+:root[data-marp-transition="flip"]::view-transition-new(root) { animation-name: marp-in-flip; }
+
+/* ===== fall (old falls down with rotation) ===== */
+@keyframes marp-out-fall { from { transform: translateY(0) rotate(0); opacity: 1 } to { transform: translateY(120%) rotate(calc(var(--marp-transition-direction, 1) * 25deg)); opacity: 0 } }
+:root[data-marp-transition="fall"]::view-transition-old(root) { animation-name: marp-out-fall; z-index: 2; }
+:root[data-marp-transition="fall"]::view-transition-new(root) { animation-name: marp-fade-in; }
+
+/* ===== drop (new drops in from above) ===== */
+@keyframes marp-in-drop { from { transform: translateY(-100%); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+:root[data-marp-transition="drop"]::view-transition-old(root) { animation-name: marp-fade-out; }
+:root[data-marp-transition="drop"]::view-transition-new(root) { animation-name: marp-in-drop; z-index: 2; }
+
+/* ===== glow (cross-fade with brightness pulse) ===== */
+@keyframes marp-out-glow { from { filter: brightness(1); opacity: 1 } to { filter: brightness(2.5); opacity: 0 } }
+@keyframes marp-in-glow  { from { filter: brightness(2.5); opacity: 0 } to { filter: brightness(1); opacity: 1 } }
+:root[data-marp-transition="glow"]::view-transition-old(root) { animation-name: marp-out-glow; }
+:root[data-marp-transition="glow"]::view-transition-new(root) { animation-name: marp-in-glow; }
+
+/* ===== swap (cross-fade with subtle X displacement) ===== */
+@keyframes marp-out-swap { 0% { transform: translateX(0) } 50% { transform: translateX(calc(var(--marp-transition-direction, 1) * -40%)) } 100% { transform: translateX(0); opacity: 0 } }
+@keyframes marp-in-swap  { 0% { transform: translateX(calc(var(--marp-transition-direction, 1) * 40%)); opacity: 0 } 50% { opacity: 0.5 } 100% { transform: translateX(0); opacity: 1 } }
+:root[data-marp-transition="swap"]::view-transition-old(root) { animation-name: marp-out-swap; }
+:root[data-marp-transition="swap"]::view-transition-new(root) { animation-name: marp-in-swap; }
+
+/* ===== iris-in / iris-out (clip-circle reveal) ===== */
+@keyframes marp-in-iris-in { from { clip-path: circle(0% at 50% 50%) } to { clip-path: circle(150% at 50% 50%) } }
+:root[data-marp-transition="iris-in"]::view-transition-old(root) { animation-name: marp-fade-out; }
+:root[data-marp-transition="iris-in"]::view-transition-new(root) { animation-name: marp-in-iris-in; z-index: 2; }
+
+@keyframes marp-out-iris-out { from { clip-path: circle(150% at 50% 50%) } to { clip-path: circle(0% at 50% 50%) } }
+:root[data-marp-transition="iris-out"]::view-transition-old(root) { animation-name: marp-out-iris-out; z-index: 2; }
+:root[data-marp-transition="iris-out"]::view-transition-new(root) { animation-name: marp-fade-in; }
+
+/* ===== explode (old scales up & fades) ===== */
+@keyframes marp-out-explode { from { transform: scale(1); opacity: 1 } to { transform: scale(2.5); opacity: 0 } }
+:root[data-marp-transition="explode"]::view-transition-old(root) { animation-name: marp-out-explode; z-index: 2; }
+:root[data-marp-transition="explode"]::view-transition-new(root) { animation-name: marp-fade-in; }
+
+/* ===== implode (new shrinks in from large) ===== */
+@keyframes marp-in-implode { from { transform: scale(2.5); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+:root[data-marp-transition="implode"]::view-transition-old(root) { animation-name: marp-fade-out; }
+:root[data-marp-transition="implode"]::view-transition-new(root) { animation-name: marp-in-implode; z-index: 2; }
+
+/* ===== none (no animation, instant swap) ===== */
+:root[data-marp-transition="none"]::view-transition-old(root),
+:root[data-marp-transition="none"]::view-transition-new(root) {
+  animation: none !important;
+}

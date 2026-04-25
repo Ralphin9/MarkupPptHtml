@@ -33,6 +33,10 @@ window.SlideExporter = (function () {
     downloadBlob(blob, filename);
   }
 
+  function escapeAttr(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
+
   /** Collect all CSS needed for standalone HTML */
   function collectCSS() {
     const sheets = [];
@@ -56,7 +60,10 @@ window.SlideExporter = (function () {
     toast('Generating HTML…');
 
     const slideMarkup = slides.map((slide, i) => {
-      return `<section class="html-slide" id="slide-${i + 1}">
+      const dirs = slide.directives || {};
+      const transRaw = String(dirs._transition || dirs.transition || '').trim();
+      const transAttr = transRaw ? ` data-transition="${escapeAttr(transRaw)}"` : '';
+      return `<section class="html-slide" id="slide-${i + 1}"${transAttr}>
         ${window.SlideRenderer.renderSlideHTML(slide, i + 1, slides.length)}
       </section>`;
     }).join('\n');
@@ -161,6 +168,56 @@ window.SlideExporter = (function () {
 
     /* Fragment animation */
     .slide-frame ul li, .slide-frame ol li { opacity:1; }
+
+    /* === Marp bespoke-style transitions === */
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: var(--marp-transition-duration, 0.5s);
+      animation-timing-function: ease;
+      animation-fill-mode: both;
+      mix-blend-mode: normal;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      :root[data-marp-transition]::view-transition-old(root),
+      :root[data-marp-transition]::view-transition-new(root) {
+        animation-name: marp-fade-out, marp-fade-in !important;
+      }
+    }
+    @keyframes marp-fade-in  { from { opacity: 0 } to { opacity: 1 } }
+    @keyframes marp-fade-out { from { opacity: 1 } to { opacity: 0 } }
+    :root[data-marp-transition="fade"]::view-transition-old(root) { animation-name: marp-fade-out; }
+    :root[data-marp-transition="fade"]::view-transition-new(root) { animation-name: marp-fade-in; }
+    @keyframes marp-out-slide { from { transform: translateX(0) } to { transform: translateX(calc(var(--marp-transition-direction, 1) * -100%)) } }
+    @keyframes marp-in-slide  { from { transform: translateX(calc(var(--marp-transition-direction, 1) * 100%)) } to { transform: translateX(0) } }
+    :root[data-marp-transition="slide"]::view-transition-old(root) { animation-name: marp-out-slide; }
+    :root[data-marp-transition="slide"]::view-transition-new(root) { animation-name: marp-in-slide; }
+    @keyframes marp-out-push { from { transform: translateY(0) } to { transform: translateY(calc(var(--marp-transition-direction, 1) * -100%)) } }
+    @keyframes marp-in-push  { from { transform: translateY(calc(var(--marp-transition-direction, 1) * 100%)) } to { transform: translateY(0) } }
+    :root[data-marp-transition="push"]::view-transition-old(root) { animation-name: marp-out-push; }
+    :root[data-marp-transition="push"]::view-transition-new(root) { animation-name: marp-in-push; }
+    @keyframes marp-in-cover { from { transform: translateX(calc(var(--marp-transition-direction, 1) * 100%)) } to { transform: translateX(0) } }
+    :root[data-marp-transition="cover"]::view-transition-old(root) { animation-name: marp-fade-out; }
+    :root[data-marp-transition="cover"]::view-transition-new(root) { animation-name: marp-in-cover; z-index: 2; }
+    @keyframes marp-out-reveal { from { transform: translateX(0) } to { transform: translateX(calc(var(--marp-transition-direction, 1) * -100%)) } }
+    :root[data-marp-transition="reveal"]::view-transition-old(root) { animation-name: marp-out-reveal; z-index: 2; }
+    :root[data-marp-transition="reveal"]::view-transition-new(root) { animation-name: marp-fade-in; }
+    @keyframes marp-out-wipe { from { clip-path: inset(0 0 0 0) } to { clip-path: inset(0 100% 0 0) } }
+    @keyframes marp-in-wipe  { from { clip-path: inset(0 0 0 100%) } to { clip-path: inset(0 0 0 0) } }
+    :root[data-marp-transition="wipe"]::view-transition-old(root) { animation-name: marp-out-wipe; }
+    :root[data-marp-transition="wipe"]::view-transition-new(root) { animation-name: marp-in-wipe; }
+    @keyframes marp-out-zoom { from { transform: scale(1); opacity: 1 } to { transform: scale(0); opacity: 0 } }
+    @keyframes marp-in-zoom  { from { transform: scale(0); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+    :root[data-marp-transition="zoom"]::view-transition-old(root) { animation-name: marp-out-zoom; }
+    :root[data-marp-transition="zoom"]::view-transition-new(root) { animation-name: marp-in-zoom; }
+    @keyframes marp-out-flip { from { transform: perspective(1200px) rotateY(0); opacity: 1 } to { transform: perspective(1200px) rotateY(calc(var(--marp-transition-direction, 1) * 90deg)); opacity: 0 } }
+    @keyframes marp-in-flip  { from { transform: perspective(1200px) rotateY(calc(var(--marp-transition-direction, 1) * -90deg)); opacity: 0 } to { transform: perspective(1200px) rotateY(0); opacity: 1 } }
+    :root[data-marp-transition="flip"]::view-transition-old(root) { animation-name: marp-out-flip; }
+    :root[data-marp-transition="flip"]::view-transition-new(root) { animation-name: marp-in-flip; }
+    @keyframes marp-in-iris-in { from { clip-path: circle(0% at 50% 50%) } to { clip-path: circle(150% at 50% 50%) } }
+    :root[data-marp-transition="iris-in"]::view-transition-old(root) { animation-name: marp-fade-out; }
+    :root[data-marp-transition="iris-in"]::view-transition-new(root) { animation-name: marp-in-iris-in; z-index: 2; }
+    :root[data-marp-transition="none"]::view-transition-old(root),
+    :root[data-marp-transition="none"]::view-transition-new(root) { animation: none !important; }
   </style>
 </head>
 <body>
@@ -178,12 +235,48 @@ window.SlideExporter = (function () {
     (function() {
       const slides = document.querySelectorAll('.html-slide');
       let current = 0;
-      function show(idx) {
+
+      function parseTransition(raw) {
+        const v = String(raw || '').trim();
+        if (!v) return null;
+        const parts = v.split(/\\s+/);
+        let dur = parts[1] || '';
+        if (dur && /^[0-9]*\\.?[0-9]+$/.test(dur)) dur = dur + 's';
+        return { name: parts[0], duration: dur };
+      }
+
+      function applyShow(idx) {
         slides.forEach((s,i) => s.classList.toggle('active', i === idx));
         document.getElementById('indicator').textContent = (idx+1) + ' / ' + slides.length;
-        current = idx;
       }
-      show(0);
+
+      function show(idx) {
+        if (idx === current) return;
+        const direction = idx > current ? 1 : -1;
+        // Per Marp: outgoing slide's transition governs the boundary.
+        const trans = parseTransition(slides[current] && slides[current].getAttribute('data-transition'));
+        const root = document.documentElement;
+        const finish = () => { current = idx; };
+
+        if (trans && trans.name !== 'none' && typeof document.startViewTransition === 'function') {
+          root.style.setProperty('--marp-transition-direction', String(direction));
+          if (trans.duration) root.style.setProperty('--marp-transition-duration', trans.duration);
+          else root.style.removeProperty('--marp-transition-duration');
+          root.setAttribute('data-marp-transition', trans.name);
+          const vt = document.startViewTransition(() => applyShow(idx));
+          vt.finished.finally(() => {
+            root.removeAttribute('data-marp-transition');
+            root.style.removeProperty('--marp-transition-direction');
+            root.style.removeProperty('--marp-transition-duration');
+            finish();
+          });
+        } else {
+          applyShow(idx);
+          finish();
+        }
+      }
+
+      applyShow(0);
       document.getElementById('btn-prev').onclick = () => show(Math.max(0, current-1));
       document.getElementById('btn-next').onclick = () => show(Math.min(slides.length-1, current+1));
       document.getElementById('btn-fs').onclick = () => {

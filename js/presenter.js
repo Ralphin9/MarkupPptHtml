@@ -65,22 +65,73 @@ window.Presenter = (function () {
 
   function show(idx, initialFragmentStep = 0) {
     if (idx < 0 || idx >= slides.length) return;
+    const direction = (idx >= current) ? 1 : -1;
+    const prevIdx = current;
     current = idx;
 
-    container.innerHTML = '';
-    const div = document.createElement('div');
-    div.className = 'presenter-slide';
-    div.innerHTML = window.SlideRenderer.renderSlideHTML(slides[current], current + 1, slides.length);
-    container.appendChild(div);
-    window.SlideRenderer.highlightCode(div);
+    const renderSlide = () => {
+      container.innerHTML = '';
+      const div = document.createElement('div');
+      div.className = 'presenter-slide';
+      div.innerHTML = window.SlideRenderer.renderSlideHTML(slides[current], current + 1, slides.length);
+      container.appendChild(div);
+      window.SlideRenderer.highlightCode(div);
 
-    fragmentTotal = getFragmentNodes().reduce((max, node) => {
-      const v = parseInt(node.getAttribute('data-marpit-fragment') || '0', 10);
-      return Math.max(max, v);
-    }, 0);
-    fragmentStep = Math.max(0, Math.min(initialFragmentStep, fragmentTotal));
-    applyFragmentVisibility();
-    updateIndicator();
+      fragmentTotal = getFragmentNodes().reduce((max, node) => {
+        const v = parseInt(node.getAttribute('data-marpit-fragment') || '0', 10);
+        return Math.max(max, v);
+      }, 0);
+      fragmentStep = Math.max(0, Math.min(initialFragmentStep, fragmentTotal));
+      applyFragmentVisibility();
+      updateIndicator();
+    };
+
+    // Apply Marp bespoke transition via the View Transition API.
+    // Per Marp spec: `transition` directive applies to the boundary AFTER the
+    // slide that defines it — so use the OUTGOING slide's transition.
+    const outgoing = slides[prevIdx] || slides[current];
+    const transitionSpec = resolveTransition(outgoing, slides[current]);
+
+    if (transitionSpec && typeof document.startViewTransition === 'function' && prevIdx !== current) {
+      const root = document.documentElement;
+      root.style.setProperty('--marp-transition-direction', String(direction));
+      if (transitionSpec.duration) {
+        root.style.setProperty('--marp-transition-duration', transitionSpec.duration);
+      } else {
+        root.style.removeProperty('--marp-transition-duration');
+      }
+      root.setAttribute('data-marp-transition', transitionSpec.name);
+      console.debug('[Marp transition]', transitionSpec.name, 'duration:', transitionSpec.duration || '(default)', 'dir:', direction);
+      const vt = document.startViewTransition(renderSlide);
+      vt.finished.finally(() => {
+        root.removeAttribute('data-marp-transition');
+        root.style.removeProperty('--marp-transition-direction');
+        root.style.removeProperty('--marp-transition-duration');
+      });
+    } else {
+      if (transitionSpec && typeof document.startViewTransition !== 'function') {
+        console.warn('[Marp transition] View Transition API not supported in this browser. Use Chrome/Edge 111+ or Safari 18+.');
+      }
+      renderSlide();
+    }
+  }
+
+  /** Pick the active transition for this navigation step.
+   *  Per Marp: per-slide `_transition` overrides global `transition`. */
+  function resolveTransition(outgoingSlide, incomingSlide) {
+    const dirs = (outgoingSlide && outgoingSlide.directives) || {};
+    const raw = String(dirs._transition || dirs.transition || '').trim();
+    if (!raw || raw === 'none') return raw === 'none' ? { name: 'none' } : null;
+    const parts = raw.split(/\s+/);
+    return { name: parts[0], duration: normalizeDuration(parts[1]) };
+  }
+
+  /** Marp accepts CSS time values (`0.5s`, `500ms`). If the user types a bare
+   *  number (e.g. "2"), interpret it as seconds. */
+  function normalizeDuration(d) {
+    const v = String(d || '').trim();
+    if (!v) return '';
+    return /^[0-9]*\.?[0-9]+$/.test(v) ? v + 's' : v;
   }
 
   function next() {

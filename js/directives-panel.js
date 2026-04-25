@@ -17,6 +17,8 @@ window.DirectivesPanel = (function () {
     logo: '',
     backgroundColor: '',
     color: '',
+    transition: '',
+    transitionDuration: '',
   };
 
   // ===== Init =====
@@ -54,6 +56,11 @@ window.DirectivesPanel = (function () {
         notifyChange();
       });
     }
+
+    const transSel = document.getElementById('dir-transition');
+    const transDur = document.getElementById('dir-transition-duration');
+    if (transSel) transSel.addEventListener('change', () => { globalDirectives.transition = transSel.value; notifyChange(); });
+    if (transDur) transDur.addEventListener('input', () => { globalDirectives.transitionDuration = transDur.value.trim(); notifyChange(); });
   }
 
   // ===== Per-slide Directives =====
@@ -61,6 +68,7 @@ window.DirectivesPanel = (function () {
     const ids = [
       'dir-bg-color', 'dir-bg-color-text', 'dir-text-color', 'dir-text-color-text',
       'dir-bg-image', 'dir-bg-size', 'dir-class', 'dir-slide-header', 'dir-slide-footer',
+      'dir-slide-transition', 'dir-slide-transition-duration',
     ];
 
     ids.forEach(id => {
@@ -118,6 +126,20 @@ window.DirectivesPanel = (function () {
     if (hdr)      dirs.header = hdr.value.trim();
     if (ftr)      dirs.footer = ftr.value.trim();
 
+    const trSel = document.getElementById('dir-slide-transition');
+    const trDur = document.getElementById('dir-slide-transition-duration');
+    if (trSel) {
+      const name = trSel.value.trim();
+      const dur  = trDur ? trDur.value.trim() : '';
+      // Marp uses `_transition` (scoped) for per-slide transition override.
+      // Empty value clears the override (falls back to global `transition`).
+      if (name) {
+        dirs._transition = dur ? `${name} ${dur}` : name;
+      } else {
+        delete dirs._transition;
+      }
+    }
+
     slide.directives = dirs;
   }
 
@@ -140,6 +162,8 @@ window.DirectivesPanel = (function () {
     setValue('dir-footer', globalDirectives.footer || '');
     setValue('dir-global-class', globalDirectives.class || '');
     setValue('dir-logo', globalDirectives.logo || '');
+    setValue('dir-transition', globalDirectives.transition || '');
+    setValue('dir-transition-duration', globalDirectives.transitionDuration || '');
     setValue('custom-css-editor', globalDirectives.customStyle || '');
   }
 
@@ -154,6 +178,12 @@ window.DirectivesPanel = (function () {
     setValue('dir-class', dirs.class || '');
     setValue('dir-slide-header', dirs.header || '');
     setValue('dir-slide-footer', dirs.footer || '');
+
+    // Parse `_transition` value ("name [duration]") back into the two inputs.
+    const transRaw = String(dirs._transition || '').trim();
+    const m = transRaw.match(/^(\S+)(?:\s+(\S+))?$/);
+    setValue('dir-slide-transition', m ? m[1] : '');
+    setValue('dir-slide-transition-duration', (m && m[2]) ? m[2] : '');
 
     // Sync pickers
     const bgPicker = document.getElementById('dir-bg-color');

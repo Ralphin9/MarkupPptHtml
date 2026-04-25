@@ -1064,7 +1064,15 @@
         type,
         html,
         theme,
-        directives: { ...slide.directives },
+        directives: {
+          // Inherit global transition (per-slide `_transition` overrides it).
+          transition: globals.transition
+            ? (globals.transitionDuration
+                ? `${globals.transition} ${globals.transitionDuration}`
+                : globals.transition)
+            : undefined,
+          ...slide.directives,
+        },
         bgImage,
         header: slide.directives?.header || globals.header || '',
         footer: slide.directives?.footer || globals.footer || '',

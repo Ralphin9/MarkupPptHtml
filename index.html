@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/themes.css">
   <link rel="stylesheet" href="css/slides.css">
+  <link rel="stylesheet" href="css/transitions.css">
   <link rel="stylesheet" href="css/visual-builder.css">
   <link rel="stylesheet" href="css/tutorial-builder.css">
 </head>
@@ -515,6 +516,31 @@
             <input type="text" id="dir-logo" placeholder="Logo URL...">
             <div id="logo-preview" style="margin-top:4px"></div>
           </div>
+          <div class="prop-group">
+            <label>Default Transition (Marp bespoke)</label>
+            <select id="dir-transition">
+              <option value="">none</option>
+              <option value="fade">fade</option>
+              <option value="fade-out">fade-out</option>
+              <option value="slide">slide</option>
+              <option value="push">push</option>
+              <option value="cover">cover</option>
+              <option value="reveal">reveal</option>
+              <option value="wipe">wipe</option>
+              <option value="zoom">zoom</option>
+              <option value="rotate">rotate</option>
+              <option value="flip">flip</option>
+              <option value="fall">fall</option>
+              <option value="drop">drop</option>
+              <option value="glow">glow</option>
+              <option value="swap">swap</option>
+              <option value="iris-in">iris-in</option>
+              <option value="iris-out">iris-out</option>
+              <option value="explode">explode</option>
+              <option value="implode">implode</option>
+            </select>
+            <input type="text" id="dir-transition-duration" placeholder="Duration e.g. 0.5s, 800ms" style="margin-top:4px">
+          </div>
 
           <h4 class="section-title">Per-Slide Directives</h4>
           <div class="prop-group">
@@ -554,6 +580,32 @@
           <div class="prop-group">
             <label>Slide Footer</label>
             <input type="text" id="dir-slide-footer" placeholder="Overrides global footer for this slide">
+          </div>
+          <div class="prop-group">
+            <label>Slide Transition (overrides default)</label>
+            <select id="dir-slide-transition">
+              <option value="">(use default)</option>
+              <option value="none">none</option>
+              <option value="fade">fade</option>
+              <option value="fade-out">fade-out</option>
+              <option value="slide">slide</option>
+              <option value="push">push</option>
+              <option value="cover">cover</option>
+              <option value="reveal">reveal</option>
+              <option value="wipe">wipe</option>
+              <option value="zoom">zoom</option>
+              <option value="rotate">rotate</option>
+              <option value="flip">flip</option>
+              <option value="fall">fall</option>
+              <option value="drop">drop</option>
+              <option value="glow">glow</option>
+              <option value="swap">swap</option>
+              <option value="iris-in">iris-in</option>
+              <option value="iris-out">iris-out</option>
+              <option value="explode">explode</option>
+              <option value="implode">implode</option>
+            </select>
+            <input type="text" id="dir-slide-transition-duration" placeholder="Duration e.g. 0.5s" style="margin-top:4px">
           </div>
         </div>
       </div>

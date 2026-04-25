@@ -410,6 +410,9 @@
 .tut-callout.no-accent.color-red .tut-callout-bubble {
   border-left-color: #f85149 !important;
 }
+.tut-callout.no-accent.color-blue .tut-callout-bubble {
+  border-left-color: #58a6ff !important;
+}
 .tut-callout.color-green  .tut-callout-bubble::before { background: #3fb950; }
 .tut-callout.color-orange .tut-callout-bubble::before { background: #d29922; }
 .tut-callout.color-purple .tut-callout-bubble::before { background: #bc8cff; }
@@ -419,25 +422,6 @@
 .tut-callout-text {
   color: #c9d1d9;
   text-shadow: 0 1px 2px rgba(0,0,0,0.18);
-}
-.tut-callout.color-green  .tut-callout-text {
-  color: #174a1c;
-}
-.tut-callout.color-orange .tut-callout-text {
-  color: #6b4400;
-}
-.tut-callout.color-purple .tut-callout-text {
-  color: #2e0a38;
-}
-.tut-callout.color-red    .tut-callout-text {
-  color: #6b1a1a;
-}
-.tut-callout.color-blue   .tut-callout-bubble {
-  background: #e3f2fd;
-}
-.tut-callout.color-blue   .tut-callout-text {
-  color: #0d2e5e;
-}
   font-size: 12px;
   line-height: 1.5;
   outline: none;
@@ -445,12 +429,22 @@
   min-height: 1.5em;
   word-break: break-word;
 }
-.tut-callout.color-green  .tut-callout-text { color: #174a1c; } /* dark green for light green bg */
-.tut-callout.color-orange .tut-callout-text { color: #6b4400; } /* dark orange/brown for orange bg */
-.tut-callout.color-purple .tut-callout-text { color: #2e0a38; } /* deep purple for light purple bg */
-.tut-callout.color-red    .tut-callout-text { color: #6b1a1a; } /* dark red for light red bg */
+.tut-callout.color-blue   .tut-callout-bubble {
+  background: #e3f2fd;
+}
+.tut-callout.color-blue   .tut-callout-text  { color: #0d2e5e; }
+.tut-callout.color-green  .tut-callout-text  { color: #174a1c; }
+.tut-callout.color-orange .tut-callout-text  { color: #6b4400; }
+.tut-callout.color-purple .tut-callout-text  { color: #2e0a38; }
+.tut-callout.color-red    .tut-callout-text  { color: #6b1a1a; }
 .tut-callout-text:focus { cursor: text; }
 .tut-callout-text strong { color: #e6edf3; }
+/* Light color variants need dark strong text for contrast (inherit from parent) */
+.tut-callout.color-blue   .tut-callout-text strong,
+.tut-callout.color-green  .tut-callout-text strong,
+.tut-callout.color-orange .tut-callout-text strong,
+.tut-callout.color-purple .tut-callout-text strong,
+.tut-callout.color-red    .tut-callout-text strong { color: inherit; }
 .tut-callout-text code {
   background: rgba(255,255,255,.08);
   padding: 1px 4px;
@@ -462,6 +456,7 @@
 /* Callout controls (visible on hover/select) */
 .tut-callout-controls {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 3px;
   margin-top: 6px;
