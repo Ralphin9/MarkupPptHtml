@@ -29,6 +29,7 @@
     setupPresenter();
     setupThemeSelect();
     setupCustomCSS();
+    setupDesignMdImport();
     setupKeyboardShortcuts();
     setupSlideNav();
 
@@ -1080,6 +1081,171 @@
         paginate: globals.paginate,
       };
     });
+  }
+
+  // ===== Import DESIGN.md =====
+  // Persists the last-applied DESIGN.md source + the CSS/state that was active
+  // BEFORE applying it, so the user can:
+  //   - Load saved : repopulate the textarea with the previously applied source
+  //   - Revert     : roll back the live theme to what it was before applying
+  //   - Clear      : drop both the snapshot and the active DESIGN.md theme
+  function setupDesignMdImport() {
+    const DM_KEY = 'markupppt_design_md';
+
+    const btn      = document.getElementById('btn-import-design');
+    const modal    = document.getElementById('design-md-modal');
+    const input    = document.getElementById('design-md-input');
+    const apply    = document.getElementById('btn-design-md-apply');
+    const loadBtn  = document.getElementById('btn-design-md-load');
+    const revertBtn= document.getElementById('btn-design-md-revert');
+    const clearBtn = document.getElementById('btn-design-md-clear');
+    const status   = document.getElementById('design-md-status');
+    const editor   = document.getElementById('custom-css-editor');
+    if (!btn || !modal || !input || !apply) return;
+
+    const ensureStyleTag = () => {
+      let t = document.getElementById('custom-user-css');
+      if (!t) { t = document.createElement('style'); t.id = 'custom-user-css'; document.head.appendChild(t); }
+      return t;
+    };
+    const buildPreviewCss = (css) => {
+      if (!css) return '';
+      const aliased = String(css)
+        .replace(/:root\b/g, '.slide-frame')
+        .replace(/(^|[,{]\s*)section(?=[\s.#:[,{>+~]|$)/gm, '$1.slide-frame');
+      return css + '\n\n/* Live preview Marpit aliases */\n' + aliased;
+    };
+    const writeStatus = (msg, ok) => {
+      if (!status) return;
+      status.textContent = msg;
+      status.style.color = ok === false ? '#f38ba8' : (ok ? '#a6e3a1' : '#9aa');
+    };
+    const readSaved = () => {
+      try { return JSON.parse(localStorage.getItem(DM_KEY) || 'null'); }
+      catch { return null; }
+    };
+    const writeSaved = (obj) => {
+      if (obj) localStorage.setItem(DM_KEY, JSON.stringify(obj));
+      else     localStorage.removeItem(DM_KEY);
+    };
+
+    const open = () => {
+      modal.classList.remove('hidden');
+      const saved = readSaved();
+      if (saved && saved.source && !input.value.trim()) input.value = saved.source;
+      if (saved) writeStatus('Saved DESIGN.md ready to load (' + (saved.name || 'unnamed') + ', ' + new Date(saved.appliedAt || Date.now()).toLocaleString() + ')');
+      else       writeStatus('');
+    };
+    const close = () => modal.classList.add('hidden');
+
+    btn.addEventListener('click', open);
+    modal.querySelectorAll('[data-close="design-md-modal"], .modal-overlay').forEach(el => {
+      el.addEventListener('click', close);
+    });
+
+    apply.addEventListener('click', () => {
+      const md = input.value.trim();
+      if (!md) { writeStatus('Paste a DESIGN.md first.', false); return; }
+      try {
+        const result = window.DesignMdImport.importString(md);
+        const css = result.css;
+
+        // Snapshot the BEFORE state once per session (don't overwrite on re-apply
+        // so Revert always rolls back to the original pre-DESIGN.md theme).
+        const prev = readSaved();
+        const beforeSnapshot = (prev && prev.previousCss !== undefined)
+          ? prev.previousCss
+          : (window.DirectivesPanel.getGlobalDirectives().style || '');
+
+        // Apply
+        ensureStyleTag().textContent = buildPreviewCss(css);
+        if (editor) editor.value = css;
+        window.DirectivesPanel.setGlobalDirectives({ customStyle: css, style: css });
+
+        // Persist
+        writeSaved({
+          source: md,
+          generatedCss: css,
+          previousCss: beforeSnapshot,
+          name: result.name,
+          appliedAt: Date.now(),
+        });
+
+        const s = result.summary;
+        const warn = (result.warnings && result.warnings.length)
+          ? ` — ${result.warnings.length} warning(s); see console`
+          : '';
+        if (result.warnings && result.warnings.length) {
+          console.group('[DESIGN.md] warnings');
+          result.warnings.forEach(w => console.warn(w));
+          console.groupEnd();
+        }
+        writeStatus(
+          `Applied "${result.name}" — colors:${s.colors} typography:${s.typography} rounded:${s.rounded} spacing:${s.spacing} components:${s.components}${warn}`,
+          true
+        );
+        toast('DESIGN.md theme applied & saved');
+        fullRefresh();
+        setTimeout(close, 800);
+      } catch (e) {
+        console.error(e);
+        writeStatus('Parse error: ' + (e && e.message || e), false);
+      }
+    });
+
+    loadBtn?.addEventListener('click', () => {
+      const saved = readSaved();
+      if (!saved || !saved.source) { writeStatus('No saved DESIGN.md found.', false); return; }
+      input.value = saved.source;
+      writeStatus(`Loaded "${saved.name || 'unnamed'}" from ${new Date(saved.appliedAt).toLocaleString()} — click Apply to re-activate.`, true);
+    });
+
+    revertBtn?.addEventListener('click', () => {
+      const saved = readSaved();
+      if (!saved) { writeStatus('Nothing to revert — no DESIGN.md has been applied.', false); return; }
+      const prevCss = saved.previousCss || '';
+      ensureStyleTag().textContent = buildPreviewCss(prevCss);
+      if (editor) editor.value = prevCss;
+      window.DirectivesPanel.setGlobalDirectives({ customStyle: prevCss, style: prevCss });
+      // Keep the saved source so the user can re-apply later, but clear the
+      // pre-snapshot so the next Apply records a fresh baseline.
+      writeSaved({ ...saved, previousCss: undefined });
+      writeStatus('Reverted to previous theme. Saved DESIGN.md source is still available via Load saved.', true);
+      toast('DESIGN.md reverted');
+      fullRefresh();
+    });
+
+    clearBtn?.addEventListener('click', () => {
+      if (!confirm('Clear the applied DESIGN.md theme and remove the saved source from this browser?')) return;
+      const saved = readSaved();
+      const prevCss = (saved && saved.previousCss) || '';
+      ensureStyleTag().textContent = buildPreviewCss(prevCss);
+      if (editor) editor.value = prevCss;
+      window.DirectivesPanel.setGlobalDirectives({ customStyle: prevCss, style: prevCss });
+      writeSaved(null);
+      input.value = '';
+      writeStatus('Cleared.', true);
+      toast('DESIGN.md cleared');
+      fullRefresh();
+    });
+
+    // Auto-restore on page load. We do NOT overwrite the project's existing
+    // customStyle if the user has manually changed it since last apply — only
+    // re-inject the live <style> tag so component classes still render.
+    try {
+      const saved = readSaved();
+      if (saved && saved.generatedCss) {
+        ensureStyleTag().textContent = buildPreviewCss(saved.generatedCss);
+        const dirs = window.DirectivesPanel.getGlobalDirectives();
+        if (!dirs.style && !dirs.customStyle) {
+          window.DirectivesPanel.setGlobalDirectives({ customStyle: saved.generatedCss, style: saved.generatedCss });
+          if (editor) editor.value = saved.generatedCss;
+        }
+        console.info('[DESIGN.md] Auto-restored saved theme:', saved.name || '(unnamed)');
+      }
+    } catch (e) {
+      console.warn('[DESIGN.md] Auto-restore failed:', e);
+    }
   }
 
   // ===== Templates Modal =====

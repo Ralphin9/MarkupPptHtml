@@ -1,0 +1,53 @@
+---
+version: alpha
+name: Heritage
+colors:
+  primary: "#1A1C1E"
+  secondary: "#6C7278"
+  tertiary: "#B8422E"
+  neutral: "#F7F5F2"
+  surface: "#FFFFFF"
+  on-surface: "#1A1C1E"
+  error: "#D32F2F"
+typography:
+  h1:
+    fontFamily: Georgia
+    fontSize: 48px
+    fontWeight: 700
+    lineHeight: 1.1
+    letterSpacing: -0.02em
+  h2:
+    fontFamily: Georgia
+    fontSize: 32px
+    fontWeight: 600
+  body-md:
+    fontFamily: Helvetica
+    fontSize: 18px
+    lineHeight: 1.6
+  label-caps:
+    fontFamily: Helvetica
+    fontSize: 12px
+    letterSpacing: 0.1em
+rounded:
+  sm: 4px
+  md: 8px
+  lg: 16px
+spacing:
+  sm: 8px
+  md: 16px
+  lg: 56px
+components:
+  button-primary:
+    backgroundColor: "{colors.tertiary}"
+    textColor: "{colors.neutral}"
+    rounded: "{rounded.md}"
+    padding: 12px 20px
+  card:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.on-surface}"
+    rounded: "{rounded.lg}"
+    padding: 24px
+---
+
+## Overview
+A premium, journalistic look — deep ink type on warm limestone.

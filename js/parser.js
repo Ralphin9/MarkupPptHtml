@@ -286,6 +286,12 @@ window.SlideParser = (function () {
       case 'fittext': {
         return '# <!-- fit --> ' + (el.content || 'BIG TEXT');
       }
+      case 'html': {
+        // Raw HTML element — wrapped in `.el-html` so the slide-frame flex
+        // layout doesn't stretch direct <button>/<div> children. The wrapper
+        // also serves as the round-trip marker on parse-back.
+        return '<div class="el-html">\n' + (el.content || '') + '\n</div>';
+      }
       case 'text':
         return el.content || 'Text content';
       case 'bullets': {

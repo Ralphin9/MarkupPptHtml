@@ -34,6 +34,7 @@ window.VisualBuilder = (function () {
     columns:   { type: 'columns', leftContent: '### Left\n- Item A\n- Item B', rightContent: '### Right\n- Item X\n- Item Y' },
     hr:        { type: 'hr', content: '' },
     fittext:   { type: 'fittext', content: 'BIG TEXT' },
+    html:      { type: 'html', content: '<button class="button-primary">Buy Now</button>\n<div data-component="card">Premium content card</div>' },
     imageCompare: { type: 'imageCompare', leftImage: 'https://via.placeholder.com/400x250/264653/ffffff?text=Before', rightImage: 'https://via.placeholder.com/400x250/e76f51/ffffff?text=After', leftLabel: 'Before', rightLabel: 'After' },
     imageCombine: { type: 'imageCombine', sourceImages: [
       { url: 'https://via.placeholder.com/300x250/264653/ffffff?text=Source+1', label: 'Source 1' },
@@ -280,10 +281,20 @@ window.VisualBuilder = (function () {
 
   // ===== Element Palette Click (quick-add) =====
   function setupElementPaletteClick() {
-    document.querySelectorAll('.element-item').forEach(item => {
-      item.addEventListener('click', () => {
-        addElement(item.dataset.element);
-      });
+    // Delegated handler so dynamically rendered palette items keep working.
+    const palette = document.querySelector('.element-palette') || document.body;
+    palette.addEventListener('click', (e) => {
+      const item = e.target.closest('.element-item[data-element]');
+      if (!item) return;
+      // Skip if the user actually started a drag (drag end fires click on some browsers).
+      if (item.dataset.dragging === '1') { delete item.dataset.dragging; return; }
+      const type = item.dataset.element;
+      if (!type) return;
+      if (!ELEMENT_DEFAULTS[type]) {
+        console.warn('[VisualBuilder] Unknown element type from palette:', type);
+        return;
+      }
+      addElement(type);
     });
   }
 
@@ -559,6 +570,13 @@ window.VisualBuilder = (function () {
       }
       case 'fittext':
         return `<h1 class="fit-heading" style="font-size:2.5em;font-weight:900;text-align:center;">${escapeHtml(el.content || 'BIG TEXT')}</h1>`;
+      case 'html': {
+        // Raw HTML element — emitted verbatim, never wrapped by `marked`.
+        // We wrap in `.el-html` so the slide-frame's flex layout treats the
+        // whole snippet as ONE child (otherwise direct <button>/<div>
+        // children get stretched to full width by `align-items: stretch`).
+        return '<div class="el-html">' + String(el.content || '') + '</div>';
+      }
       case 'text': {
         // Support basic markdown in text
         if (typeof marked !== 'undefined') {
@@ -948,6 +966,45 @@ window.VisualBuilder = (function () {
           i++;
         }
         elements.push({ id: ++elementIdCounter, type: 'numbered', content: items.join('\n') });
+        continue;
+      }
+
+      // HTML element marker (round-trip from `html` type)
+      if (line.match(/^<div class="el-html">/i)) {
+        const htmlLines = [];
+        let depth = 0;
+        // Consume the wrapper, tracking nested <div> depth so inner markup
+        // with its own <div>s doesn't terminate us early.
+        while (i < lines.length) {
+          const cur = lines[i];
+          const opens = (cur.match(/<div\b/gi) || []).length;
+          const closes = (cur.match(/<\/div>/gi) || []).length;
+          depth += opens - closes;
+          htmlLines.push(cur);
+          i++;
+          if (depth <= 0) break;
+        }
+        // Strip outer <div class="el-html"> ... </div>
+        const full = htmlLines.join('\n').trim();
+        const inner = full
+          .replace(/^<div class="el-html">\s*/i, '')
+          .replace(/\s*<\/div>\s*$/i, '')
+          .trim();
+        elements.push({ id: ++elementIdCounter, type: 'html', content: inner });
+        continue;
+      }
+
+      // Legacy HTML element marker (older exports)
+      if (line.match(/^<!--\s*el:html\s*-->/i)) {
+        i++; // skip marker
+        const htmlLines = [];
+        // Consume until blank line or another known block starter / EOF
+        while (i < lines.length && lines[i].trim() && !lines[i].match(/^<!--\s*el:html\s*-->/i)) {
+          if (lines[i].match(/^(#{1,6})\s|^```|^\$\$|^>\s|^---$|^\d+\.\s|^[-*+]\s/)) break;
+          htmlLines.push(lines[i]);
+          i++;
+        }
+        elements.push({ id: ++elementIdCounter, type: 'html', content: htmlLines.join('\n').trim() });
         continue;
       }
 

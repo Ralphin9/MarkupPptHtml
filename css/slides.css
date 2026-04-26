@@ -18,6 +18,19 @@
   flex-shrink: 0;
 }
 
+/* Raw HTML / Component element wrapper.
+   The slide-frame is a column flex container with default `align-items:stretch`,
+   which would otherwise blow up direct <button>/<div> children to full width.
+   Wrapping in `.el-html` keeps each html-element compact and lets the inner
+   markup (DESIGN.md component classes etc.) size naturally. */
+.slide-frame .el-html {
+  display: block;
+  align-self: flex-start;
+  max-width: 100%;
+  margin: 0.3em 0;
+}
+.slide-frame .el-html > * + * { margin-top: 0.5em; }
+
 /* Background handling */
 .slide-frame.bg-solid {
   background: var(--slide-bg, #fff);

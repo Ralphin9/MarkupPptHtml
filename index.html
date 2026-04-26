@@ -72,6 +72,7 @@
           <option value="awesome-marp-brown">Awesome-Marp Brown</option>
       </select>
       <button id="btn-templates" title="Templates">📋 Templates</button>
+      <button id="btn-import-design" title="Import DESIGN.md (Google Labs design tokens)">🎨 DESIGN.md</button>
       <button id="btn-present" title="Present (F5)">▶ Present</button>
       <div class="export-dropdown">
         <button id="btn-export" title="Export">⬇ Export</button>
@@ -149,6 +150,9 @@
           <div class="element-item" draggable="true" data-element="fittext">
             <span class="el-icon">FIT</span><span class="el-label">Fit Heading</span>
           </div>
+          <div class="element-item" draggable="true" data-element="html" title="Raw HTML — great for DESIGN.md component classes">
+            <span class="el-icon">⟨∕⟩</span><span class="el-label">HTML / Component</span>
+          </div>
           <div class="element-item" draggable="true" data-element="imageCompare">
             <span class="el-icon">↔</span><span class="el-label">Image Compare</span>
           </div>
@@ -194,6 +198,7 @@
             <button data-quick="text" title="Add Text">T</button>
             <button data-quick="bullets" title="Add List">☰</button>
             <button data-quick="code" title="Add Code">&lt;/&gt;</button>
+            <button data-quick="html" title="Add HTML / Component (raw, for DESIGN.md classes)">⟨/⟩</button>
             <button data-quick="table" title="Add Table">▦</button>
             <button data-quick="image" title="Add Image">🖼</button>
             <button data-quick="math" title="Add Math">∑</button>
@@ -657,6 +662,40 @@ section { font-family: 'Helvetica Neue'; }
     </div>
   </div>
 
+  <!-- Import DESIGN.md Modal -->
+  <div id="design-md-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content" style="max-width:780px;">
+      <div class="modal-header">
+        <h2>Import DESIGN.md</h2>
+        <button class="modal-close" data-close="design-md-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin:0 0 8px;font-size:13px;color:var(--text-muted,#9aa);">
+          Paste a <a href="https://github.com/google-labs-code/design.md" target="_blank" rel="noopener">DESIGN.md</a>
+          file (Google Labs design-token spec). The YAML front-matter <code>colors</code>,
+          <code>typography</code>, <code>rounded</code> and <code>spacing</code> tokens will be
+          turned into a Marp theme and applied to your deck.
+        </p>
+        <textarea id="design-md-input" spellcheck="false"
+          style="width:100%;height:340px;font-family:Consolas,monospace;font-size:12px;background:#1e1e2e;color:#cdd6f4;border:1px solid #444;border-radius:6px;padding:10px;"
+          placeholder="---&#10;name: My Brand&#10;colors:&#10;  primary: '#1A1C1E'&#10;  secondary: '#6C7278'&#10;  tertiary: '#B8422E'&#10;  neutral: '#F7F5F2'&#10;typography:&#10;  h1:&#10;    fontFamily: Public Sans&#10;    fontSize: 3rem&#10;rounded:&#10;  md: 8px&#10;spacing:&#10;  md: 16px&#10;---&#10;&#10;## Overview&#10;…"></textarea>
+        <div id="design-md-status" style="margin-top:8px;font-size:12px;color:#9aa;min-height:18px;"></div>
+        <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button id="btn-design-md-load" title="Load the last DESIGN.md you applied">↺ Load saved</button>
+            <button id="btn-design-md-revert" title="Revert to the theme that was active before applying this DESIGN.md">⤺ Revert</button>
+            <button id="btn-design-md-clear" title="Remove the applied DESIGN.md theme entirely">🗑 Clear</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="modal-close" data-close="design-md-modal">Cancel</button>
+            <button id="btn-design-md-apply" class="primary">Apply as theme</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Presenter Mode -->
   <div id="presenter-mode" class="hidden">
     <div id="presenter-slides"></div>
@@ -681,6 +720,7 @@ section { font-family: 'Helvetica Neue'; }
   <script src="js/image-manager.js"></script>
   <script src="js/directives-panel.js"></script>
   <script src="js/tutorial-builder.js"></script>
+  <script src="js/design-md-import.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
