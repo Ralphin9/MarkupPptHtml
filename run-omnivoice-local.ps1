@@ -11,6 +11,11 @@ if (Get-Variable PSNativeCommandUseErrorActionPreference -ErrorAction SilentlyCo
 }
 Set-Location -Path "$PSScriptRoot"
 
+if (Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue) {
+    Write-Host "[omnivoice] local server is already running on http://localhost:8001" -ForegroundColor Green
+    exit 0
+}
+
 $venv = ".venv-omnivoice"
 $python = Join-Path $venv "Scripts\python.exe"
 

@@ -6,6 +6,12 @@ REM ============================================================
 setlocal
 cd /d "%~dp0"
 
+powershell -NoProfile -ExecutionPolicy Bypass -Command "if (Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue) { exit 0 } exit 1" >nul 2>nul
+if not errorlevel 1 (
+  echo [omnivoice] local server is already running on http://localhost:8001
+  exit /b 0
+)
+
 set "VENV=.venv-omnivoice"
 set "PY=%VENV%\Scripts\python.exe"
 
