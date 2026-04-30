@@ -26,6 +26,8 @@
     setupPropertiesPanel();
     setupExportMenu();
     setupTemplatesModal();
+    setupHfLaunchSample();
+    setupScriptToVideo();
     setupPresenter();
     setupThemeSelect();
     setupCustomCSS();
@@ -157,6 +159,25 @@
         }
       });
     }
+
+    // Size + rotation (universal transform)
+    const propW = document.getElementById('prop-style-w');
+    const propH = document.getElementById('prop-style-h');
+    const propR = document.getElementById('prop-rotate');
+    const propReset = document.getElementById('prop-transform-reset');
+    const updateTransform = (patch) => {
+      const elId = window.VisualBuilder.selectedElementId;
+      if (elId) window.VisualBuilder.updateElement(elId, patch);
+    };
+    if (propW) propW.addEventListener('input', () => updateTransform({ styleW: propW.value ? parseInt(propW.value, 10) : null }));
+    if (propH) propH.addEventListener('input', () => updateTransform({ styleH: propH.value ? parseInt(propH.value, 10) : null }));
+    if (propR) propR.addEventListener('input', () => updateTransform({ rotate: propR.value ? parseFloat(propR.value) : null }));
+    if (propReset) propReset.addEventListener('click', () => {
+      updateTransform({ styleW: null, styleH: null, rotate: null });
+      if (propW) propW.value = '';
+      if (propH) propH.value = '';
+      if (propR) propR.value = '';
+    });
 
     // Heading level
     const propLevel = document.getElementById('prop-heading-level');
@@ -600,6 +621,14 @@
     // Type label
     const typeLabel = document.getElementById('prop-type');
     if (typeLabel) typeLabel.textContent = el.type.charAt(0).toUpperCase() + el.type.slice(1);
+
+    // Universal size + rotation values
+    const propW = document.getElementById('prop-style-w');
+    const propH = document.getElementById('prop-style-h');
+    const propR = document.getElementById('prop-rotate');
+    if (propW) propW.value = el.styleW != null ? el.styleW : '';
+    if (propH) propH.value = el.styleH != null ? el.styleH : '';
+    if (propR) propR.value = el.rotate != null ? el.rotate : '';
 
     // Content
     const propContent = document.getElementById('prop-content');
@@ -1280,6 +1309,137 @@
     // Close modal
     modal.querySelector('.modal-close')?.addEventListener('click', () => modal.classList.add('hidden'));
     modal.querySelector('.modal-overlay')?.addEventListener('click', () => modal.classList.add('hidden'));
+  }
+
+  // ===== Hyperframes Launch sample loader =====
+  // One-click "🎬 HF Launch" button: fetches the bundled storyboard markdown
+  // (samples/hyperframes-launch.md) and replaces the current deck with it.
+  function setupHfLaunchSample() {
+    const btn = document.getElementById('btn-load-hf-launch');
+    if (!btn) return;
+    // Expose fullRefresh so the Script→Video module can trigger it after
+    // injecting a slide (loaded async, doesn't see this closure).
+    window.__app_fullRefresh = fullRefresh;
+    btn.addEventListener('click', async () => {
+      if (!confirm('Replace the current deck with the HeyGen Hyperframes Launch storyboard sample (16 slides)?')) return;
+      btn.disabled = true;
+      const oldText = btn.textContent;
+      btn.textContent = '⏳ Loading…';
+      try {
+        const res = await fetch('samples/hyperframes-launch.md', { cache: 'no-cache' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const md = await res.text();
+        window.VisualBuilder.loadFromMarkdown(md);
+        window.DirectivesPanel.setGlobalDirectives({ theme: 'default', paginate: true });
+        fullRefresh();
+        toast('HF Launch storyboard loaded — 16 slides');
+      } catch (e) {
+        console.error('[HF Launch] load failed:', e);
+        alert('Could not load samples/hyperframes-launch.md.\n\nServe the project (e.g. `npx serve . -p 3000`) and reload.\n\n' + (e && e.message || e));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = oldText;
+      }
+    });
+  }
+
+  // ===== Script → Video (OmniVoice TTS + HyperFrames composition) =====
+  function setupScriptToVideo() {
+    const btnOpen = document.getElementById('btn-script-to-video');
+    const modal = document.getElementById('s2v-modal');
+    if (!btnOpen || !modal) return;
+    const elText = modal.querySelector('#s2v-text');
+    const elFile = modal.querySelector('#s2v-file');
+    const elVoice = modal.querySelector('#s2v-voice');
+    const elRef = modal.querySelector('#s2v-ref');
+    const elServerMode = modal.querySelector('#s2v-server-mode');
+    const elServer = modal.querySelector('#s2v-server');
+    const elLog = modal.querySelector('#s2v-log');
+    const btnGo = modal.querySelector('#s2v-go');
+    const btnCancel = modal.querySelector('#s2v-cancel');
+    const btnSample = modal.querySelector('#s2v-load-sample');
+
+    function log(msg) {
+      const ts = new Date().toLocaleTimeString();
+      elLog.textContent += `\n[${ts}] ${msg}`;
+      elLog.scrollTop = elLog.scrollHeight;
+    }
+    function open() {
+      modal.classList.remove('hidden');
+      elText.focus();
+    }
+    function close() { modal.classList.add('hidden'); }
+
+    btnOpen.addEventListener('click', open);
+    btnCancel.addEventListener('click', close);
+    modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+
+    elVoice.addEventListener('change', () => {
+      modal.dataset.voice = elVoice.value;
+    });
+
+    function applyServerMode() {
+      const m = elServerMode.value;
+      if (m === 'hf') { elServer.style.display = 'none'; elServer.value = ''; }
+      else if (m === 'local') { elServer.style.display = 'block'; elServer.value = 'http://localhost:8001'; }
+      else { elServer.style.display = 'block'; if (!elServer.value) elServer.value = 'http://'; elServer.focus(); }
+    }
+    elServerMode.addEventListener('change', applyServerMode);
+
+    elFile.addEventListener('change', async () => {
+      const f = elFile.files?.[0];
+      if (!f) return;
+      elText.value = await f.text();
+    });
+
+    btnSample.addEventListener('click', async () => {
+      try {
+        const r = await fetch('samples/script-to-video-sample.txt', { cache: 'no-cache' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        elText.value = await r.text();
+      } catch (e) {
+        alert('Could not load samples/script-to-video-sample.txt — make sure the dev server is running.\n\n' + e.message);
+      }
+    });
+
+    btnGo.addEventListener('click', async () => {
+      const script = elText.value.trim();
+      if (!script) { alert('Please paste a script first.'); return; }
+      if (!window.ScriptToVideo) { alert('Script-to-Video module did not load.'); return; }
+      const voice = elVoice.value;
+      const refFile = voice === 'clone' ? elRef.files?.[0] : null;
+      if (voice === 'clone' && !refFile) { alert('Clone mode needs a reference audio file.'); return; }
+
+      btnGo.disabled = true;
+      const oldLabel = btnGo.textContent;
+      btnGo.textContent = 'Working…';
+      elLog.textContent = 'Starting…';
+      try {
+        const result = await window.ScriptToVideo.run({
+          scriptText: script,
+          voice,
+          refAudioFile: refFile,
+          server: (elServer.value || '').trim() || null,
+          onProgress: log,
+        });
+        log(`✅ Slide added with ${result.scenes.length} scenes (${result.totalDuration.toFixed(1)}s).`);
+        toast('Script→Video: slide added — open the new last slide.');
+        // Offer WAV download
+        const a = document.createElement('a');
+        a.href = result.audioBlobUrl;
+        a.download = (result.slug || 'voiceover') + '.wav';
+        a.textContent = '⬇ Download WAV';
+        a.style.cssText = 'display:inline-block;margin-top:8px;color:#9bd;text-decoration:underline;';
+        elLog.appendChild(document.createElement('br'));
+        elLog.appendChild(a);
+      } catch (e) {
+        console.error('[script-to-video] failed', e);
+        log('❌ ' + (e?.message || e));
+      } finally {
+        btnGo.disabled = false;
+        btnGo.textContent = oldLabel;
+      }
+    });
   }
 
   /** Parse a template's markdown into element array + per-slide directives */

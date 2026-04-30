@@ -116,6 +116,11 @@ window.SlideExporter = (function () {
     .slide-frame .el-html { display:block; align-self:flex-start; max-width:100%; margin:0.3em 0; }
     .slide-frame .el-html > * + * { margin-top:0.5em; }
 
+    /* HyperFrame — sandboxed iframe composition */
+    .slide-frame .el-hyperframe { display:block; align-self:flex-start; max-width:100%; margin:0.4em 0; }
+    .slide-frame .el-hyperframe iframe { display:block; width:100%; border:0; border-radius:8px;
+      background:#0d1117; box-shadow:0 4px 14px rgba(0,0,0,0.18); }
+
     .slide-frame h1 { font-size:2.2em;font-weight:800;color:var(--slide-heading);margin-bottom:0.3em;line-height:1.2; }
     .slide-frame h2 { font-size:1.6em;font-weight:700;color:var(--slide-heading);margin-bottom:0.3em;line-height:1.25; }
     .slide-frame h3 { font-size:1.25em;font-weight:600;color:var(--slide-heading);margin-bottom:0.2em; }

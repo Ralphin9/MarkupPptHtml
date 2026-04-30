@@ -146,10 +146,34 @@ window.SlideRenderer = (function () {
     </div>`;
   }
 
+  /**
+   * Re-execute <script> tags inside a freshly-injected innerHTML region.
+   *
+   * Browsers do NOT execute <script> nodes that are inserted via .innerHTML.
+   * This helper replaces each inert <script> with a freshly-created one so
+   * inline JS in `.el-html` blocks (e.g. GSAP timelines authored as raw
+   * components) actually runs in the live preview / presenter.
+   *
+   * Hyperframe elements are rendered as <iframe srcdoc="..."> so they get
+   * full, sandboxed execution automatically and don't need this pass.
+   */
+  function activateScripts(root) {
+    if (!root) return;
+    const scripts = root.querySelectorAll('.el-html script');
+    scripts.forEach(old => {
+      const s = document.createElement('script');
+      // Copy attributes (src, type, async, defer, etc.)
+      for (const attr of old.attributes) s.setAttribute(attr.name, attr.value);
+      if (!old.src) s.textContent = old.textContent;
+      old.replaceWith(s);
+    });
+  }
+
   /** Render one slide into a container element */
   function renderSlide(container, slide, slideNumber, totalSlides) {
     container.innerHTML = renderSlideHTML(slide, slideNumber, totalSlides);
     highlightCode(container);
+    activateScripts(container);
   }
 
   /** Render the grid view */
@@ -180,5 +204,5 @@ window.SlideRenderer = (function () {
     });
   }
 
-  return { renderSlide, renderGrid, renderSlideHTML, highlightCode };
+  return { renderSlide, renderGrid, renderSlideHTML, highlightCode, activateScripts };
 })();

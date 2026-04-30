@@ -35,6 +35,61 @@ window.VisualBuilder = (function () {
     hr:        { type: 'hr', content: '' },
     fittext:   { type: 'fittext', content: 'BIG TEXT' },
     html:      { type: 'html', content: '<button class="button-primary">Buy Now</button>\n<div data-component="card">Premium content card</div>' },
+    hyperframe: { type: 'hyperframe',
+      width: 1280, height: 360,
+      // HeyGen HyperFrames spec stub — see https://github.com/heygen-com/hyperframes
+      // Composition root carries data-composition-id / data-width / data-height /
+      // data-start / data-duration. GSAP timelines register on window.__timelines
+      // in PAUSED state so the renderer can seek frame-by-frame for MP4 export.
+      content: [
+        '<!-- HyperFrames composition stub (HeyGen spec). Renders here as an',
+        '     interactive preview; can also be fed to `npx hyperframes render`. -->',
+        '<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>',
+        '<style>',
+        '  html, body { margin:0; width:1920px; height:1080px; background:#0a0a0a;',
+        '               overflow:hidden; font-family:Inter,system-ui,sans-serif; }',
+        '  #stage { position:relative; width:1920px; height:1080px;',
+        '           transform-origin:0 0; }',
+        '  .title { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);',
+        '           color:#fff; font-size:140px; font-weight:600; letter-spacing:-0.02em; }',
+        '  .cap { position:absolute; bottom:80px; left:50%; transform:translateX(-50%);',
+        '         color:rgba(240,235,220,0.92); font-size:40px;',
+        '         background:rgba(10,8,5,0.55); padding:12px 28px; border-radius:10px; }',
+        '</style>',
+        '<div id="stage"',
+        '     data-composition-id="my-comp"',
+        '     data-width="1920" data-height="1080"',
+        '     data-start="0" data-duration="5">',
+        '  <div class="title">Hello, HyperFrames</div>',
+        '  <div class="cap clip" data-start="0.5" data-duration="3"',
+        '       data-track-index="20">Write HTML. Render video.</div>',
+        '</div>',
+        '<!-- Audio (optional). The renderer mixes by data-start / data-duration. -->',
+        '<!-- <audio id="vo" src="assets/voiceover.mp3"',
+        '             data-start="0" data-duration="5"',
+        '             data-track-index="0" data-volume="1"></audio> -->',
+        '<script>',
+        '  // Fit the 1920x1080 stage into whatever box the iframe gives us.',
+        '  (function fit() {',
+        '    const s = document.getElementById("stage");',
+        '    const r = () => {',
+        '      const k = Math.min(window.innerWidth/1920, window.innerHeight/1080);',
+        '      s.style.transform = "scale(" + k + ")";',
+        '    };',
+        '    r(); window.addEventListener("resize", r);',
+        '  })();',
+        '  // Register a PAUSED GSAP timeline on window.__timelines["<composition-id>"].',
+        '  // The HyperFrames engine seeks this for deterministic frame-perfect render.',
+        '  window.__timelines = window.__timelines || {};',
+        '  const tl = gsap.timeline({ paused: true });',
+        '  tl.from(".title", { opacity: 0, y: 60, duration: 1, ease: "power2.out" })',
+        '    .from(".cap",   { opacity: 0, y: 20, duration: 0.6 }, 0.5);',
+        '  window.__timelines["my-comp"] = tl;',
+        '  // For interactive preview only: play locally. The renderer ignores this.',
+        '  tl.play();',
+        '</script>',
+      ].join('\n'),
+    },
     imageCompare: { type: 'imageCompare', leftImage: 'https://via.placeholder.com/400x250/264653/ffffff?text=Before', rightImage: 'https://via.placeholder.com/400x250/e76f51/ffffff?text=After', leftLabel: 'Before', rightLabel: 'After' },
     imageCombine: { type: 'imageCombine', sourceImages: [
       { url: 'https://via.placeholder.com/300x250/264653/ffffff?text=Source+1', label: 'Source 1' },
@@ -371,6 +426,11 @@ window.VisualBuilder = (function () {
       div.dataset.index = idx;
       div.draggable = true;
 
+      // Apply free-transform styles (resize/rotate). When set, the wrapper
+      // is sized explicitly and the inner content stretches to fill.
+      const transform = buildElementTransformStyle(el);
+      if (transform) div.style.cssText = transform;
+
       // Drag handle
       const handle = document.createElement('span');
       handle.className = 've-drag-handle';
@@ -385,6 +445,11 @@ window.VisualBuilder = (function () {
 
       if (el.type === 'image' && !el.bgMode) {
         attachImageResizeHandle(div, el);
+      }
+
+      // Universal resize + rotate handles (shown only on selected element).
+      if (el.id === selectedElementId) {
+        attachTransformHandles(div, el);
       }
 
       // Click to select
@@ -419,6 +484,12 @@ window.VisualBuilder = (function () {
     // Highlight code blocks
     if (typeof hljs !== 'undefined') {
       zone.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+    }
+
+    // Activate inline <script> tags inside .el-html (HyperFrames already
+    // execute via iframe srcdoc so they don't need this).
+    if (window.SlideRenderer && window.SlideRenderer.activateScripts) {
+      window.SlideRenderer.activateScripts(zone);
     }
 
     // Render logo overlay
@@ -488,6 +559,124 @@ window.VisualBuilder = (function () {
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', onUp);
     });
+  }
+
+  // ===== Universal resize + rotate handles =====
+  // Inspired by Ralphin9/GraphicVideoImageGif's ThumbnailStudio: 8 resize
+  // handles around the element bounding box plus one rotation handle above
+  // top-center. Updates `el.styleW` (px), `el.styleH` (px), `el.rotate` (deg)
+  // on the model — these flow back through render and persist with the project.
+
+  /** Build inline style string from el.styleW/styleH/rotate. Returns '' if none set. */
+  function buildElementTransformStyle(el) {
+    const parts = [];
+    if (el.styleW) parts.push('width:' + parseInt(el.styleW, 10) + 'px');
+    if (el.styleH) parts.push('height:' + parseInt(el.styleH, 10) + 'px');
+    if (el.rotate) parts.push('transform:rotate(' + parseFloat(el.rotate) + 'deg)');
+    if (el.styleW || el.styleH) parts.push('flex:0 0 auto');
+    return parts.join(';');
+  }
+
+  function attachTransformHandles(container, el) {
+    container.classList.add('ve-transformable');
+
+    const HANDLES = [
+      { pos: 'tl', cursor: 'nw-resize', dx: -1, dy: -1 },
+      { pos: 't',  cursor: 'n-resize',  dx:  0, dy: -1 },
+      { pos: 'tr', cursor: 'ne-resize', dx:  1, dy: -1 },
+      { pos: 'r',  cursor: 'e-resize',  dx:  1, dy:  0 },
+      { pos: 'br', cursor: 'se-resize', dx:  1, dy:  1 },
+      { pos: 'b',  cursor: 's-resize',  dx:  0, dy:  1 },
+      { pos: 'bl', cursor: 'sw-resize', dx: -1, dy:  1 },
+      { pos: 'l',  cursor: 'w-resize',  dx: -1, dy:  0 },
+    ];
+
+    HANDLES.forEach(h => {
+      const node = document.createElement('span');
+      node.className = 've-tx-handle ve-tx-' + h.pos;
+      node.style.cursor = h.cursor;
+      node.dataset.pos = h.pos;
+      node.addEventListener('mousedown', (e) => startResize(e, container, el, h));
+      container.appendChild(node);
+    });
+
+    // Rotation handle (top-center, offset above)
+    const rot = document.createElement('span');
+    rot.className = 've-tx-handle ve-tx-rot';
+    rot.title = 'Drag to rotate';
+    rot.addEventListener('mousedown', (e) => startRotate(e, container, el));
+    container.appendChild(rot);
+  }
+
+  function startResize(e, container, el, handle) {
+    e.preventDefault();
+    e.stopPropagation();
+    container.draggable = false;
+
+    const rect = container.getBoundingClientRect();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startW = Math.max(40, rect.width);
+    const startH = Math.max(20, rect.height);
+    let nextW = startW;
+    let nextH = startH;
+
+    const onMove = (ev) => {
+      ev.preventDefault();
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      if (handle.dx > 0) nextW = Math.max(40, Math.round(startW + dx));
+      else if (handle.dx < 0) nextW = Math.max(40, Math.round(startW - dx));
+      if (handle.dy > 0) nextH = Math.max(20, Math.round(startH + dy));
+      else if (handle.dy < 0) nextH = Math.max(20, Math.round(startH - dy));
+
+      container.style.width  = nextW + 'px';
+      container.style.height = nextH + 'px';
+      container.style.flex   = '0 0 auto';
+    };
+
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      container.draggable = true;
+      updateElement(el.id, { styleW: nextW, styleH: nextH });
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+
+  function startRotate(e, container, el) {
+    e.preventDefault();
+    e.stopPropagation();
+    container.draggable = false;
+
+    const rect = container.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const startAngle = Math.atan2(e.clientY - cy, e.clientX - cx);
+    const startRot = parseFloat(el.rotate || 0);
+    let nextRot = startRot;
+
+    const onMove = (ev) => {
+      ev.preventDefault();
+      const a = Math.atan2(ev.clientY - cy, ev.clientX - cx);
+      const deltaDeg = (a - startAngle) * 180 / Math.PI;
+      nextRot = Math.round(startRot + deltaDeg);
+      // Snap to 15° while holding Shift
+      if (ev.shiftKey) nextRot = Math.round(nextRot / 15) * 15;
+      container.style.transform = 'rotate(' + nextRot + 'deg)';
+    };
+
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      container.draggable = true;
+      updateElement(el.id, { rotate: nextRot });
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
   }
 
   function renderHeaderFooterOverlays(canvas) {
@@ -576,6 +765,25 @@ window.VisualBuilder = (function () {
         // whole snippet as ONE child (otherwise direct <button>/<div>
         // children get stretched to full width by `align-items: stretch`).
         return '<div class="el-html">' + String(el.content || '') + '</div>';
+      }
+      case 'hyperframe': {
+        // HyperFrame element — composition rendered inside an isolated iframe.
+        // Inline <script>/CSS run inside the iframe sandbox, so global state
+        // and styles never leak into the deck. Inspired by HeyGen HyperFrames
+        // and Remotion: HTML/CSS/JS as a video/animation primitive.
+        const w = parseInt(el.width, 10) || 1280;
+        const h = parseInt(el.height, 10) || 360;
+        const srcdoc = '<!doctype html><html><head><meta charset="utf-8"></head><body>'
+          + String(el.content || '') + '</body></html>';
+        const safeSrc = srcdoc
+          .replace(/&/g, '&amp;')
+          .replace(/"/g, '&quot;');
+        return '<div class="el-hyperframe" style="width:' + w + 'px;max-width:100%;">'
+          + '<iframe sandbox="allow-scripts allow-same-origin allow-popups allow-forms" '
+          + 'loading="lazy" referrerpolicy="no-referrer" '
+          + 'style="width:100%;height:' + h + 'px;border:0;border-radius:8px;background:#0d1117;" '
+          + 'srcdoc="' + safeSrc + '"></iframe>'
+          + '</div>';
       }
       case 'text': {
         // Support basic markdown in text
@@ -815,8 +1023,12 @@ window.VisualBuilder = (function () {
         });
       }
 
-      // Remove directive comments to parse content only
-      let clean = raw.replace(/<!--[\s\S]*?-->/g, '').replace(/^_\w[\w-]*\s*:.+$/gm, '').trim();
+      // Remove directive comments to parse content only.
+      // Preserve `<!-- el:* -->` markers — those are element-type sentinels
+      // (e.g. el:hyperframe, el:html) that the element parser depends on.
+      let clean = raw.replace(/<!--([\s\S]*?)-->/g, (full, body) => {
+        return /^\s*el:/i.test(body) ? full : '';
+      }).replace(/^_\w[\w-]*\s*:.+$/gm, '').trim();
 
       // Parse clean markdown into elements
       const elements = parseMarkdownToElements(clean);
@@ -842,11 +1054,41 @@ window.VisualBuilder = (function () {
     const lines = md.split('\n');
     let i = 0;
 
+    // Pending size/rotation sentinel applied to the next element pushed.
+    let pendingStyle = null;
+    // Wrap push so any of the many existing `elements.push(...)` call sites
+    // automatically receive the pending sentinel without invasive edits.
+    const origPush = elements.push.bind(elements);
+    elements.push = function (...items) {
+      const r = origPush(...items);
+      if (pendingStyle && items.length) {
+        Object.assign(items[items.length - 1], pendingStyle);
+        pendingStyle = null;
+      }
+      return r;
+    };
+
     while (i < lines.length) {
       const line = lines[i];
 
       // Skip empty lines
       if (!line.trim()) { i++; continue; }
+
+      // <!-- el-style w=400 h=200 r=15 --> sentinel
+      const styleMatch = line.match(/^<!--\s*el-style\s+([^>]+?)\s*-->\s*$/i);
+      if (styleMatch) {
+        const patch = {};
+        styleMatch[1].split(/\s+/).forEach(kv => {
+          const m = kv.match(/^(w|h|r)=(-?[\d.]+)$/i);
+          if (!m) return;
+          if (m[1].toLowerCase() === 'w') patch.styleW = parseInt(m[2], 10);
+          else if (m[1].toLowerCase() === 'h') patch.styleH = parseInt(m[2], 10);
+          else if (m[1].toLowerCase() === 'r') patch.rotate = parseFloat(m[2]);
+        });
+        pendingStyle = patch;
+        i++;
+        continue;
+      }
 
       // Heading with fit
       const fitMatch = line.match(/^(#{1,6})\s*<!--\s*fit\s*-->\s*(.+)$/);
@@ -966,6 +1208,44 @@ window.VisualBuilder = (function () {
           i++;
         }
         elements.push({ id: ++elementIdCounter, type: 'numbered', content: items.join('\n') });
+        continue;
+      }
+
+      // HyperFrame element marker (round-trip from `hyperframe` type).
+      // Format:  <!-- el:hyperframe w=1280 h=360 -->
+      //         <div class="el-hyperframe-src" style="display:none">
+      //         ...composition HTML/CSS/JS...
+      //         </div>
+      const hfMatch = line.match(/^<!--\s*el:hyperframe(?:\s+w=(\d+))?(?:\s+h=(\d+))?\s*-->/i);
+      if (hfMatch) {
+        const w = parseInt(hfMatch[1], 10) || 1280;
+        const h = parseInt(hfMatch[2], 10) || 360;
+        i++; // skip marker
+        // Skip optional opening wrapper
+        if (i < lines.length && lines[i].match(/^<div class="el-hyperframe-src"/i)) i++;
+        const hfLines = [];
+        let depth = 1;
+        while (i < lines.length && depth > 0) {
+          const cur = lines[i];
+          const opens = (cur.match(/<div\b/gi) || []).length;
+          const closes = (cur.match(/<\/div>/gi) || []).length;
+          if (depth - closes <= 0) {
+            // Last closing </div> ends the wrapper — don't include it.
+            const trimmed = cur.replace(/<\/div>\s*$/, '');
+            if (trimmed.trim()) hfLines.push(trimmed);
+            i++;
+            depth = 0;
+            break;
+          }
+          hfLines.push(cur);
+          depth += opens - closes;
+          i++;
+        }
+        elements.push({
+          id: ++elementIdCounter, type: 'hyperframe',
+          width: w, height: h,
+          content: hfLines.join('\n').trim(),
+        });
         continue;
       }
 

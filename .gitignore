@@ -1,0 +1,16 @@
+# Python environments
+.venv/
+.venv-omnivoice/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local/editor noise
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Generated media caches can be very large; keep tracked media explicit if needed.
+media/**/__pycache__/

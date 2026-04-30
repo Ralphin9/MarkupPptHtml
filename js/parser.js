@@ -74,10 +74,39 @@ window.SlideParser = (function () {
   }
 
   function stripDirectives(raw) {
+    // First: convert HyperFrame markers into the iframe markup that the
+    // renderer will emit verbatim. Must happen BEFORE the comment-strip
+    // pass below (which would otherwise eat the `<!-- el:hyperframe -->`
+    // sentinel) and before `marked.parse`, so the resulting <iframe>
+    // passes through as a raw HTML block.
+    raw = expandHyperFrames(raw);
+
     return raw
       .replace(/<!--[\s\S]*?-->/g, '')
       .replace(/^_\w[\w-]*\s*:\s*.+$/gm, '')
       .trim();
+  }
+
+  function expandHyperFrames(raw) {
+    // Match: <!-- el:hyperframe w=W h=H -->
+    //        <div class="el-hyperframe-src" ...>
+    //          ...composition...
+    //        </div>
+    const re = /<!--\s*el:hyperframe(?:\s+w=(\d+))?(?:\s+h=(\d+))?\s*-->\s*<div class="el-hyperframe-src"[^>]*>([\s\S]*?)<\/div>/gi;
+    return raw.replace(re, (_full, w, h, body) => {
+      const width  = parseInt(w, 10) || 1280;
+      const height = parseInt(h, 10) || 360;
+      const srcdoc = ('<!doctype html><html><head><meta charset="utf-8"></head><body>'
+                      + (body || '').trim() + '</body></html>')
+                     .replace(/&/g, '&amp;')
+                     .replace(/"/g, '&quot;');
+      return '\n\n<div class="el-hyperframe" style="width:' + width + 'px;max-width:100%;">'
+        + '<iframe sandbox="allow-scripts allow-same-origin allow-popups allow-forms" '
+        + 'loading="lazy" referrerpolicy="no-referrer" '
+        + 'style="width:100%;height:' + height + 'px;border:0;border-radius:8px;background:#0d1117;" '
+        + 'srcdoc="' + srcdoc + '"></iframe>'
+        + '</div>\n\n';
+    });
   }
 
   // ===== Marpit Image Syntax =====
@@ -267,6 +296,13 @@ window.SlideParser = (function () {
       if (slide.elements) {
         slide.elements.forEach(el => {
           lines.push('');
+          // Optional size/rotation sentinel — preserved across markdown round-trip.
+          // Format: <!-- el-style w=400 h=200 r=15 -->  (any field optional)
+          const styleParts = [];
+          if (el.styleW) styleParts.push('w=' + parseInt(el.styleW, 10));
+          if (el.styleH) styleParts.push('h=' + parseInt(el.styleH, 10));
+          if (el.rotate) styleParts.push('r=' + parseFloat(el.rotate));
+          if (styleParts.length) lines.push('<!-- el-style ' + styleParts.join(' ') + ' -->');
           lines.push(elementToMarkdown(el));
         });
       }
@@ -291,6 +327,16 @@ window.SlideParser = (function () {
         // layout doesn't stretch direct <button>/<div> children. The wrapper
         // also serves as the round-trip marker on parse-back.
         return '<div class="el-html">\n' + (el.content || '') + '\n</div>';
+      }
+      case 'hyperframe': {
+        // HyperFrame element — sandboxed composition. Stored as an HTML
+        // comment + raw markup block so it round-trips through Markdown.
+        const w = parseInt(el.width, 10) || 1280;
+        const h = parseInt(el.height, 10) || 360;
+        return '<!-- el:hyperframe w=' + w + ' h=' + h + ' -->\n'
+          + '<div class="el-hyperframe-src" style="display:none">\n'
+          + (el.content || '')
+          + '\n</div>';
       }
       case 'text':
         return el.content || 'Text content';

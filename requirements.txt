@@ -1,10 +1,12 @@
 ﻿# Project requirements for MarkupPptHtml
-# Python version: 3.9.x
+# Python version: 3.9+ for Manim scripts.
+# Optional local OmniVoice uses requirements-omnivoice.txt and .venv-omnivoice.
 # To set up:
 # 1. python -m venv .venv
 # 2. .venv\Scripts\pip.exe install --upgrade pip
 # 3. .venv\Scripts\pip.exe install -r requirements.txt
 
+# ===== Project 2: Manim animations (media/) =====
 av==13.1.0
 beautifulsoup4==4.14.3
 click==8.1.8
@@ -40,3 +42,4 @@ tqdm==4.67.3
 typing-extensions==4.15.0
 watchdog==6.0.0
 zipp==3.23.1
+

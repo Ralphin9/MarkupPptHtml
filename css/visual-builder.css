@@ -205,6 +205,57 @@
 .ve-element[data-type="code"] { }
 .ve-element[data-type="image"] { }
 
+/* ===== Universal Resize + Rotate Handles =====
+   Shown only on the SELECTED .ve-element. 8 corner/edge handles + 1 rotate. */
+.ve-element.ve-transformable.selected {
+  /* Reserve room for handles outside the border without clipping. */
+  overflow: visible;
+}
+.ve-tx-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #38bdf8;
+  border: 1px solid #0a1628;
+  border-radius: 2px;
+  z-index: 20;
+  display: none;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.4);
+}
+.ve-element.selected .ve-tx-handle { display: block; }
+
+.ve-tx-tl { top: -5px;  left: -5px;  }
+.ve-tx-t  { top: -5px;  left: 50%; transform: translateX(-50%); }
+.ve-tx-tr { top: -5px;  right: -5px; }
+.ve-tx-r  { top: 50%;   right: -5px; transform: translateY(-50%); }
+.ve-tx-br { bottom: -5px; right: -5px; }
+.ve-tx-b  { bottom: -5px; left: 50%; transform: translateX(-50%); }
+.ve-tx-bl { bottom: -5px; left: -5px; }
+.ve-tx-l  { top: 50%;   left: -5px;  transform: translateY(-50%); }
+
+/* Rotation handle floats above the top-center handle */
+.ve-tx-rot {
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #facc15;
+  cursor: grab;
+}
+.ve-tx-rot::after {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  width: 1px;
+  height: 12px;
+  background: #facc15;
+  transform: translateX(-50%);
+}
+.ve-tx-rot:active { cursor: grabbing; }
+
 /* Rendered content inside visual elements */
 .ve-content {
   pointer-events: none;

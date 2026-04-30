@@ -1,0 +1,13 @@
+---
+title: Why AI is changing how we ship software
+theme: shadow-cut
+voice: auto
+---
+Software shipping has changed forever.
+Today, AI assistants write code, run tests, and review pull requests around the clock.
+Did you know that 76% of developers now use AI tools weekly?
+The old workflow was slow, manual, and error-prone — the new one is automated, instant, and reliable.
+First you describe the feature, then the assistant scaffolds it, then you ship.
+Three things matter most: clear intent, fast feedback, and human judgement.
+"The best code is the code you didn't have to write."
+The future of engineering is collaborative — humans and AI, building together.

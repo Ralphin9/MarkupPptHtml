@@ -24,6 +24,8 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <!-- gif.js for animated GIF export -->
   <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+  <!-- Script-to-Video pipeline (OmniVoice TTS + HyperFrame composition) -->
+  <script src="js/script-to-video.js" defer></script>
 
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/themes.css">
@@ -31,6 +33,26 @@
   <link rel="stylesheet" href="css/transitions.css">
   <link rel="stylesheet" href="css/visual-builder.css">
   <link rel="stylesheet" href="css/tutorial-builder.css">
+  <style>
+    /* ===== Script → Video modal ===== */
+    #s2v-modal.hidden { display: none; }
+    #s2v-modal { position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.55); }
+    #s2v-modal .s2v-card { background:#1e1e22; color:#e2e2e2; width:min(720px,92vw); max-height:88vh; overflow:auto; border-radius:12px; padding:24px 28px; box-shadow:0 20px 60px rgba(0,0,0,.6); font-family:Inter,system-ui,sans-serif; }
+    #s2v-modal h2 { margin:0 0 4px 0; font-size:20px; }
+    #s2v-modal .s2v-sub { font-size:13px; color:#9aa; margin-bottom:18px; }
+    #s2v-modal label { display:block; font-size:12px; font-weight:600; color:#9bd; text-transform:uppercase; letter-spacing:.08em; margin:12px 0 6px; }
+    #s2v-modal textarea, #s2v-modal input[type=text], #s2v-modal select, #s2v-modal input[type=file] { width:100%; box-sizing:border-box; padding:10px 12px; background:#111; color:#e2e2e2; border:1px solid #333; border-radius:6px; font-family:inherit; font-size:14px; }
+    #s2v-modal textarea { min-height:160px; font-family:'Fira Code',monospace; font-size:13px; resize:vertical; }
+    #s2v-modal .s2v-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    #s2v-modal .s2v-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:18px; }
+    #s2v-modal button { padding:10px 18px; border-radius:6px; border:none; cursor:pointer; font-weight:600; font-size:14px; }
+    #s2v-modal .s2v-primary { background:#c0392b; color:#fff; }
+    #s2v-modal .s2v-primary:disabled { background:#444; cursor:not-allowed; }
+    #s2v-modal .s2v-secondary { background:#2a2a30; color:#e2e2e2; }
+    #s2v-modal .s2v-log { margin-top:14px; padding:10px 12px; background:#0d0d10; border:1px solid #2a2a30; border-radius:6px; font-family:'Fira Code',monospace; font-size:12px; color:#8be9fd; min-height:48px; max-height:200px; overflow:auto; white-space:pre-wrap; }
+    #s2v-modal .s2v-clone-fields { display:none; }
+    #s2v-modal[data-voice="clone"] .s2v-clone-fields { display:block; }
+  </style>
 </head>
 <body>
   <!-- ========== TOP HEADER BAR ========== -->
@@ -72,6 +94,8 @@
           <option value="awesome-marp-brown">Awesome-Marp Brown</option>
       </select>
       <button id="btn-templates" title="Templates">📋 Templates</button>
+      <button id="btn-load-hf-launch" title="Load HeyGen Hyperframes Launch storyboard sample (16 slides)">🎬 HF Launch</button>
+      <button id="btn-script-to-video" title="Script → Video — OmniVoice TTS + HyperFrames composition">🎤 Script→Video</button>
       <button id="btn-import-design" title="Import DESIGN.md (Google Labs design tokens)">🎨 DESIGN.md</button>
       <button id="btn-present" title="Present (F5)">▶ Present</button>
       <div class="export-dropdown">
@@ -152,6 +176,9 @@
           </div>
           <div class="element-item" draggable="true" data-element="html" title="Raw HTML — great for DESIGN.md component classes">
             <span class="el-icon">⟨∕⟩</span><span class="el-label">HTML / Component</span>
+          </div>
+          <div class="element-item" draggable="true" data-element="hyperframe" title="HyperFrame — sandboxed iframe with HTML+CSS+JS (GSAP-friendly)">
+            <span class="el-icon">▶</span><span class="el-label">HyperFrame</span>
           </div>
           <div class="element-item" draggable="true" data-element="imageCompare">
             <span class="el-icon">↔</span><span class="el-label">Image Compare</span>
@@ -360,6 +387,21 @@
           <div class="prop-group" id="prop-content-group">
             <label>Content</label>
             <textarea id="prop-content" rows="5"></textarea>
+          </div>
+          <div class="prop-group" id="prop-transform-group">
+            <label>Size & Rotation</label>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#9ca3af;">W
+                <input type="number" id="prop-style-w" min="40" step="10" placeholder="auto" style="width:70px;">
+              </label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#9ca3af;">H
+                <input type="number" id="prop-style-h" min="20" step="10" placeholder="auto" style="width:70px;">
+              </label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#9ca3af;">↻
+                <input type="number" id="prop-rotate" step="1" placeholder="0°" style="width:60px;">
+              </label>
+              <button type="button" id="prop-transform-reset" style="padding:2px 8px;font-size:11px;cursor:pointer;">Reset</button>
+            </div>
           </div>
           <div class="prop-group hidden" id="prop-level-group">
             <label>Heading Level</label>
@@ -722,5 +764,56 @@ section { font-family: 'Helvetica Neue'; }
   <script src="js/tutorial-builder.js"></script>
   <script src="js/design-md-import.js"></script>
   <script src="js/app.js"></script>
+
+  <!-- ===== Script → Video modal ===== -->
+  <div id="s2v-modal" class="hidden" data-voice="auto">
+    <div class="s2v-card">
+      <h2>🎤 Script → Video</h2>
+      <div class="s2v-sub">
+        Generates voiceover via <a href="https://huggingface.co/spaces/k2-fsa/OmniVoice" target="_blank" style="color:#9bd;">OmniVoice (HF Space)</a>,
+        maps each sentence to a HyperFrames-style scene (<a href="https://github.com/pjecuacion/script-to-video-skill" target="_blank" style="color:#9bd;">script-to-video-skill</a>),
+        and adds a new slide with the timed composition.
+      </div>
+
+      <label for="s2v-server">OmniVoice server</label>
+      <select id="s2v-server-mode" style="margin-bottom:6px;">
+        <option value="hf" selected>Hugging Face Space (free, slow cold-start, may queue)</option>
+        <option value="local">Local install (http://localhost:8001)</option>
+        <option value="custom">Custom URL…</option>
+      </select>
+      <input id="s2v-server" type="text" placeholder="http://localhost:8001" value="" style="display:none;" />
+      <div style="font-size:11px;color:#7a8;margin-top:4px;">
+        Local install: <code style="color:#fc6;">pip install omnivoice</code> then <code style="color:#fc6;">omnivoice-demo --ip 0.0.0.0 --port 8001</code>
+      </div>
+
+      <label for="s2v-file">Load .txt script (optional)</label>
+      <input id="s2v-file" type="file" accept=".txt,.md" />
+
+      <label for="s2v-text">Script (or paste below) — supports YAML front-matter for <code>title</code>, <code>theme</code>, <code>voice</code></label>
+      <textarea id="s2v-text" placeholder="---&#10;title: My first AI video&#10;theme: shadow-cut&#10;voice: auto&#10;---&#10;The opening hook sentence.&#10;Then the second sentence flows in.&#10;Did you know 47% of devs use AI tools daily?&#10;Closing thought."></textarea>
+
+      <div class="s2v-row">
+        <div>
+          <label for="s2v-voice">Voice mode</label>
+          <select id="s2v-voice">
+            <option value="auto" selected>Auto (random voice)</option>
+            <option value="clone">Clone (upload reference audio)</option>
+          </select>
+        </div>
+        <div class="s2v-clone-fields">
+          <label for="s2v-ref">Reference audio (.mp3 / .wav, ≤30s)</label>
+          <input id="s2v-ref" type="file" accept="audio/*" />
+        </div>
+      </div>
+
+      <div class="s2v-log" id="s2v-log">Idle. Paste a script and click Generate.</div>
+
+      <div class="s2v-actions">
+        <button class="s2v-secondary" id="s2v-load-sample">Load sample</button>
+        <button class="s2v-secondary" id="s2v-cancel">Cancel</button>
+        <button class="s2v-primary" id="s2v-go">Generate Video</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
