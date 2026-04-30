@@ -232,6 +232,8 @@ That creates/uses a dedicated `.venv-omnivoice` environment, installs `torch`, `
 omnivoice-demo --ip 0.0.0.0 --port 8001
 ```
 
+The bundled launchers pass `--no-asr` by default to avoid downloading the large Whisper ASR model. Clone mode still works when `ref_text` is supplied in the script front-matter.
+
 **Manual install:**
 
 ```powershell
@@ -240,7 +242,7 @@ py -3.12 -m venv .venv-omnivoice   # or py -3.11 / py -3.10
 python -m pip install --upgrade pip
 python -m pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
 python -m pip install -r requirements-omnivoice.txt
-omnivoice-demo --ip 0.0.0.0 --port 8001
+omnivoice-demo --ip 0.0.0.0 --port 8001 --no-asr
 ```
 
 Python 3.12 is recommended on Windows. If Python 3.10-3.12 is not registered with `py.exe`, the launcher will use `uv` to install Python 3.12 automatically when available. NVIDIA GPU is faster; the launcher installs CPU PyTorch by default for compatibility.

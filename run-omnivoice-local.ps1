@@ -59,7 +59,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "[omnivoice] checking install..." -ForegroundColor Cyan
 $installed = $false
 try {
-    & $python -c "import omnivoice" 2>$null
+    & $python -m pip show omnivoice *> $null
     if ($LASTEXITCODE -eq 0) { $installed = $true }
 } catch { }
 
@@ -81,4 +81,4 @@ if (-not $installed) {
 
 Write-Host "[omnivoice] starting local server on http://localhost:8001 ..." -ForegroundColor Green
 . .venv-omnivoice\Scripts\Activate.ps1
-& $python -m omnivoice.cli.demo --ip 0.0.0.0 --port 8001 @args
+& $python -m omnivoice.cli.demo --ip 0.0.0.0 --port 8001 --no-asr @args

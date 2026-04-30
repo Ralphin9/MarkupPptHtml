@@ -49,7 +49,7 @@ if errorlevel 1 (
 )
 
 echo [omnivoice] checking install...
-"%PY%" -c "import omnivoice" 2>nul
+"%PY%" -m pip show omnivoice >nul 2>nul
 if errorlevel 1 (
   echo [omnivoice] installing requirements into %VENV%...
   "%PY%" -m pip --version >nul 2>nul
@@ -69,4 +69,4 @@ if errorlevel 1 (
 
 echo [omnivoice] starting local server on http://localhost:8001 ...
 call "%VENV%\Scripts\activate.bat"
-"%PY%" -m omnivoice.cli.demo --ip 0.0.0.0 --port 8001 %*
+"%PY%" -m omnivoice.cli.demo --ip 0.0.0.0 --port 8001 --no-asr %*
