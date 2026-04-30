@@ -87,22 +87,39 @@
     onProgress?.(`Connecting to ${target}…`);
     const app = await Client.connect(target);
 
-    const apiName = voice === 'clone' ? '/_clone_fn' : '/_random_fn';
-    const args = voice === 'clone'
-      ? {
-          text, language: 'Auto',
-          ref_aud: refAudioFile, ref_text: refText || '',
-          instruct: '', ns: 32, gs: 2.0, dn: true, sp: 1.0, du: 0,
-          pp: true, po: true,
-        }
-      : {
-          text, language: 'Auto',
-          instruct: '', ns: 32, gs: 2.0, dn: true, sp: 1.0, du: 0,
-          pp: true, po: true,
-        };
+    const cloneArgs = [
+      text, 'Auto', refAudioFile, refText || '', '', 32, 2.0, true, 1.0, 0, true, true,
+    ];
+    const designArgs = [
+      text, 'Auto', 32, 2.0, true, 1.0, 0, true, true,
+      'Auto', 'Auto', 'Auto', 'Auto', 'Auto', 'Auto',
+    ];
+    const randomArgs = {
+      text, language: 'Auto',
+      instruct: '', ns: 32, gs: 2.0, dn: true, sp: 1.0, du: 0,
+      pp: true, po: true,
+    };
+
+    const attempts = voice === 'clone'
+      ? [{ apiName: '/_clone_fn', args: cloneArgs }]
+      : [
+          { apiName: '/_design_fn', args: designArgs },
+          { apiName: '/_random_fn', args: randomArgs },
+        ];
 
     onProgress?.('Synthesizing audio (this can take 10-60s on free tier)…');
-    const result = await app.predict(apiName, args);
+    let result;
+    let lastError;
+    for (const attempt of attempts) {
+      try {
+        result = await app.predict(attempt.apiName, attempt.args);
+        lastError = null;
+        break;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    if (lastError) throw lastError;
     // result.data shape: typically [{ url, path, ... }, "Done."]
     const data = Array.isArray(result?.data) ? result.data : result;
     let audioRef = Array.isArray(data) ? data[0] : data;
