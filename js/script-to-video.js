@@ -87,16 +87,20 @@
     onProgress?.(`Connecting to ${target}…`);
     const app = await Client.connect(target);
 
+    const isLocalTarget = /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?\/?/i.test(target);
+    const steps = isLocalTarget ? 8 : 32;
+    const duration = null;
+
     const cloneArgs = [
-      text, 'Auto', refAudioFile, refText || '', '', 32, 2.0, true, 1.0, 0, true, true,
+      text, 'Auto', refAudioFile, refText || '', '', steps, 2.0, true, 1.0, duration, true, true,
     ];
     const designArgs = [
-      text, 'Auto', 32, 2.0, true, 1.0, 0, true, true,
+      text, 'Auto', steps, 2.0, true, 1.0, duration, true, true,
       'Auto', 'Auto', 'Auto', 'Auto', 'Auto', 'Auto',
     ];
     const randomArgs = {
       text, language: 'Auto',
-      instruct: '', ns: 32, gs: 2.0, dn: true, sp: 1.0, du: 0,
+      instruct: '', ns: steps, gs: 2.0, dn: true, sp: 1.0, du: duration,
       pp: true, po: true,
     };
 
@@ -107,7 +111,9 @@
           { apiName: '/_random_fn', args: randomArgs },
         ];
 
-    onProgress?.('Synthesizing audio (this can take 10-60s on free tier)…');
+    onProgress?.(isLocalTarget
+      ? `Synthesizing audio locally with ${steps} steps. CPU can take several minutes for long scripts…`
+      : 'Synthesizing audio (this can take 10-60s on free tier)…');
     let result;
     let lastError;
     for (const attempt of attempts) {
