@@ -122,6 +122,10 @@
         lastError = null;
         break;
       } catch (error) {
+        const message = String(error?.message || error || '');
+        const canTryLegacyRandom = attempt.apiName === '/_design_fn'
+          && /endpoint|fn_index|not found|404/i.test(message);
+        if (!canTryLegacyRandom) throw error;
         lastError = error;
       }
     }
