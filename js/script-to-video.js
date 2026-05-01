@@ -51,6 +51,30 @@
     return _gradioPromise;
   }
 
+  async function predictViaLocalGradio(target, apiName, args) {
+    const base = target.replace(/\/+$/, '');
+    const endpoint = apiName.replace(/^\//, '');
+    const post = await fetch(`${base}/gradio_api/call/${endpoint}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ data: args }),
+    });
+    if (!post.ok) throw new Error(`OmniVoice call failed: HTTP ${post.status}`);
+
+    const body = await post.json();
+    if (!body?.event_id) throw new Error('OmniVoice returned no event id');
+
+    const stream = await fetch(`${base}/gradio_api/call/${endpoint}/${body.event_id}`);
+    if (!stream.ok) throw new Error(`OmniVoice stream failed: HTTP ${stream.status}`);
+    const text = await stream.text();
+    const errorMatch = text.match(/event:\s*error\s*\ndata:\s*([\s\S]*?)(?:\n\n|$)/);
+    if (errorMatch) throw new Error(`OmniVoice error: ${errorMatch[1].trim()}`);
+
+    const completeMatch = text.match(/event:\s*complete\s*\ndata:\s*([\s\S]*?)(?:\n\n|$)/);
+    if (!completeMatch) throw new Error('OmniVoice stream ended without a complete event');
+    return { data: JSON.parse(completeMatch[1]) };
+  }
+
   // ---------------------------------------------------------- 1. parse script
   function parseScript(raw) {
     let meta = { title: '', theme: 'shadow-cut', voice: 'auto', ref_text: '' };
@@ -78,17 +102,9 @@
 
   // ---------------------------------------------------------- 2. TTS
   async function ttsViaOmniVoice({ text, voice, refAudioFile, refText, server, onProgress }) {
-    onProgress?.('Loading OmniVoice client…');
-    const mod = await loadGradio();
-    const Client = mod.Client || mod.default?.Client || mod.default;
-    if (!Client) throw new Error('@gradio/client did not expose Client');
-
     const target = (server && server.trim()) || OMNIVOICE_SPACE;
-    onProgress?.(`Connecting to ${target}…`);
-    const app = await Client.connect(target);
-
     const isLocalTarget = /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?\/?/i.test(target);
-    const steps = isLocalTarget ? 8 : 32;
+    const steps = isLocalTarget ? 4 : 32;
     const duration = null;
 
     const cloneArgs = [
@@ -111,22 +127,35 @@
           { apiName: '/_random_fn', args: randomArgs },
         ];
 
-    onProgress?.(isLocalTarget
-      ? `Synthesizing audio locally with ${steps} steps. CPU can take several minutes for long scripts…`
-      : 'Synthesizing audio (this can take 10-60s on free tier)…');
     let result;
     let lastError;
-    for (const attempt of attempts) {
-      try {
-        result = await app.predict(attempt.apiName, attempt.args);
-        lastError = null;
-        break;
-      } catch (error) {
-        const message = String(error?.message || error || '');
-        const canTryLegacyRandom = attempt.apiName === '/_design_fn'
-          && /endpoint|fn_index|not found|404/i.test(message);
-        if (!canTryLegacyRandom) throw error;
-        lastError = error;
+
+    if (isLocalTarget && voice !== 'clone') {
+      onProgress?.(`Connecting to ${target}…`);
+      onProgress?.(`Synthesizing audio locally with ${steps} steps. CPU can take a few minutes on Windows…`);
+      result = await predictViaLocalGradio(target, '/_design_fn', designArgs);
+    } else {
+      onProgress?.('Loading OmniVoice client…');
+      const mod = await loadGradio();
+      const Client = mod.Client || mod.default?.Client || mod.default;
+      if (!Client) throw new Error('@gradio/client did not expose Client');
+
+      onProgress?.(`Connecting to ${target}…`);
+      const app = await Client.connect(target);
+      onProgress?.('Synthesizing audio (this can take 10-60s on free tier)…');
+
+      for (const attempt of attempts) {
+        try {
+          result = await app.predict(attempt.apiName, attempt.args);
+          lastError = null;
+          break;
+        } catch (error) {
+          const message = String(error?.message || error || '');
+          const canTryLegacyRandom = attempt.apiName === '/_design_fn'
+            && /endpoint|fn_index|not found|404/i.test(message);
+          if (!canTryLegacyRandom) throw error;
+          lastError = error;
+        }
       }
     }
     if (lastError) throw lastError;
