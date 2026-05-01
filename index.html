@@ -50,6 +50,8 @@
     #s2v-modal .s2v-primary:disabled { background:#444; cursor:not-allowed; }
     #s2v-modal .s2v-secondary { background:#2a2a30; color:#e2e2e2; }
     #s2v-modal .s2v-log { margin-top:14px; padding:10px 12px; background:#0d0d10; border:1px solid #2a2a30; border-radius:6px; font-family:'Fira Code',monospace; font-size:12px; color:#8be9fd; min-height:48px; max-height:200px; overflow:auto; white-space:pre-wrap; }
+    #s2v-modal .s2v-local-note { display:none; font-size:12px; line-height:1.4; color:#f5c16c; background:#1b1710; border:1px solid #51401d; border-radius:6px; padding:8px 10px; margin-top:8px; }
+    #s2v-modal[data-server="local"] .s2v-local-note { display:block; }
     #s2v-modal .s2v-clone-fields { display:none; }
     #s2v-modal[data-voice="clone"] .s2v-clone-fields { display:block; }
   </style>
@@ -784,6 +786,9 @@ section { font-family: 'Helvetica Neue'; }
       <input id="s2v-server" type="text" placeholder="http://localhost:8001" value="" style="display:none;" />
       <div style="font-size:11px;color:#7a8;margin-top:4px;">
         Local install: <code style="color:#fc6;">pip install omnivoice</code> then <code style="color:#fc6;">omnivoice-demo --ip 0.0.0.0 --port 8001</code>
+      </div>
+      <div class="s2v-local-note" id="s2v-local-note">
+        Local CPU OmniVoice is private and free, but slow: even short scripts can take a few minutes. Use the Hugging Face Space or a GPU machine for longer narration.
       </div>
 
       <label for="s2v-file">Load .txt script (optional)</label>

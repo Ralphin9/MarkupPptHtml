@@ -1380,6 +1380,7 @@
 
     function applyServerMode() {
       const m = elServerMode.value;
+      modal.dataset.server = m;
       if (m === 'hf') { elServer.style.display = 'none'; elServer.value = ''; }
       else if (m === 'local') { elServer.style.display = 'block'; elServer.value = 'http://localhost:8001'; }
       else { elServer.style.display = 'block'; if (!elServer.value) elServer.value = 'http://'; elServer.focus(); }
@@ -1409,6 +1410,11 @@
       const voice = elVoice.value;
       const refFile = voice === 'clone' ? elRef.files?.[0] : null;
       if (voice === 'clone' && !refFile) { alert('Clone mode needs a reference audio file.'); return; }
+      const sentenceCount = script.replace(/---[\s\S]*?---\s*/, '').split(/(?<=[.!?])\s+(?=[A-Z0-9"“'])/).filter(Boolean).length;
+      if (elServerMode.value === 'local' && sentenceCount > 2) {
+        const ok = confirm(`Local CPU OmniVoice is slow. This script has ${sentenceCount} sentences and may take several minutes. Continue?`);
+        if (!ok) return;
+      }
 
       btnGo.disabled = true;
       const oldLabel = btnGo.textContent;

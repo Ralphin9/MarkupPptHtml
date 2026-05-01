@@ -211,6 +211,7 @@ A bundled example lives at [samples/script-to-video-sample.txt](samples/script-t
 
 - Audio is embedded as a base64 data URL inside the slide's HyperFrame. Scripts longer than ~45 s may exceed the 5 MB localStorage cap — use **Download WAV** to keep the audio out-of-deck if needed.
 - The OmniVoice HF Space runs on a free-tier ZeroGPU, so synthesis can take 10–60 s and may queue.
+- Local CPU OmniVoice is much slower than the HF/GPU path. On a Windows CPU test, two short sentences at the minimum 4 inference steps took about 3 minutes; longer narration can take several minutes or more.
 - Clone mode requires a reference audio file (≤30 s, clear voice) — upload it in the modal.
 
 #### 🖥️ Run OmniVoice locally (free, offline, no rate limits)
@@ -245,7 +246,7 @@ python -m pip install -r requirements-omnivoice.txt
 omnivoice-demo --ip 0.0.0.0 --port 8001 --no-asr
 ```
 
-Python 3.12 is recommended on Windows. If Python 3.10-3.12 is not registered with `py.exe`, the launcher will use `uv` to install Python 3.12 automatically when available. NVIDIA GPU is faster; the launcher installs CPU PyTorch by default for compatibility.
+Python 3.12 is recommended on Windows. If Python 3.10-3.12 is not registered with `py.exe`, the launcher will use `uv` to install Python 3.12 automatically when available. NVIDIA GPU is faster; the launcher installs CPU PyTorch by default for compatibility. The browser integration uses 4 inference steps for `localhost` to keep CPU runs as short as OmniVoice allows.
 
 Then in the modal: set **OmniVoice server** → **Local install (http://localhost:8001)** → Generate.
 
