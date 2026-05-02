@@ -75,4 +75,9 @@ if errorlevel 1 (
 
 echo [omnivoice] starting local server on http://localhost:8001 ...
 call "%VENV%\Scripts\activate.bat"
+if defined PYTHONPATH (
+  set "PYTHONPATH=%~dp0tools\omnivoice_sitecustomize;%PYTHONPATH%"
+) else (
+  set "PYTHONPATH=%~dp0tools\omnivoice_sitecustomize"
+)
 "%PY%" -m omnivoice.cli.demo --ip 0.0.0.0 --port 8001 --no-asr %*

@@ -91,4 +91,10 @@ $env:HF_HUB_OFFLINE = '1'
 $env:TRANSFORMERS_OFFLINE = '1'
 # Suppress Gradio analytics / pkg-version HTTP call.
 $env:GRADIO_ANALYTICS_ENABLED = '0'
+$siteCustomize = Join-Path $PSScriptRoot 'tools\omnivoice_sitecustomize'
+if ($env:PYTHONPATH) {
+    $env:PYTHONPATH = "$siteCustomize;$env:PYTHONPATH"
+} else {
+    $env:PYTHONPATH = $siteCustomize
+}
 & $python -m omnivoice.cli.demo --ip 0.0.0.0 --port 8001 --no-asr @args

@@ -1516,9 +1516,13 @@
     }
     async function pingServer(url) {
       setStatus('checking');
+      const baseUrl = url.replace(/\/+$/, '');
+      const isLocalOmniVoice = /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0):8001\/?$/i.test(baseUrl);
+      const probeUrl = isLocalOmniVoice ? `${baseUrl}/gradio_api/startup-events` : `${baseUrl}/`;
       try {
-        const r = await fetch(url.replace(/\/$/, '') + '/', { method: 'GET', mode: 'no-cors', cache: 'no-cache', signal: AbortSignal.timeout(4000) });
-        // no-cors always returns opaque response — if we get here without throw the port is open
+        const r = await fetch(probeUrl, { method: 'GET', cache: 'no-cache', signal: AbortSignal.timeout(4000) });
+        if (!r.ok && r.type !== 'opaque') throw new Error('HTTP ' + r.status);
+        await r.text().catch(() => '');
         setStatus('up');
         // Auto-switch to local mode when local server is confirmed up
         if (url.includes('localhost:8001') && elServerMode.value === 'hf') {
