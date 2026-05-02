@@ -317,6 +317,29 @@
   };
   function getTheme(id) { return THEMES[id] || THEMES['shadow-cut']; }
 
+  // ---------------------------------------------------------- doodle library (Open Doodles, CC0)
+  // Served locally from /media/doodles/. Mapped by scene type.
+  // Dark themes get opacity:0.18 + invert(1) filter so the line-art reads on dark bg.
+  // Light themes get opacity:0.22 at natural color.
+  const DOODLES = {
+    'title-card':      '/media/doodles/float.svg',
+    'outro-card':      '/media/doodles/jumping.svg',
+    'quote-card':      '/media/doodles/sitting-reading.svg',
+    'callout':         '/media/doodles/meditating.svg',
+    'list-reveal':     '/media/doodles/unboxing.svg',
+    'comparison':      '/media/doodles/sitting.svg',
+    'flow-steps':      '/media/doodles/running.svg',
+    'stat-reveal':     '/media/doodles/jumping.svg',
+    'kinetic-text':    '/media/doodles/reading.svg',
+  };
+  function doodleImg(sceneType, T) {
+    const src = DOODLES[sceneType]; if (!src) return '';
+    const dark = ['shadow-cut','neon-tokyo','blueprint','dusk-gradient','terminal-green','velvet-standard'].includes(T.id);
+    const filter = dark ? 'invert(1) brightness(1.8)' : 'none';
+    const opacity = dark ? '0.13' : '0.2';
+    return `<img src="${src}" alt="" aria-hidden="true" style="position:absolute;right:100px;bottom:60px;height:520px;width:auto;opacity:${opacity};filter:${filter};pointer-events:none;user-select:none;">`;
+  }
+
   // ---------------------------------------------------------- 6. scene HTML/JS templates
   // Each renderer receives (s, T) where T = getTheme(themeId). Colors, fonts and
   // weights are injected from the active theme so every scene respects the chosen palette.
@@ -345,6 +368,7 @@ tl.from('#s${s.id}-box',{opacity:0,y:30,duration:0.6,ease:'power2.out'},${s.star
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
+  ${doodleImg('title-card', T)}
   <div class="scene-content" style="align-items:center;text-align:center;">
     <h1 id="s${s.id}-t" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:${hl};color:${T.colors.text};line-height:1.05${ts};">${esc(s.sentence)}</h1>
     <div id="s${s.id}-bar" style="width:0px;height:6px;background:${T.colors.accent};margin-top:36px;"></div>
@@ -388,6 +412,7 @@ tl.to('#s${s.id}-bar',{width:'320px',duration:0.7,ease:'power2.inOut'},${s.start
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
+  ${doodleImg('stat-reveal', T)}
   <div class="scene-content" style="align-items:center;text-align:center;">
     <div id="s${s.id}-num" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:200px;color:${T.colors.text};line-height:1;">${esc(num)}<span style="color:${T.colors.accent};">%</span></div>
     <div id="s${s.id}-lbl" style="font-family:${T.typography.fontFamily};font-weight:500;font-size:42px;color:${T.colors.muted};letter-spacing:0.08em;margin-top:24px;">${esc(label)}</div>
@@ -405,8 +430,9 @@ tl.from('#s${s.id}-lbl',{y:30,opacity:0,duration:0.4,ease:'power2.out'},${s.star
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
+  ${doodleImg('quote-card', T)}
   <div class="scene-content" style="align-items:flex-start;justify-content:center;">
-    <div id="s${s.id}-q" style="${surfaceStyle}padding:60px 80px;border-left:8px solid ${T.colors.accent};max-width:1400px;position:relative;">
+    <div id="s${s.id}-q" style="${surfaceStyle}padding:60px 80px;border-left:8px solid ${T.colors.accent};max-width:1200px;position:relative;">
       <div style="position:absolute;top:-30px;left:56px;font-family:${T.typography.fontFamily};font-size:180px;color:${T.colors.accent};line-height:1;">&ldquo;</div>
       <blockquote style="font-family:${T.typography.fontFamily};font-weight:400;font-size:48px;color:${T.colors.text};line-height:1.5;padding-top:36px;margin:0;">${esc(s.sentence)}</blockquote>
     </div>
@@ -484,6 +510,7 @@ tl.from('#s${s.id}-b',{x:80,opacity:0,duration:0.6,ease:'expo.out'},${s.startTim
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
+  ${doodleImg('outro-card', T)}
   <div class="scene-content" style="align-items:center;text-align:center;gap:28px;">
     <div id="s${s.id}-lbl" style="font-size:22px;font-weight:700;letter-spacing:8px;color:${T.colors.accent};text-transform:uppercase;">THANKS FOR WATCHING</div>
     <div id="s${s.id}-t" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:${hl};color:${T.colors.text};line-height:1.05${ts};">${esc(s.sentence)}</div>

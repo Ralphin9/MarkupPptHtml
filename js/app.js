@@ -1466,6 +1466,12 @@
         const prompt = chip.dataset.prompt;
         if (prompt === '__catalog-showcase') {
           if (elWorkflow) { elWorkflow.value = 'catalog-showcase'; elWorkflow.dispatchEvent(new Event('change')); }
+          // Close the AI box so user can see the catalog section reveal
+          const aiBox = modal.querySelector('#s2v-ai-box');
+          if (aiBox) aiBox.removeAttribute('open');
+          // Scroll catalog section into view
+          const catSection = modal.querySelector('#s2v-catalog-section');
+          if (catSection) setTimeout(() => catSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
         } else if (prompt === '__talking-cut') {
           alert('Talking-cut workflow is coming soon — it requires video-chopping support not yet implemented.');
         } else {
