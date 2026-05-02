@@ -1592,9 +1592,23 @@
       }
 
       btnGo.disabled = true;
+      const abortCtrl = new AbortController();
       const oldLabel = btnGo.textContent;
       btnGo.textContent = 'Working…';
+      btnCancel.textContent = '⏹ Abort';
+      const onAbort = () => { abortCtrl.abort(); btnCancel.textContent = 'Cancelling…'; };
+      btnCancel.addEventListener('click', onAbort, { once: true });
+
+      // Elapsed time ticker shown next to the log
       elLog.textContent = 'Starting…';
+      const startTs = Date.now();
+      const elTimer = document.getElementById('s2v-elapsed');
+      if (elTimer) { elTimer.style.display = 'inline'; elTimer.textContent = '0s'; }
+      const timerInterval = setInterval(() => {
+        const sec = Math.round((Date.now() - startTs) / 1000);
+        if (elTimer) elTimer.textContent = sec + 's';
+      }, 1000);
+
       try {
         const result = await window.ScriptToVideo.run({
           scriptText: script,
@@ -1602,6 +1616,7 @@
           refAudioFile: refFile,
           server: (elServer.value || '').trim() || null,
           onProgress: log,
+          signal: abortCtrl.signal,
         });
         log(`✅ Slide added with ${result.scenes.length} scenes (${result.totalDuration.toFixed(1)}s).`);
         toast('Script→Video: slide added — open the new last slide.');
@@ -1614,9 +1629,17 @@
         elLog.appendChild(document.createElement('br'));
         elLog.appendChild(a);
       } catch (e) {
-        console.error('[script-to-video] failed', e);
-        log('❌ ' + (e?.message || e));
+        if (e?.name === 'AbortError') {
+          log('⏹ Cancelled.');
+        } else {
+          console.error('[script-to-video] failed', e);
+          log('❌ ' + (e?.message || e));
+        }
       } finally {
+        clearInterval(timerInterval);
+        if (elTimer) { elTimer.style.display = 'none'; elTimer.textContent = ''; }
+        btnCancel.removeEventListener('click', onAbort);
+        btnCancel.textContent = 'Cancel';
         btnGo.disabled = false;
         btnGo.textContent = oldLabel;
       }

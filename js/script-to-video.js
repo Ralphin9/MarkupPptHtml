@@ -51,20 +51,21 @@
     return _gradioPromise;
   }
 
-  async function predictViaLocalGradio(target, apiName, args) {
+  async function predictViaLocalGradio(target, apiName, args, signal) {
     const base = target.replace(/\/+$/, '');
     const endpoint = apiName.replace(/^\//, '');
     const post = await fetch(`${base}/gradio_api/call/${endpoint}`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ data: args }),
+      signal,
     });
     if (!post.ok) throw new Error(`OmniVoice call failed: HTTP ${post.status}`);
 
     const body = await post.json();
     if (!body?.event_id) throw new Error('OmniVoice returned no event id');
 
-    const stream = await fetch(`${base}/gradio_api/call/${endpoint}/${body.event_id}`);
+    const stream = await fetch(`${base}/gradio_api/call/${endpoint}/${body.event_id}`, { signal });
     if (!stream.ok) throw new Error(`OmniVoice stream failed: HTTP ${stream.status}`);
     const text = await stream.text();
     const errorMatch = text.match(/event:\s*error\s*\ndata:\s*([\s\S]*?)(?:\n\n|$)/);
@@ -101,7 +102,7 @@
   }
 
   // ---------------------------------------------------------- 2. TTS
-  async function ttsViaOmniVoice({ text, voice, refAudioFile, refText, server, onProgress }) {
+  async function ttsViaOmniVoice({ text, voice, refAudioFile, refText, server, onProgress, signal }) {
     const target = (server && server.trim()) || OMNIVOICE_SPACE;
     const isLocalTarget = /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?\/?/i.test(target);
     const steps = isLocalTarget ? 4 : 50;
@@ -133,7 +134,7 @@
     if (isLocalTarget && voice !== 'clone') {
       onProgress?.(`Connecting to ${target}…`);
       onProgress?.(`Synthesizing audio locally with ${steps} steps. CPU can take a few minutes on Windows…`);
-      result = await predictViaLocalGradio(target, '/_design_fn', designArgs);
+      result = await predictViaLocalGradio(target, '/_design_fn', designArgs, signal);
     } else {
       onProgress?.('Loading OmniVoice client…');
       const mod = await loadGradio();
@@ -168,7 +169,7 @@
     }
 
     onProgress?.('Downloading WAV…');
-    const r = await fetch(audioRef);
+    const r = await fetch(audioRef, { signal });
     if (!r.ok) throw new Error('WAV download failed: HTTP ' + r.status);
     return await r.blob();
   }
@@ -442,7 +443,7 @@ ${sceneJS}
   }
 
   // ---------------------------------------------------------- 9. main entrypoint
-  async function run({ scriptText, voice, refAudioFile, server, onProgress }) {
+  async function run({ scriptText, voice, refAudioFile, server, onProgress, signal }) {
     onProgress?.('Parsing script…');
     const { meta, sentences } = parseScript(scriptText);
     if (sentences.length < 2) throw new Error('Need at least 2 sentences. Got ' + sentences.length);
@@ -457,6 +458,7 @@ ${sceneJS}
       refText: meta.ref_text,
       server,
       onProgress,
+      signal,
     });
 
     onProgress?.('Measuring audio…');

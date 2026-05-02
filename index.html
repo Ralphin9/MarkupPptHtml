@@ -871,7 +871,10 @@ section { font-family: 'Helvetica Neue'; }
         </div>
       </div>
 
-      <div class="s2v-log" id="s2v-log">Idle. Paste a script and click Generate.</div>
+      <div style="display:flex;align-items:baseline;gap:8px;">
+        <div class="s2v-log" id="s2v-log" style="flex:1;">Idle. Paste a script and click Generate.</div>
+        <span id="s2v-elapsed" style="display:none;font-size:12px;font-family:'Fira Code',monospace;color:#f8c;flex-shrink:0;padding:2px 6px;background:#2a1a2a;border-radius:4px;"></span>
+      </div>
 
       <div class="s2v-actions">
         <button class="s2v-secondary" id="s2v-load-sample">Load sample</button>
