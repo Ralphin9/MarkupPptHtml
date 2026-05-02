@@ -29,6 +29,8 @@ window.VisualBuilder = (function () {
     code:      { type: 'code', content: 'print("Hello, World!")', language: 'python' },
     table:     { type: 'table', content: '| Feature | Value |\n|---------|-------|\n| Speed   | Fast  |\n| Cost    | Low   |' },
     image:     { type: 'image', url: 'https://via.placeholder.com/600x300/264653/ffffff?text=Image', alt: '', bgMode: '', sizing: '', filters: [], width: '', height: '' },
+    video:     { type: 'video', url: '', width: '100%', height: '360px', autoplay: false, loop: false, muted: false, controls: true },
+    video:     { type: 'video', url: '', width: '100%', height: '', autoplay: false, loop: false, muted: false, controls: true },
     quote:     { type: 'quote', content: '"The best way to predict the future is to invent it."' },
     math:      { type: 'math', content: 'E = mc^2' },
     columns:   { type: 'columns', leftContent: '### Left\n- Item A\n- Item B', rightContent: '### Right\n- Item X\n- Item Y' },
@@ -384,6 +386,28 @@ window.VisualBuilder = (function () {
     document.getElementById('btn-move-down')?.addEventListener('click', () => {
       if (selectedElementId) moveElement(selectedElementId, 1);
     });
+
+    // 🎬 Local video file picker
+    const btnVideo = document.getElementById('btn-quick-video');
+    const inputVideo = document.getElementById('input-video-file');
+    if (btnVideo && inputVideo) {
+      btnVideo.addEventListener('click', () => inputVideo.click());
+      inputVideo.addEventListener('change', () => {
+        const file = inputVideo.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const el = addElement('video');
+          if (el) {
+            el.url = ev.target.result; // data URL — fully self-contained
+            el.height = '360px';
+            notifyChange();
+          }
+        };
+        reader.readAsDataURL(file);
+        inputVideo.value = ''; // allow re-picking same file
+      });
+    }
   }
 
   // ===== Render Visual Canvas =====
@@ -920,6 +944,19 @@ window.VisualBuilder = (function () {
           return `<div class="ig-item"><img src="${encodeURI(img.url || '')}" alt="${escapeHtml(img.caption || '')}"${imgStyle}><span class="ig-caption">${escapeHtml(img.caption || '')}</span></div>`;
         }).join('');
         return `<div class="image-grid-container">${gridItems}</div>`;
+      }
+      case 'video': {
+        const vUrl = el.url || '';
+        if (!vUrl) return `<div style="width:${el.width||'100%'};height:${el.height||'200px'};background:#111;border:2px dashed #444;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px;">🎬 No video — click to upload</div>`;
+        const attrs = [
+          el.controls !== false ? 'controls' : '',
+          el.autoplay ? 'autoplay' : '',
+          el.loop ? 'loop' : '',
+          el.muted ? 'muted' : '',
+        ].filter(Boolean).join(' ');
+        const wStyle = el.width ? `width:${el.width};` : 'width:100%;';
+        const hStyle = el.height ? `height:${el.height};` : '';
+        return `<video src="${vUrl}" ${attrs} style="${wStyle}${hStyle}display:block;max-width:100%;"></video>`;
       }
       default:
         return '<p>' + escapeHtml(el.content || '') + '</p>';

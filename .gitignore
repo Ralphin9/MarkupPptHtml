@@ -12,5 +12,12 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
+# Secrets — never commit
+.env
+*.env.local
+
+# Hugging Face model cache (large)
+.cache/
+
 # Generated media caches can be very large; keep tracked media explicit if needed.
 media/**/__pycache__/

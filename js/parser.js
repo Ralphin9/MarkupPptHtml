@@ -102,6 +102,7 @@ window.SlideParser = (function () {
                      .replace(/"/g, '&quot;');
       return '\n\n<div class="el-hyperframe" style="width:' + width + 'px;max-width:100%;">'
         + '<iframe sandbox="allow-scripts allow-same-origin allow-popups allow-forms" '
+        + 'allow="autoplay" '
         + 'loading="lazy" referrerpolicy="no-referrer" '
         + 'style="width:100%;height:' + height + 'px;border:0;border-radius:8px;background:#0d1117;" '
         + 'srcdoc="' + srcdoc + '"></iframe>'
@@ -366,6 +367,16 @@ window.SlideParser = (function () {
         if (el.height) alt += ' h:' + el.height;
         if (el.filters && el.filters.length) alt += ' ' + el.filters.join(' ');
         return '![' + alt.trim() + '](' + (el.url || 'https://via.placeholder.com/600x300') + ')';
+      }
+      case 'video': {
+        const attrs = [];
+        if (el.controls !== false) attrs.push('controls');
+        if (el.autoplay) attrs.push('autoplay');
+        if (el.loop) attrs.push('loop');
+        if (el.muted) attrs.push('muted');
+        const wStyle = el.width ? `width:${el.width};` : 'width:100%;';
+        const hStyle = el.height ? `height:${el.height};` : '';
+        return `<video src="${el.url || ''}" ${attrs.join(' ')} style="${wStyle}${hStyle}display:block;max-width:100%;"></video>`;
       }
       case 'quote':
         return (el.content || 'Quote text').split('\n').map(l => '> ' + l).join('\n');

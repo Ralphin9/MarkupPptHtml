@@ -104,19 +104,19 @@
   async function ttsViaOmniVoice({ text, voice, refAudioFile, refText, server, onProgress }) {
     const target = (server && server.trim()) || OMNIVOICE_SPACE;
     const isLocalTarget = /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?\/?/i.test(target);
-    const steps = isLocalTarget ? 4 : 32;
+    const steps = isLocalTarget ? 4 : 50;
     const duration = null;
 
     const cloneArgs = [
       text, 'Auto', refAudioFile, refText || '', '', steps, 2.0, true, 1.0, duration, true, true,
     ];
     const designArgs = [
-      text, 'Auto', steps, 2.0, true, 1.0, duration, true, true,
+      text, 'Auto', steps, 3.5, true, 1.0, duration, true, true,
       'Auto', 'Auto', 'Auto', 'Auto', 'Auto', 'Auto',
     ];
     const randomArgs = {
       text, language: 'Auto',
-      instruct: '', ns: steps, gs: 2.0, dn: true, sp: 1.0, du: duration,
+      instruct: '', ns: steps, gs: 3.5, dn: true, sp: 1.0, du: duration,
       pp: true, po: true,
     };
 
@@ -142,7 +142,7 @@
 
       onProgress?.(`Connecting to ${target}…`);
       const app = await Client.connect(target);
-      onProgress?.('Synthesizing audio (this can take 10-60s on free tier)…');
+      onProgress?.('Synthesizing audio (this can take 10-60s on HF free tier)…');
 
       for (const attempt of attempts) {
         try {
@@ -374,6 +374,11 @@ tl.to('#s${s.id}-rule',{width:'280px',duration:0.7,ease:'power2.inOut'},${s.star
     const sceneBlocks = scenes.map(s => SCENE[s.type]?.(s) || SCENE['kinetic-text'](s));
     const sceneHTML = sceneBlocks.map(b => b.html).join('\n');
     const sceneJS = sceneBlocks.map(b => b.gsap).join('\n');
+    // Show each clip only within its time window
+    const visJS = scenes.map(s => {
+      const endTime = +(s.startTime + s.duration).toFixed(3);
+      return `tl.set('#s${s.id}',{opacity:1},${s.startTime});\ntl.set('#s${s.id}',{opacity:0},${endTime});`;
+    }).join('\n');
 
     return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -383,7 +388,7 @@ tl.to('#s${s.id}-rule',{width:'280px',duration:0.7,ease:'power2.inOut'},${s.star
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { width:1920px; height:1080px; overflow:hidden; background:#000; }
   [data-composition-id] { position:absolute; inset:0; overflow:hidden; }
-  .clip { position:absolute; inset:0; }
+  .clip { position:absolute; inset:0; opacity:0; }
   .scene-bg { position:absolute; inset:0; background:#0a0a0a; }
   .scene-content { position:relative; width:100%; height:100%; padding:120px 160px;
     display:flex; flex-direction:column; justify-content:center; gap:24px; box-sizing:border-box; }
@@ -404,6 +409,7 @@ ${sceneHTML}
 
   window.__timelines = window.__timelines || {};
   var tl = gsap.timeline({ paused: true });
+${visJS}
 ${sceneJS}
   window.__timelines[${JSON.stringify(slug)}] = tl;
 

@@ -1312,30 +1312,99 @@
   }
 
   // ===== Hyperframes Launch sample loader =====
-  // One-click "🎬 HF Launch" button: fetches the bundled storyboard markdown
-  // (samples/hyperframes-launch.md) and replaces the current deck with it.
+  // "🎬 HF Launch" button: shows a picker of available sample decks.
   function setupHfLaunchSample() {
     const btn = document.getElementById('btn-load-hf-launch');
     if (!btn) return;
     // Expose fullRefresh so the Script→Video module can trigger it after
     // injecting a slide (loaded async, doesn't see this closure).
     window.__app_fullRefresh = fullRefresh;
-    btn.addEventListener('click', async () => {
-      if (!confirm('Replace the current deck with the HeyGen Hyperframes Launch storyboard sample (16 slides)?')) return;
+
+    // Catalog of available samples — add entries here as new samples are created.
+    const SAMPLES = [
+      {
+        file: 'samples/hyperframes-launch-v3.md',
+        label: 'Storyboard v3 — Cinematic (GSAP animations)',
+        desc: '10 beats, full 60s video script with self-contained GSAP compositions per slide. The original HeyGen HyperFrames launch video scaffold.',
+      },
+      {
+        file: 'samples/hyperframes-launch.md',
+        label: 'Intro Narrative — 16 slides',
+        desc: '16-slide written walkthrough of the HyperFrames feature set: problem, how-it-works, benchmarks, roadmap.',
+      },
+      {
+        file: 'samples/script-to-video-sample.txt',
+        label: 'Script-to-Video sample script',
+        desc: 'Plain-text TTS script for the AI-changes-software-engineering narrative (8 sentences → 8 scenes).',
+        isScript: true,
+      },
+    ];
+
+    const modal  = document.getElementById('sample-picker-modal');
+    const list   = document.getElementById('sample-picker-list');
+    const loadBtn = document.getElementById('btn-sample-picker-load');
+    if (!modal || !list || !loadBtn) return;
+
+    // Build radio list
+    list.innerHTML = SAMPLES.map((s, i) => `
+      <label style="display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:8px;
+                    border:1px solid var(--border,#444);cursor:pointer;transition:background .15s;"
+             onmouseover="this.style.background='var(--hover-bg,rgba(255,255,255,.05))'"
+             onmouseout="this.style.background=''">
+        <input type="radio" name="sample-pick" value="${i}" ${i === 0 ? 'checked' : ''}
+               style="margin-top:3px;flex-shrink:0;">
+        <div>
+          <div style="font-weight:600;font-size:14px;">${s.label}</div>
+          <div style="font-size:12px;color:var(--text-muted,#9aa);margin-top:2px;">${s.desc}</div>
+        </div>
+      </label>`).join('');
+
+    // Open picker
+    btn.addEventListener('click', () => {
+      modal.classList.remove('hidden');
+    });
+
+    // Close on overlay / close button (generic modal-close handler picks this up already)
+    modal.querySelector('.modal-overlay')?.addEventListener('click', () => modal.classList.add('hidden'));
+    modal.querySelectorAll('.modal-close[data-close]').forEach(b =>
+      b.addEventListener('click', () => modal.classList.add('hidden')));
+
+    // Load selected
+    loadBtn.addEventListener('click', async () => {
+      const checked = list.querySelector('input[name="sample-pick"]:checked');
+      if (!checked) return;
+      const sample = SAMPLES[parseInt(checked.value, 10)];
+      if (!sample) return;
+
+      if (!confirm(`Replace the current deck with:\n"${sample.label}"?`)) return;
+
+      modal.classList.add('hidden');
       btn.disabled = true;
       const oldText = btn.textContent;
       btn.textContent = '⏳ Loading…';
+
       try {
-        const res = await fetch('samples/hyperframes-launch.md', { cache: 'no-cache' });
+        const res = await fetch(sample.file, { cache: 'no-cache' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
-        const md = await res.text();
-        window.VisualBuilder.loadFromMarkdown(md);
-        window.DirectivesPanel.setGlobalDirectives({ theme: 'default', paginate: true });
-        fullRefresh();
-        toast('HF Launch storyboard loaded — 16 slides');
+        const text = await res.text();
+
+        if (sample.isScript) {
+          // Open the Script→Video modal pre-filled instead of replacing the deck
+          const s2vBtn = document.getElementById('btn-script-to-video');
+          const s2vText = document.getElementById('s2v-text');
+          if (s2vText) s2vText.value = text.trim();
+          s2vBtn?.click();
+          toast('Script loaded into Script→Video');
+        } else {
+          window.VisualBuilder.loadFromMarkdown(text);
+          window.DirectivesPanel.setGlobalDirectives({ theme: 'default', paginate: true });
+          fullRefresh();
+          const slideCount = text.split(/^---$/m).filter(s => s.trim()).length;
+          toast(`Loaded "${sample.label}" — ${slideCount} slides`);
+        }
       } catch (e) {
-        console.error('[HF Launch] load failed:', e);
-        alert('Could not load samples/hyperframes-launch.md.\n\nServe the project (e.g. `npx serve . -p 3000`) and reload.\n\n' + (e && e.message || e));
+        console.error('[Sample Loader] failed:', e);
+        alert(`Could not load ${sample.file}.\n\nMake sure the project is served (e.g. localhost:8080).\n\n${e && e.message || e}`);
       } finally {
         btn.disabled = false;
         btn.textContent = oldText;
@@ -1387,11 +1456,117 @@
     }
     elServerMode.addEventListener('change', applyServerMode);
 
+    // ---- server status ping ----
+    const elStatus = modal.querySelector('#s2v-server-status');
+    function setStatus(state) {
+      if (!elStatus) return;
+      if (state === 'checking') {
+        elStatus.style.display = 'inline';
+        elStatus.textContent = '⏳ checking…';
+        elStatus.style.background = '#333'; elStatus.style.color = '#aaa';
+      } else if (state === 'up') {
+        elStatus.style.display = 'inline';
+        elStatus.textContent = '🟢 server running';
+        elStatus.style.background = '#1a3a1a'; elStatus.style.color = '#6c6';
+      } else if (state === 'down') {
+        elStatus.style.display = 'inline';
+        elStatus.textContent = '🔴 not reachable';
+        elStatus.style.background = '#3a1a1a'; elStatus.style.color = '#c66';
+      } else {
+        elStatus.style.display = 'none';
+      }
+    }
+    async function pingServer(url) {
+      setStatus('checking');
+      try {
+        const r = await fetch(url.replace(/\/$/, '') + '/', { method: 'GET', mode: 'no-cors', cache: 'no-cache', signal: AbortSignal.timeout(4000) });
+        // no-cors always returns opaque response — if we get here without throw the port is open
+        setStatus('up');
+        // Auto-switch to local mode when local server is confirmed up
+        if (url.includes('localhost:8001') && elServerMode.value === 'hf') {
+          elServerMode.value = 'local';
+          applyServerMode();
+        }
+      } catch {
+        setStatus('down');
+      }
+    }
+    function maybePing() {
+      const m = elServerMode.value;
+      if (m === 'local') pingServer('http://localhost:8001');
+      else if (m === 'custom' && elServer.value.startsWith('http')) pingServer(elServer.value.trim());
+      // Always probe localhost:8001 on open to auto-switch if running
+      else pingServer('http://localhost:8001');
+    }
+    elServerMode.addEventListener('change', maybePing);
+    elServer.addEventListener('change', maybePing);
+    // ping when modal opens if local is pre-selected
+    btnOpen.addEventListener('click', () => setTimeout(maybePing, 50));
+
     elFile.addEventListener('change', async () => {
       const f = elFile.files?.[0];
       if (!f) return;
       elText.value = await f.text();
     });
+
+    // ---- AI topic → script ----
+    const btnGenScript = modal.querySelector('#s2v-generate-script');
+    const elOpenAIKey = modal.querySelector('#s2v-openai-key');
+    // Restore saved key
+    if (elOpenAIKey) {
+      const saved = localStorage.getItem('s2v_openai_key');
+      if (saved) elOpenAIKey.value = saved;
+      elOpenAIKey.addEventListener('input', () => {
+        const v = elOpenAIKey.value.trim();
+        if (v) localStorage.setItem('s2v_openai_key', v);
+        else localStorage.removeItem('s2v_openai_key');
+      });
+    }
+    if (btnGenScript) {
+      btnGenScript.addEventListener('click', async () => {
+        const key   = (elOpenAIKey?.value || '').trim();
+        const aiModel = modal.querySelector('#s2v-openai-model')?.value || 'gpt-4o-mini';
+        const topic = (modal.querySelector('#s2v-topic')?.value || '').trim();
+        const n     = parseInt(modal.querySelector('#s2v-sentences')?.value || '8', 10);
+        if (!key)   { alert('Enter your OpenAI API key first.'); return; }
+        if (!topic) { alert('Enter a topic first.'); return; }
+
+        btnGenScript.disabled = true;
+        btnGenScript.textContent = '✨ Generating…';
+        log('Calling OpenAI to generate script for: ' + topic);
+        try {
+          const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + key },
+            body: JSON.stringify({
+              model: aiModel,
+              temperature: 0.7,
+              messages: [{
+                role: 'system',
+                content: 'You write short video scripts. Output ONLY a YAML front-matter block followed by exactly the requested number of plain sentences — no headings, no lists, no markdown, no extra commentary. Format:\n---\ntitle: <title>\ntheme: shadow-cut\nvoice: auto\n---\nSentence one.\nSentence two.'
+              }, {
+                role: 'user',
+                content: `Topic: ${topic}\nSentences: ${n}\n\nWrite the script now.`
+              }],
+            }),
+          });
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err?.error?.message || 'HTTP ' + resp.status);
+          }
+          const data = await resp.json();
+          const text = data.choices?.[0]?.message?.content?.trim() || '';
+          if (!text) throw new Error('OpenAI returned empty content');
+          elText.value = text;
+          log('✅ Script generated — review it then click Generate Video.');
+        } catch (e) {
+          log('❌ OpenAI error: ' + (e?.message || e));
+        } finally {
+          btnGenScript.disabled = false;
+          btnGenScript.textContent = '✨ Generate Script';
+        }
+      });
+    }
 
     btnSample.addEventListener('click', async () => {
       try {

@@ -85,5 +85,10 @@ if (-not $installed) {
 }
 
 Write-Host "[omnivoice] starting local server on http://localhost:8001 ..." -ForegroundColor Green
-. .venv-omnivoice\Scripts\Activate.ps1
+. (Join-Path $PSScriptRoot "$venv\Scripts\Activate.ps1")
+# Skip HuggingFace Hub online freshness checks — use cached model files directly.
+$env:HF_HUB_OFFLINE = '1'
+$env:TRANSFORMERS_OFFLINE = '1'
+# Suppress Gradio analytics / pkg-version HTTP call.
+$env:GRADIO_ANALYTICS_ENABLED = '0'
 & $python -m omnivoice.cli.demo --ip 0.0.0.0 --port 8001 --no-asr @args
