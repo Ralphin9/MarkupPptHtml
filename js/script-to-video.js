@@ -381,6 +381,7 @@
     'cta-callout':  ['/media/doodles/zombieing.svg', '/media/doodles/moshing.svg', '/media/doodles/jumping.svg'],
     'split-layout': ['/media/doodles/sitting.svg', '/media/doodles/reading.svg', '/media/doodles/coffee.svg'],
     'threejs-object':[],
+  };
 
   // Per-scene-type accent: small fffuel scribble near the content
   const DOODLES_ACCENT = {
