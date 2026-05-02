@@ -1774,9 +1774,11 @@
           ? ((result.sourceFileName || '').match(/\.([a-z0-9]+)$/i)?.[1] || 'mp4')
           : 'wav';
         const mediaLabel = result.mediaKind === 'video' ? 'source video' : 'audio';
+        const mediaDownloadName = result.assetFileName || `${result.slug || 'voiceover'}-${mediaLabel.replace(/\s+/g, '-')}.${mediaExt}`;
+        const htmlDownloadName = result.htmlFileName || `${result.slug || 'script-video'}-hyperframes-index.html`;
         const a = document.createElement('a');
         a.href = result.audioBlobUrl;
-        a.download = `${result.slug || 'voiceover'}-${mediaLabel.replace(/\s+/g, '-')}.${mediaExt}`;
+        a.download = mediaDownloadName;
         a.textContent = `⬇ Download ${mediaLabel}`;
         a.style.cssText = 'display:inline-block;margin-top:8px;color:#9bd;text-decoration:underline;';
         const mediaLink = document.createElement('a');
@@ -1788,7 +1790,7 @@
         const htmlUrl = URL.createObjectURL(new Blob([result.html], { type: 'text/html' }));
         const htmlLink = document.createElement('a');
         htmlLink.href = htmlUrl;
-        htmlLink.download = `${result.slug || 'script-video'}-hyperframes-index.html`;
+        htmlLink.download = htmlDownloadName;
         htmlLink.textContent = '⬇ Download HyperFrames index.html';
         htmlLink.style.cssText = 'display:inline-block;margin-top:8px;margin-left:12px;color:#9bd;text-decoration:underline;';
         const copyCliBtn = document.createElement('button');
@@ -1798,8 +1800,8 @@
         const cliSteps = [
           'npx hyperframes init my-video',
           'cd my-video',
-          `# Copy ${result.slug || 'script-video'}-hyperframes-index.html → my-video/index.html`,
-          `# Copy ${result.assetFileName || 'audio.wav'} → my-video/assets/${result.assetFileName || 'audio.wav'}`,
+          `Copy-Item "C:/Users/ralph/Downloads/New folder/${htmlDownloadName}" ".\\index.html"`,
+          `Copy-Item "C:/Users/ralph/Downloads/New folder/${mediaDownloadName}" ".\\assets\\${mediaDownloadName}"`,
           'npx hyperframes preview',
           'npx hyperframes render --output output.mp4',
         ].join('\n');
@@ -1826,7 +1828,7 @@
         elLog.appendChild(docsLink);
         const cliHint = document.createElement('div');
         cliHint.style.cssText = 'margin-top:8px;color:#7a8;font-size:11px;line-height:1.35;';
-        cliHint.textContent = `HyperFrames CLI: 1) npx hyperframes init my-video  2) copy index.html into my-video/  3) copy ${result.assetFileName || 'audio.wav'} into my-video/assets/  4) npx hyperframes preview  5) npx hyperframes render --output output.mp4`;
+        cliHint.textContent = `HyperFrames CLI: 1) npx hyperframes init my-video  2) Copy-Item ${htmlDownloadName} to my-video/index.html  3) Copy-Item ${mediaDownloadName} to my-video/assets/  4) npx hyperframes preview  5) npx hyperframes render --output output.mp4`;
         elLog.appendChild(cliHint);
       } catch (e) {
         if (e?.name === 'AbortError') {

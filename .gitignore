@@ -22,3 +22,11 @@ Thumbs.db
 
 # Generated media caches can be very large; keep tracked media explicit if needed.
 media/**/__pycache__/
+
+# HyperFrames render/test outputs
+my-video/.waveform-cache/
+my-video/assets/
+my-video/my-video/
+my-video/output.mp4
+my-video/renders/
+my-video/work-*/

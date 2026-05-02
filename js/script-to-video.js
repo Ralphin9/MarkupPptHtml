@@ -76,6 +76,31 @@
     return { data: JSON.parse(completeMatch[1]) };
   }
 
+  function sanitizeExportFileName(inputName, fallbackBaseName, fallbackExt) {
+    const raw = String(inputName || '').trim();
+    const fallbackBase = String(fallbackBaseName || 'media').trim() || 'media';
+    const fallbackExtension = String(fallbackExt || 'bin').trim().replace(/^\./, '') || 'bin';
+    const splitAt = raw.lastIndexOf('.');
+    const rawBase = splitAt > 0 ? raw.slice(0, splitAt) : raw;
+    const rawExt = splitAt > 0 ? raw.slice(splitAt + 1) : fallbackExtension;
+    const safeBase = (rawBase || fallbackBase)
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .toLowerCase() || fallbackBase;
+    const safeExt = (rawExt || fallbackExtension)
+      .replace(/[^a-zA-Z0-9]+/g, '')
+      .toLowerCase() || fallbackExtension;
+    return `${safeBase}.${safeExt}`;
+  }
+
+  function sanitizeExportHtml(html) {
+    return String(html || '')
+      .replace(/<img\b[^>]*\bsrc="\/media\/doodles\/[^">]+"[^>]*>\s*/g, '')
+      .replace(/<img\b[^>]*\bsrc="\/media\/doodles\/fffuel\/[^">]+"[^>]*>\s*/g, '');
+  }
+
   // ---------------------------------------------------------- 1. parse script
   function parseScript(raw) {
     let meta = { title: '', theme: 'shadow-cut', voice: 'auto', ref_text: '' };
@@ -961,7 +986,7 @@ ${hasThree ? '<script src="https://cdn.jsdelivr.net/npm/three@0.173.0/build/thre
 <div data-composition-id="${slug}" data-start="0" data-duration="${totalDuration}" data-width="1920" data-height="1080">
   <div id="v-wrap">
     <video id="source-video" data-start="0" data-duration="${totalDuration}" data-track-index="0" data-main-audio data-has-audio="true" src="${mediaDataUrl}" playsinline></video>
-  </div></audio>
+  </div>
 ${sceneHTML}
 </div>
 <script>
@@ -1141,11 +1166,12 @@ ${threeInits}
     // Blob URL for live deck preview — no base64 conversion, works same-origin in iframes
     const mediaBlobUrl = URL.createObjectURL(wavBlob);
 
+    const slug = (meta.title || 'video').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const htmlFileName = `${slug || 'script-video'}-hyperframes-index.html`;
     // Relative asset path for the exported HTML (HyperFrames CLI compatible — no inline data URLs)
-    const assetExt = mediaKind === 'video'
-      ? (sourceFileName.includes('.') ? sourceFileName.split('.').pop() : 'mp4')
-      : 'wav';
-    const assetFileName = sourceFileName || `audio.${assetExt}`;
+    const assetFileName = mediaKind === 'video'
+      ? sanitizeExportFileName(sourceFileName, `${slug || 'script-video'}-source-video`, 'mp4')
+      : `${slug || 'script-video'}-audio.wav`;
     const assetPath = `assets/${assetFileName}`;
 
     let finalScenes = scenes;
@@ -1155,18 +1181,18 @@ ${threeInits}
       finalScenes = scheduleTalkingCutScenes(scenes, totalDuration);
       // Deck preview uses blob URL; exported HTML uses relative asset path
       injectIntoDeck(meta, buildTalkingCutHTML(meta, finalScenes, mediaBlobUrl, totalDuration, meta.theme));
-      html = buildTalkingCutHTML(meta, finalScenes, assetPath, totalDuration, meta.theme);
+      html = sanitizeExportHtml(buildTalkingCutHTML(meta, finalScenes, assetPath, totalDuration, meta.theme));
     } else {
       onProgress?.(`Building HyperFrame composition (theme: ${meta.theme})…`);
       injectIntoDeck(meta, buildHyperframeHTML(meta, scenes, mediaBlobUrl, totalDuration, meta.theme));
-      html = buildHyperframeHTML(meta, scenes, assetPath, totalDuration, meta.theme);
+      html = sanitizeExportHtml(buildHyperframeHTML(meta, scenes, assetPath, totalDuration, meta.theme));
     }
 
     onProgress?.(`Done — ${finalScenes.length} scenes, ${totalDuration.toFixed(1)}s.`);
     return {
-      slug: (meta.title || 'video').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      slug,
       scenes: finalScenes, totalDuration, wavBlob, audioBlobUrl: mediaBlobUrl,
-      html, workflow, mediaKind, sourceFileName, assetFileName,
+      html, workflow, mediaKind, sourceFileName, assetFileName, htmlFileName,
     };
   }
 
