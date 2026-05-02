@@ -877,6 +877,124 @@ tl.from('#s${s.id}-right',{x:60,opacity:0,duration:0.6,ease:'power2.out'},${s.st
     }[c]));
   }
 
+  function clampNumber(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function scheduleTalkingCutScenes(scenes, totalDuration) {
+    const sourceScenes = scenes
+      .filter(scene => !['title-card', 'outro-card'].includes(scene.type))
+      .map(scene => {
+        const type = scene.type === 'threejs-object' ? 'kinetic-text' : scene.type;
+        return { ...scene, type };
+      });
+    const selected = sourceScenes.length ? sourceScenes : scenes.slice(1, -1);
+    const scheduled = [];
+    let cursor = Math.min(4, Math.max(1.5, totalDuration * 0.18));
+    selected.forEach((scene, index) => {
+      if (cursor >= totalDuration - 1.2) return;
+      const duration = clampNumber(scene.duration * 0.75, 2.6, 5.0);
+      const safeDuration = Math.min(duration, Math.max(1.2, totalDuration - cursor - 0.6));
+      if (safeDuration < 1.2) return;
+      scheduled.push({
+        ...scene,
+        id: index + 1,
+        startTime: +cursor.toFixed(3),
+        duration: +safeDuration.toFixed(3),
+        endTime: +(cursor + safeDuration).toFixed(3),
+      });
+      cursor += safeDuration + 3;
+    });
+    return scheduled;
+  }
+
+  function buildTalkingCutHTML(meta, scenes, mediaDataUrl, totalDuration, themeId) {
+    const isRotate = themeId === 'rotate';
+    const themeKeys = Object.keys(THEMES);
+    const sceneThemes = scenes.map((scene, index) =>
+      isRotate ? THEMES[themeKeys[index % themeKeys.length]] : getTheme(themeId || meta.theme)
+    );
+    const primaryTheme = sceneThemes[0] || getTheme(themeId || meta.theme);
+    const slug = (meta.title || 'talking-cut').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'talking-cut';
+    const sceneBlocks = scenes.map((scene, index) => (SCENE[scene.type] || SCENE['kinetic-text'])(scene, sceneThemes[index] || primaryTheme));
+    const sceneHTML = sceneBlocks.map((block, index) => {
+      const theme = sceneThemes[index] || primaryTheme;
+      const bgCss = theme.bgStyle ? `background:${theme.bgStyle};` : `background:${theme.colors.bg};`;
+      const extraCss = theme.signaturePatterns?.sceneBgExtraCss || '';
+      const decor = theme.signaturePatterns?.sceneDecorHTML || '';
+      return block.html.replace(
+        '<div class="scene-bg"></div>',
+        `<div class="scene-bg" style="${bgCss}${extraCss};opacity:0.96;"></div>${decor}`
+      );
+    }).join('\n');
+    const sceneJS = sceneBlocks.map(block => block.gsap).join('\n');
+    const threeInits = sceneBlocks.map(block => block.threeInit).filter(Boolean).join('\n');
+    const hasThree = threeInits.length > 0;
+    const visJS = scenes.map(scene => {
+      const endTime = +(scene.startTime + scene.duration).toFixed(3);
+      return `tl.set('#s${scene.id}',{opacity:1},${scene.startTime});\ntl.set('#s${scene.id}',{opacity:0},${endTime});`;
+    }).join('\n');
+    const fontLink = isRotate
+      ? [...new Set(Object.values(THEMES).map(theme => theme.typography.googleFonts).filter(Boolean))]
+          .map(url => `<link rel="stylesheet" href="${url}">`).join('\n')
+      : (primaryTheme.typography.googleFonts ? `<link rel="stylesheet" href="${primaryTheme.typography.googleFonts}">` : '');
+
+    return `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<meta name="viewport" content="width=1920, height=1080">
+${fontLink}
+${hasThree ? '<script src="/js/three.min.js"><\/script>\n' : ''}<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"><\/script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:1920px; height:1080px; overflow:hidden; background:#000; }
+  [data-composition-id] { position:absolute; inset:0; overflow:hidden; }
+  #v-wrap { position:absolute; inset:0; z-index:1; background:#000; }
+  #source-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  #v-wrap::after { content:''; position:absolute; inset:0; background:rgba(0,0,0,0.16); pointer-events:none; }
+  .clip { position:absolute; inset:0; opacity:0; z-index:2; }
+  .scene-bg { position:absolute; inset:0; }
+  .scene-content { position:relative; width:100%; height:100%; padding:120px 160px;
+    display:flex; flex-direction:column; justify-content:center; gap:24px; box-sizing:border-box; }
+  body { transform-origin: top left; }
+</style>
+</head><body>
+<div data-composition-id="${slug}" data-start="0" data-duration="${totalDuration}" data-width="1920" data-height="1080">
+  <div id="v-wrap">
+    <video id="source-video" data-start="0" data-duration="${totalDuration}" data-track-index="0" src="${mediaDataUrl}" muted playsinline></video>
+  </div>
+  <audio id="main-audio" data-start="0" data-duration="${totalDuration}" data-main-audio src="${mediaDataUrl}"></audio>
+${sceneHTML}
+</div>
+<script>
+  function fit(){
+    var sx = window.innerWidth/1920, sy = window.innerHeight/1080, scale = Math.min(sx, sy);
+    document.body.style.transform = 'scale('+scale+')';
+  }
+  fit(); window.addEventListener('resize', fit);
+
+  window.__timelines = window.__timelines || {};
+  var tl = gsap.timeline({ paused: true });
+${visJS}
+${sceneJS}
+${threeInits}
+  window.__timelines[${JSON.stringify(slug)}] = tl;
+
+  var video = document.getElementById('source-video');
+  var audio = document.getElementById('main-audio');
+  function syncVideo(){ if(video && audio && Math.abs(video.currentTime-audio.currentTime)>0.12) video.currentTime=audio.currentTime; }
+  function start(){
+    syncVideo();
+    try{ video.play(); }catch(error){}
+    try{ audio.play(); }catch(error){}
+    tl.play(audio.currentTime || 0);
+  }
+  audio.addEventListener('timeupdate', syncVideo);
+  document.body.addEventListener('click', start, { once:true });
+  setTimeout(start, 100);
+<\/script>
+</body></html>`;
+  }
+
   // ---------------------------------------------------------- 7. compose iframe HTML
   function buildHyperframeHTML(meta, scenes, audioDataUrl, totalDuration, themeId) {
     const isRotate = themeId === 'rotate';
@@ -998,24 +1116,17 @@ ${threeInits}
   // ---------------------------------------------------------- 9. main entrypoint
   async function run({ scriptText, voice, refAudioFile, server, onProgress, signal, themeId, workflow, catalogFile }) {
     onProgress?.('Parsing script…');
-
-    // Talking-cut: requires video-chopping support not yet implemented in the browser-only pipeline.
-    // Use the HyperFrames CLI skill (SKILL.md) for talking-cut projects.
-    if (workflow === 'talking-cut') {
-      throw new Error(
-        'Talking-cut workflow is coming soon \u2014 it requires video-chopping support not yet ' +
-        'implemented in the browser-only pipeline. Use the HyperFrames CLI skill (SKILL.md) for talking-cut projects.'
-      );
-    }
-
     const { meta, sentences } = parseScript(scriptText);
     if (sentences.length < 2) throw new Error('Need at least 2 sentences. Got ' + sentences.length);
     if (voice) meta.voice = voice;
     if (themeId && themeId !== 'auto') meta.theme = themeId;
 
     let wavBlob;
-    if (workflow === 'catalog-showcase') {
-      if (!catalogFile) throw new Error('Catalog showcase mode needs an audio or video file.');
+    if (workflow === 'catalog-showcase' || workflow === 'talking-cut') {
+      if (!catalogFile) throw new Error(`${workflow === 'talking-cut' ? 'Talking-cut' : 'Catalog showcase'} mode needs an audio or video file.`);
+      if (workflow === 'talking-cut' && !/^video\//i.test(catalogFile.type || '')) {
+        throw new Error('Talking-cut mode needs a video file so the face-cam can remain visible under the cutaways.');
+      }
       onProgress?.(`Using provided file: ${catalogFile.name}…`);
       wavBlob = catalogFile;
     } else {
@@ -1041,23 +1152,31 @@ ${threeInits}
     onProgress?.('Assigning scene types…');
     const scenes = assignSceneTypes(timed);
 
-    onProgress?.('Encoding audio → data URL…');
-    const audioDataUrl = await blobToDataURL(wavBlob);
-    if (audioDataUrl.length > 4_500_000) {
-      console.warn('[script-to-video] audio data URL is', Math.round(audioDataUrl.length / 1024), 'KB — localStorage may overflow.');
+    onProgress?.(`Encoding ${workflow === 'talking-cut' ? 'media' : 'audio'} → data URL…`);
+    const mediaDataUrl = await blobToDataURL(wavBlob);
+    if (mediaDataUrl.length > 4_500_000) {
+      console.warn('[script-to-video] media data URL is', Math.round(mediaDataUrl.length / 1024), 'KB — localStorage may overflow.');
     }
 
-    onProgress?.(`Building HyperFrame composition (theme: ${meta.theme})…`);
-    const html = buildHyperframeHTML(meta, scenes, audioDataUrl, totalDuration, meta.theme);
+    let finalScenes = scenes;
+    let html;
+    if (workflow === 'talking-cut') {
+      onProgress?.(`Scheduling talking-cut graphic overlays (theme: ${meta.theme})…`);
+      finalScenes = scheduleTalkingCutScenes(scenes, totalDuration);
+      html = buildTalkingCutHTML(meta, finalScenes, mediaDataUrl, totalDuration, meta.theme);
+    } else {
+      onProgress?.(`Building HyperFrame composition (theme: ${meta.theme})…`);
+      html = buildHyperframeHTML(meta, scenes, mediaDataUrl, totalDuration, meta.theme);
+    }
 
     onProgress?.('Injecting slide into deck…');
     const audioBlobUrl = URL.createObjectURL(wavBlob);
     injectIntoDeck(meta, html, audioBlobUrl);
 
-    onProgress?.(`Done — ${scenes.length} scenes, ${totalDuration.toFixed(1)}s.`);
+    onProgress?.(`Done — ${finalScenes.length} scenes, ${totalDuration.toFixed(1)}s.`);
     return {
       slug: (meta.title || 'video').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      scenes, totalDuration, wavBlob, audioBlobUrl, html,
+      scenes: finalScenes, totalDuration, wavBlob, audioBlobUrl, html,
     };
   }
 

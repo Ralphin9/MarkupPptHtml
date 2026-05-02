@@ -60,6 +60,8 @@
     #s2v-catalog-section { display:none; }
     #s2v-modal[data-workflow="catalog-showcase"] #s2v-server-section { display:none; }
     #s2v-modal[data-workflow="catalog-showcase"] #s2v-catalog-section { display:block; }
+    #s2v-modal[data-workflow="talking-cut"] #s2v-server-section { display:none; }
+    #s2v-modal[data-workflow="talking-cut"] #s2v-catalog-section { display:block; }
     /* AI topic generator */
     #s2v-ai-box { background:#111820; border:1px solid #1e3a52; border-radius:8px; padding:12px 14px; margin:10px 0 4px; }
     #s2v-ai-box summary { cursor:pointer; font-size:12px; font-weight:700; color:#9bd; text-transform:uppercase; letter-spacing:.08em; list-style:none; display:flex; align-items:center; gap:6px; }
@@ -818,6 +820,7 @@ section { font-family: 'Helvetica Neue'; }
       <select id="s2v-workflow">
         <option value="narrative" selected>Narrative — generate voiceover with OmniVoice</option>
         <option value="catalog-showcase">Catalog showcase — use your own audio/video file</option>
+        <option value="talking-cut">Talking-cut — face-cam video with graphic cutaways</option>
       </select>
 
       <div id="s2v-server-section">

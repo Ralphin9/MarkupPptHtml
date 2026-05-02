@@ -1473,7 +1473,11 @@
           const catSection = modal.querySelector('#s2v-catalog-section');
           if (catSection) setTimeout(() => catSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
         } else if (prompt === '__talking-cut') {
-          alert('Talking-cut workflow is coming soon — it requires video-chopping support not yet implemented.');
+          if (elWorkflow) { elWorkflow.value = 'talking-cut'; elWorkflow.dispatchEvent(new Event('change')); }
+          const aiBox = modal.querySelector('#s2v-ai-box');
+          if (aiBox) aiBox.removeAttribute('open');
+          const catSection = modal.querySelector('#s2v-catalog-section');
+          if (catSection) setTimeout(() => catSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
         } else {
           const elTopic = modal.querySelector('#s2v-topic');
           if (elTopic) { elTopic.value = prompt; elTopic.focus(); }
@@ -1624,8 +1628,11 @@
         const ok = confirm(`Local CPU OmniVoice is slow. This script has ${sentenceCount} sentences and may take several minutes. Continue?`);
         if (!ok) return;
       }
-      if (elWorkflow?.value === 'catalog-showcase' && !elCatalogFile?.files?.[0]) {
-        alert('Catalog showcase mode needs an audio or video file — use the file picker above.'); return;
+      if (['catalog-showcase', 'talking-cut'].includes(elWorkflow?.value) && !elCatalogFile?.files?.[0]) {
+        alert(`${elWorkflow.value === 'talking-cut' ? 'Talking-cut' : 'Catalog showcase'} mode needs an audio or video file — use the file picker above.`); return;
+      }
+      if (elWorkflow?.value === 'talking-cut' && !/^video\//i.test(elCatalogFile?.files?.[0]?.type || '')) {
+        alert('Talking-cut mode needs a video file so the face-cam can remain visible under the cutaways.'); return;
       }
 
       btnGo.disabled = true;
@@ -1656,7 +1663,7 @@
           signal: abortCtrl.signal,
           themeId: elTheme?.value || 'auto',
           workflow: elWorkflow?.value || 'narrative',
-          catalogFile: elWorkflow?.value === 'catalog-showcase' ? elCatalogFile?.files?.[0] : null,
+          catalogFile: ['catalog-showcase', 'talking-cut'].includes(elWorkflow?.value) ? elCatalogFile?.files?.[0] : null,
         });
         log(`✅ Slide added with ${result.scenes.length} scenes (${result.totalDuration.toFixed(1)}s).`);
         toast('Script→Video: slide added — open the new last slide.');
