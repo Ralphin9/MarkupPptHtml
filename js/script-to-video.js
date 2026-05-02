@@ -1097,7 +1097,7 @@ ${threeInits}
   }
 
   // ---------------------------------------------------------- 8. inject into deck
-  function injectIntoDeck(meta, hyperframeHTML, audioBlobUrl) {
+  function injectIntoDeck(meta, hyperframeHTML) {
     const VB = window.VisualBuilder;
     if (!VB) throw new Error('VisualBuilder not available');
 
@@ -1156,31 +1156,35 @@ ${threeInits}
     onProgress?.('Assigning scene types…');
     const scenes = assignSceneTypes(timed);
 
-    onProgress?.(`Encoding ${workflow === 'talking-cut' ? 'media' : 'audio'} → data URL…`);
-    const mediaDataUrl = await blobToDataURL(wavBlob);
-    if (mediaDataUrl.length > 4_500_000) {
-      console.warn('[script-to-video] media data URL is', Math.round(mediaDataUrl.length / 1024), 'KB — localStorage may overflow.');
-    }
+    // Blob URL for live deck preview — no base64 conversion, works same-origin in iframes
+    const mediaBlobUrl = URL.createObjectURL(wavBlob);
+
+    // Relative asset path for the exported HTML (HyperFrames CLI compatible — no inline data URLs)
+    const assetExt = mediaKind === 'video'
+      ? (sourceFileName.includes('.') ? sourceFileName.split('.').pop() : 'mp4')
+      : 'wav';
+    const assetFileName = sourceFileName || `audio.${assetExt}`;
+    const assetPath = `assets/${assetFileName}`;
 
     let finalScenes = scenes;
     let html;
     if (workflow === 'talking-cut') {
       onProgress?.(`Scheduling talking-cut graphic overlays (theme: ${meta.theme})…`);
       finalScenes = scheduleTalkingCutScenes(scenes, totalDuration);
-      html = buildTalkingCutHTML(meta, finalScenes, mediaDataUrl, totalDuration, meta.theme);
+      // Deck preview uses blob URL; exported HTML uses relative asset path
+      injectIntoDeck(meta, buildTalkingCutHTML(meta, finalScenes, mediaBlobUrl, totalDuration, meta.theme));
+      html = buildTalkingCutHTML(meta, finalScenes, assetPath, totalDuration, meta.theme);
     } else {
       onProgress?.(`Building HyperFrame composition (theme: ${meta.theme})…`);
-      html = buildHyperframeHTML(meta, scenes, mediaDataUrl, totalDuration, meta.theme);
+      injectIntoDeck(meta, buildHyperframeHTML(meta, scenes, mediaBlobUrl, totalDuration, meta.theme));
+      html = buildHyperframeHTML(meta, scenes, assetPath, totalDuration, meta.theme);
     }
-
-    onProgress?.('Injecting slide into deck…');
-    const audioBlobUrl = URL.createObjectURL(wavBlob);
-    injectIntoDeck(meta, html, audioBlobUrl);
 
     onProgress?.(`Done — ${finalScenes.length} scenes, ${totalDuration.toFixed(1)}s.`);
     return {
       slug: (meta.title || 'video').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      scenes: finalScenes, totalDuration, wavBlob, audioBlobUrl, html, workflow, mediaKind, sourceFileName,
+      scenes: finalScenes, totalDuration, wavBlob, audioBlobUrl: mediaBlobUrl,
+      html, workflow, mediaKind, sourceFileName, assetFileName,
     };
   }
 
