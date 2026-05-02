@@ -509,26 +509,55 @@ tl.to('#s${s.id}-rule',{width:'280px',duration:0.7,ease:'power2.inOut'},${s.star
 
   // ---------------------------------------------------------- 7. compose iframe HTML
   function buildHyperframeHTML(meta, scenes, audioDataUrl, totalDuration, themeId) {
-    const T = getTheme(themeId || meta.theme);
+    const isRotate = themeId === 'rotate';
+    const themeKeys = Object.keys(THEMES);
+
+    // Per-scene theme assignment: rotate cycles all 10 in order, otherwise one theme for all
+    const sceneThemes = scenes.map((s, i) =>
+      isRotate ? THEMES[themeKeys[i % themeKeys.length]] : getTheme(themeId || meta.theme)
+    );
+    const T = sceneThemes[0]; // primary theme (body bg, font fallback)
+
     const slug = (meta.title || 'video').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'video';
-    const sceneBlocks = scenes.map(s => (SCENE[s.type] || SCENE['kinetic-text'])(s, T));
-    const rawSceneHTML = sceneBlocks.map(b => b.html).join('\n');
-    // Inject per-theme decorators (corner brackets etc.) after every .scene-bg
-    const decorHTML = T.signaturePatterns?.sceneDecorHTML || '';
-    const sceneHTML = decorHTML
-      ? rawSceneHTML.replace(/<div class="scene-bg"><\/div>/g, `<div class="scene-bg"></div>${decorHTML}`)
-      : rawSceneHTML;
+
+    // Build each scene block with its assigned theme
+    const sceneBlocks = scenes.map((s, i) => (SCENE[s.type] || SCENE['kinetic-text'])(s, sceneThemes[i]));
+
+    // In rotate mode: inline bg + decor per-scene (CSS class only provides layout)
+    // In normal mode: inject global decor via regex replace; bg comes from CSS class
+    let sceneHTML;
+    if (isRotate) {
+      sceneHTML = sceneBlocks.map((b, i) => {
+        const Ti = sceneThemes[i];
+        const bgCss = Ti.bgStyle ? `background:${Ti.bgStyle};` : `background:${Ti.colors.bg};`;
+        const extraCss = Ti.signaturePatterns?.sceneBgExtraCss || '';
+        const decor = Ti.signaturePatterns?.sceneDecorHTML || '';
+        return b.html.replace(
+          '<div class="scene-bg"></div>',
+          `<div class="scene-bg" style="${bgCss}${extraCss}"></div>${decor}`
+        );
+      }).join('\n');
+    } else {
+      const decorHTML = T.signaturePatterns?.sceneDecorHTML || '';
+      const rawHTML = sceneBlocks.map(b => b.html).join('\n');
+      sceneHTML = decorHTML
+        ? rawHTML.replace(/<div class="scene-bg"><\/div>/g, `<div class="scene-bg"></div>${decorHTML}`)
+        : rawHTML;
+    }
     const sceneJS = sceneBlocks.map(b => b.gsap).join('\n');
     // Show each clip only within its time window
     const visJS = scenes.map(s => {
       const endTime = +(s.startTime + s.duration).toFixed(3);
       return `tl.set('#s${s.id}',{opacity:1},${s.startTime});\ntl.set('#s${s.id}',{opacity:0},${endTime});`;
     }).join('\n');
-    const fontLink = T.typography.googleFonts
-      ? `<link rel="stylesheet" href="${T.typography.googleFonts}">` : '';
-    const sceneBgCss = T.bgStyle
-      ? `background:${T.bgStyle};` : `background:${T.colors.bg};`;
-    const sceneBgExtraCss = T.signaturePatterns?.sceneBgExtraCss || '';
+    // Font links: all themes in rotate mode, single theme otherwise
+    const fontLink = isRotate
+      ? [...new Set(Object.values(THEMES).map(t => t.typography.googleFonts).filter(Boolean))]
+          .map(u => `<link rel="stylesheet" href="${u}">`).join('\n')
+      : (T.typography.googleFonts ? `<link rel="stylesheet" href="${T.typography.googleFonts}">` : '');
+    // .scene-bg CSS: rotate mode omits bg (applied inline per-scene above); normal mode uses global bg
+    const sceneBgCss = isRotate ? '' : (T.bgStyle ? `background:${T.bgStyle};` : `background:${T.colors.bg};`);
+    const sceneBgExtraCss = isRotate ? '' : (T.signaturePatterns?.sceneBgExtraCss || '');
 
     return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
