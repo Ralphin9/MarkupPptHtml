@@ -960,9 +960,8 @@ ${hasThree ? '<script src="https://cdn.jsdelivr.net/npm/three@0.173.0/build/thre
 </head><body>
 <div data-composition-id="${slug}" data-start="0" data-duration="${totalDuration}" data-width="1920" data-height="1080">
   <div id="v-wrap">
-    <video id="source-video" data-start="0" data-duration="${totalDuration}" data-track-index="0" src="${mediaDataUrl}" muted playsinline></video>
-  </div>
-  <audio id="main-audio" data-start="0" data-duration="${totalDuration}" data-main-audio src="${mediaDataUrl}"></audio>
+    <video id="source-video" data-start="0" data-duration="${totalDuration}" data-track-index="0" data-main-audio data-has-audio="true" src="${mediaDataUrl}" playsinline></video>
+  </div></audio>
 ${sceneHTML}
 </div>
 <script>
@@ -979,18 +978,7 @@ ${sceneJS}
 ${threeInits}
   window.__timelines[${JSON.stringify(slug)}] = tl;
 
-  var video = document.getElementById('source-video');
-  var audio = document.getElementById('main-audio');
-  function syncVideo(){ if(video && audio && Math.abs(video.currentTime-audio.currentTime)>0.12) video.currentTime=audio.currentTime; }
-  function start(){
-    syncVideo();
-    try{ video.play(); }catch(error){}
-    try{ audio.play(); }catch(error){}
-    tl.play(audio.currentTime || 0);
-  }
-  audio.addEventListener('timeupdate', syncVideo);
-  document.body.addEventListener('click', start, { once:true });
-  setTimeout(start, 100);
+  // HyperFrames owns media playback — no imperative play/pause/currentTime here
 <\/script>
 </body></html>`;
   }
@@ -1067,7 +1055,7 @@ ${hasThree ? '<script src="https://cdn.jsdelivr.net/npm/three@0.173.0/build/thre
 </style>
 </head><body>
 <div data-composition-id="${slug}" data-start="0" data-duration="${totalDuration}" data-width="1920" data-height="1080">
-  <audio id="main-audio" data-start="0" data-duration="${totalDuration}" data-track-index="0" data-main-audio src="${audioDataUrl}"></audio>
+  <audio id="main-audio" data-start="0" data-duration="${totalDuration}" data-main-audio src="${audioDataUrl}"></audio>
 ${sceneHTML}
 </div>
 <script>
@@ -1085,13 +1073,7 @@ ${sceneJS}
 ${threeInits}
   window.__timelines[${JSON.stringify(slug)}] = tl;
 
-  // Standalone preview: play audio + timeline together
-  var au = document.getElementById('main-audio');
-  function start(){ try{ au.play(); }catch(e){} tl.play(); }
-  // Click-to-start (browsers block autoplay with audio)
-  document.body.addEventListener('click', start, { once:true });
-  // Try autoplay anyway (works if iframe was user-activated)
-  setTimeout(start, 100);
+  // HyperFrames owns media playback — no imperative play/pause here
 <\/script>
 </body></html>`;
   }
