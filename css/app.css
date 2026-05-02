@@ -356,6 +356,11 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-sans);font-size:13p
 .btn-tag-remove{margin-top:6px;padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:rgba(24,24,37,.7);color:var(--text-secondary);font-size:10px;font-weight:700;cursor:pointer;transition:all var(--transition)}
 .btn-tag-remove:hover{border-color:var(--danger);color:var(--danger);background:rgba(243,139,168,.12)}
 .prop-readonly{font-size:11px;color:var(--accent);font-weight:700;text-transform:capitalize}
+.prop-import-progress{display:flex;flex-direction:column;gap:4px;margin-top:4px}
+.prop-import-progress.hidden{display:none}
+.prop-import-progress-bar{height:6px;border:1px solid var(--border);border-radius:999px;background:rgba(24,24,37,.85);overflow:hidden}
+.prop-import-progress-bar span{display:block;width:0;height:100%;border-radius:999px;background:linear-gradient(90deg,#89b4fa,#cba6f7);transition:width .18s ease}
+.prop-import-progress-label{font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .color-row{display:flex;gap:4px;align-items:center}
 .color-row input[type="color"]{width:28px;height:22px;border:1px solid var(--border);border-radius:3px;padding:0;cursor:pointer;background:transparent}
 .color-row input[type="text"]{flex:1}

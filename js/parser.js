@@ -92,22 +92,58 @@ window.SlideParser = (function () {
     //        <div class="el-hyperframe-src" ...>
     //          ...composition...
     //        </div>
-    const re = /<!--\s*el:hyperframe(?:\s+w=(\d+))?(?:\s+h=(\d+))?\s*-->\s*<div class="el-hyperframe-src"[^>]*>([\s\S]*?)<\/div>/gi;
-    return raw.replace(re, (_full, w, h, body) => {
-      const width  = parseInt(w, 10) || 1280;
-      const height = parseInt(h, 10) || 360;
+    const markerRe = /<!--\s*el:hyperframe(?:\s+w=(\d+))?(?:\s+h=(\d+))?\s*-->\s*/gi;
+    let out = '';
+    let cursor = 0;
+    let match;
+
+    while ((match = markerRe.exec(raw)) !== null) {
+      const wrapperRe = /<div\s+class=["']el-hyperframe-src["'][^>]*>/iy;
+      wrapperRe.lastIndex = markerRe.lastIndex;
+      const wrapper = wrapperRe.exec(raw);
+      if (!wrapper) continue;
+
+      const bodyStart = wrapperRe.lastIndex;
+      const bodyEnd = findClosingDiv(raw, wrapper.index);
+      if (bodyEnd < 0) continue;
+
+      out += raw.slice(cursor, match.index);
+      const width  = parseInt(match[1], 10) || 1280;
+      const height = parseInt(match[2], 10) || 360;
+      const body = raw.slice(bodyStart, bodyEnd);
       const srcdoc = ('<!doctype html><html><head><meta charset="utf-8"></head><body>'
                       + (body || '').trim() + '</body></html>')
                      .replace(/&/g, '&amp;')
                      .replace(/"/g, '&quot;');
-      return '\n\n<div class="el-hyperframe" style="width:' + width + 'px;max-width:100%;">'
+      out += '\n\n<div class="el-hyperframe" style="width:' + width + 'px;max-width:100%;">'
         + '<iframe sandbox="allow-scripts allow-same-origin allow-popups allow-forms" '
         + 'allow="autoplay" '
         + 'loading="lazy" referrerpolicy="no-referrer" '
         + 'style="width:100%;height:' + height + 'px;border:0;border-radius:8px;background:#0d1117;" '
         + 'srcdoc="' + srcdoc + '"></iframe>'
         + '</div>\n\n';
-    });
+
+      cursor = bodyEnd + raw.slice(bodyEnd).match(/^<\/div>/i)[0].length;
+      markerRe.lastIndex = cursor;
+    }
+
+    return out + raw.slice(cursor);
+  }
+
+  function findClosingDiv(raw, openDivIndex) {
+    const tagRe = /<\/?div\b[^>]*>/gi;
+    tagRe.lastIndex = openDivIndex;
+    let depth = 0;
+    let tag;
+    while ((tag = tagRe.exec(raw)) !== null) {
+      if (/^<div\b/i.test(tag[0])) {
+        depth++;
+      } else {
+        depth--;
+        if (depth === 0) return tag.index;
+      }
+    }
+    return -1;
   }
 
   // ===== Marpit Image Syntax =====

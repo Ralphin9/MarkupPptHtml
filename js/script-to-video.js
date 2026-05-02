@@ -943,7 +943,7 @@ tl.from('#s${s.id}-right',{x:60,opacity:0,duration:0.6,ease:'power2.out'},${s.st
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=1920, height=1080">
 ${fontLink}
-${hasThree ? '<script src="/js/three.min.js"><\/script>\n' : ''}<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"><\/script>
+${hasThree ? '<script src="https://cdn.jsdelivr.net/npm/three@0.173.0/build/three.min.js"><\/script>\n' : ''}<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"><\/script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { width:1920px; height:1080px; overflow:hidden; background:#000; }
@@ -1054,7 +1054,7 @@ ${threeInits}
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=1920, height=1080">
 ${fontLink}
-${hasThree ? '<script src="/js/three.min.js"><\/script>\n' : ''}<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"><\/script>
+${hasThree ? '<script src="https://cdn.jsdelivr.net/npm/three@0.173.0/build/three.min.js"><\/script>\n' : ''}<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"><\/script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { width:1920px; height:1080px; overflow:hidden; background:${T.colors.bg}; }
@@ -1122,6 +1122,8 @@ ${threeInits}
     if (themeId && themeId !== 'auto') meta.theme = themeId;
 
     let wavBlob;
+    let sourceFileName = '';
+    let mediaKind = 'audio';
     if (workflow === 'catalog-showcase' || workflow === 'talking-cut') {
       if (!catalogFile) throw new Error(`${workflow === 'talking-cut' ? 'Talking-cut' : 'Catalog showcase'} mode needs an audio or video file.`);
       if (workflow === 'talking-cut' && !/^video\//i.test(catalogFile.type || '')) {
@@ -1129,6 +1131,8 @@ ${threeInits}
       }
       onProgress?.(`Using provided file: ${catalogFile.name}…`);
       wavBlob = catalogFile;
+      sourceFileName = catalogFile.name || '';
+      mediaKind = /^video\//i.test(catalogFile.type || '') ? 'video' : 'audio';
     } else {
       onProgress?.(`Synthesizing ${sentences.length} sentences (~${scriptText.length} chars)…`);
       const fullText = sentences.join(' ');
@@ -1176,7 +1180,7 @@ ${threeInits}
     onProgress?.(`Done — ${finalScenes.length} scenes, ${totalDuration.toFixed(1)}s.`);
     return {
       slug: (meta.title || 'video').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      scenes: finalScenes, totalDuration, wavBlob, audioBlobUrl, html,
+      scenes: finalScenes, totalDuration, wavBlob, audioBlobUrl, html, workflow, mediaKind, sourceFileName,
     };
   }
 

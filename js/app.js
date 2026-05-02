@@ -160,6 +160,75 @@
       });
     }
 
+    const btnImportHyperframe = document.getElementById('prop-hyperframe-import');
+    const inputHyperframeFile = document.getElementById('prop-hyperframe-file');
+    const hyperframeImportProgress = document.getElementById('prop-hyperframe-import-progress');
+    const hyperframeImportBar = hyperframeImportProgress?.querySelector('.prop-import-progress-bar span');
+    const hyperframeImportLabel = hyperframeImportProgress?.querySelector('.prop-import-progress-label');
+    function setHyperframeImportProgress(percent, label, active = true) {
+      if (!hyperframeImportProgress) return;
+      hyperframeImportProgress.classList.toggle('hidden', !active);
+      if (hyperframeImportBar) hyperframeImportBar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+      if (hyperframeImportLabel) hyperframeImportLabel.textContent = label || '';
+    }
+    if (btnImportHyperframe && inputHyperframeFile) {
+      btnImportHyperframe.addEventListener('click', () => {
+        const elId = window.VisualBuilder.selectedElementId;
+        const el = elId ? window.VisualBuilder.getElement(elId) : null;
+        if (!el || el.type !== 'hyperframe') {
+          alert('Select a HyperFrame element first.');
+          return;
+        }
+        inputHyperframeFile.click();
+      });
+
+      inputHyperframeFile.addEventListener('change', async () => {
+        const file = inputHyperframeFile.files?.[0];
+        inputHyperframeFile.value = '';
+        if (!file) return;
+
+        const elId = window.VisualBuilder.selectedElementId;
+        const el = elId ? window.VisualBuilder.getElement(elId) : null;
+        if (!el || el.type !== 'hyperframe') {
+          alert('Select a HyperFrame element first.');
+          return;
+        }
+
+        try {
+          btnImportHyperframe.disabled = true;
+          btnImportHyperframe.textContent = 'Importing...';
+          setHyperframeImportProgress(4, `Opening ${file.name}...`);
+          const html = (await readFileTextWithProgress(file, (loaded, total) => {
+            const percent = total ? 5 + Math.round((loaded / total) * 65) : 18;
+            const loadedMb = (loaded / 1024 / 1024).toFixed(1);
+            const totalMb = total ? ` / ${(total / 1024 / 1024).toFixed(1)} MB` : ' MB';
+            setHyperframeImportProgress(percent, `Reading ${loadedMb}${totalMb}...`);
+          })).replace(/^\uFEFF/, '');
+          setHyperframeImportProgress(78, 'Preparing HyperFrame...');
+          await nextFrame();
+          const inferred = inferHyperframeDisplaySize(html);
+          setHyperframeImportProgress(88, 'Updating slide...');
+          window.VisualBuilder.updateElement(elId, {
+            content: html,
+            width: inferred.width,
+            height: inferred.height,
+          });
+          await nextFrame();
+          const propContentNow = document.getElementById('prop-content');
+          if (propContentNow) propContentNow.value = html;
+          setHyperframeImportProgress(100, `Imported ${file.name}`);
+          toast(`Imported ${file.name} into HyperFrame`);
+        } catch (error) {
+          setHyperframeImportProgress(100, 'Import failed');
+          alert('Could not import HyperFrame HTML.\n\n' + (error?.message || error));
+        } finally {
+          btnImportHyperframe.disabled = false;
+          btnImportHyperframe.textContent = 'Import HTML File';
+          setTimeout(() => setHyperframeImportProgress(0, 'Ready', false), 1800);
+        }
+      });
+    }
+
     // Size + rotation (universal transform)
     const propW = document.getElementById('prop-style-w');
     const propH = document.getElementById('prop-style-h');
@@ -313,6 +382,35 @@
 
     // Drag-and-drop zone for image grid
     setupGridDropTarget();
+  }
+
+  function inferHyperframeDisplaySize(html) {
+    const width = parseInt(html.match(/data-width=["']?(\d+)/i)?.[1]
+      || html.match(/width\s*=\s*["']?(\d+)/i)?.[1], 10);
+    const height = parseInt(html.match(/data-height=["']?(\d+)/i)?.[1]
+      || html.match(/height\s*=\s*["']?(\d+)/i)?.[1], 10);
+    if (width > 0 && height > 0) {
+      const displayWidth = Math.min(1280, width);
+      return { width: displayWidth, height: Math.round(displayWidth * (height / width)) };
+    }
+    return { width: 1280, height: 720 };
+  }
+
+  function nextFrame() {
+    return new Promise(resolve => requestAnimationFrame(() => resolve()));
+  }
+
+  function readFileTextWithProgress(file, onProgress) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onprogress = (event) => onProgress?.(event.loaded || 0, event.lengthComputable ? event.total : file.size);
+      reader.onerror = () => reject(reader.error || new Error('File read failed'));
+      reader.onload = () => {
+        onProgress?.(file.size, file.size);
+        resolve(String(reader.result || ''));
+      };
+      reader.readAsText(file);
+    });
   }
 
   /** Wire a drop zone to accept image drags from the gallery and populate a text input + preview */
@@ -668,6 +766,7 @@
     toggleGroup('prop-compare-group', el.type === 'imageCompare');
     toggleGroup('prop-combine-group', el.type === 'imageCombine');
     toggleGroup('prop-grid-group', el.type === 'imageGrid');
+    toggleGroup('prop-hyperframe-import-group', el.type === 'hyperframe');
 
     // Set list style value based on element type
     if (el.type === 'bullets' || el.type === 'fragments' || el.type === 'numbered') {
@@ -1671,14 +1770,63 @@
         });
         log(`✅ Slide added with ${result.scenes.length} scenes (${result.totalDuration.toFixed(1)}s).`);
         toast('Script→Video: slide added — open the new last slide.');
-        // Offer WAV download
+        const mediaExt = result.mediaKind === 'video'
+          ? ((result.sourceFileName || '').match(/\.([a-z0-9]+)$/i)?.[1] || 'mp4')
+          : 'wav';
+        const mediaLabel = result.mediaKind === 'video' ? 'source video' : 'audio';
         const a = document.createElement('a');
         a.href = result.audioBlobUrl;
-        a.download = (result.slug || 'voiceover') + '.wav';
-        a.textContent = '⬇ Download WAV';
+        a.download = `${result.slug || 'voiceover'}-${mediaLabel.replace(/\s+/g, '-')}.${mediaExt}`;
+        a.textContent = `⬇ Download ${mediaLabel}`;
         a.style.cssText = 'display:inline-block;margin-top:8px;color:#9bd;text-decoration:underline;';
+        const mediaLink = document.createElement('a');
+        mediaLink.href = result.audioBlobUrl;
+        mediaLink.target = '_blank';
+        mediaLink.rel = 'noopener noreferrer';
+        mediaLink.textContent = result.mediaKind === 'video' ? '↗ Open video link' : '↗ Open media link';
+        mediaLink.style.cssText = 'display:inline-block;margin-top:8px;margin-left:12px;color:#9bd;text-decoration:underline;';
+        const htmlUrl = URL.createObjectURL(new Blob([result.html], { type: 'text/html' }));
+        const htmlLink = document.createElement('a');
+        htmlLink.href = htmlUrl;
+        htmlLink.download = `${result.slug || 'script-video'}-hyperframes-index.html`;
+        htmlLink.textContent = '⬇ Download HyperFrames index.html';
+        htmlLink.style.cssText = 'display:inline-block;margin-top:8px;margin-left:12px;color:#9bd;text-decoration:underline;';
+        const copyCliBtn = document.createElement('button');
+        copyCliBtn.type = 'button';
+        copyCliBtn.textContent = '📋 Copy HyperFrames CLI Steps';
+        copyCliBtn.style.cssText = 'display:inline-block;margin-top:8px;margin-left:12px;padding:2px 8px;border:1px solid #3b4252;border-radius:6px;background:#1f2433;color:#9bd;cursor:pointer;font-size:11px;';
+        const cliSteps = [
+          'npx hyperframes init my-video',
+          'cd my-video',
+          `# Replace index.html with ${result.slug || 'script-video'}-hyperframes-index.html`,
+          'npx hyperframes preview',
+          'npx hyperframes render --output output.mp4',
+        ].join('\n');
+        copyCliBtn.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(cliSteps);
+            copyCliBtn.textContent = '✅ Copied HyperFrames Steps';
+            setTimeout(() => { copyCliBtn.textContent = '📋 Copy HyperFrames CLI Steps'; }, 1800);
+          } catch {
+            log('Could not access clipboard. Copy manually from the CLI hint below.');
+          }
+        });
+        const docsLink = document.createElement('a');
+        docsLink.href = 'https://hyperframes.heygen.com/quickstart';
+        docsLink.target = '_blank';
+        docsLink.rel = 'noopener noreferrer';
+        docsLink.textContent = '↗ HyperFrames Quickstart';
+        docsLink.style.cssText = 'display:inline-block;margin-top:8px;margin-left:12px;color:#9bd;text-decoration:underline;';
         elLog.appendChild(document.createElement('br'));
         elLog.appendChild(a);
+        elLog.appendChild(mediaLink);
+        elLog.appendChild(htmlLink);
+        elLog.appendChild(copyCliBtn);
+        elLog.appendChild(docsLink);
+        const cliHint = document.createElement('div');
+        cliHint.style.cssText = 'margin-top:8px;color:#7a8;font-size:11px;line-height:1.35;';
+        cliHint.textContent = 'HyperFrames CLI: npx hyperframes init my-video; replace my-video/index.html with this file; then run npx hyperframes preview and npx hyperframes render --output output.mp4';
+        elLog.appendChild(cliHint);
       } catch (e) {
         if (e?.name === 'AbortError') {
           log('⏹ Cancelled.');

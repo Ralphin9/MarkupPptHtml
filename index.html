@@ -410,6 +410,15 @@
             <label>Content</label>
             <textarea id="prop-content" rows="5"></textarea>
           </div>
+          <div class="prop-group hidden" id="prop-hyperframe-import-group">
+            <label>HyperFrame HTML</label>
+            <button type="button" id="prop-hyperframe-import" class="btn-primary">Import HTML File</button>
+            <input type="file" id="prop-hyperframe-file" accept=".html,.htm,text/html" hidden>
+            <div id="prop-hyperframe-import-progress" class="prop-import-progress hidden">
+              <div class="prop-import-progress-bar"><span></span></div>
+              <div class="prop-import-progress-label">Ready</div>
+            </div>
+          </div>
           <div class="prop-group" id="prop-transform-group">
             <label>Size & Rotation</label>
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
