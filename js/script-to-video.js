@@ -204,30 +204,63 @@
   }
 
   // ---------------------------------------------------------- 5. scene picker
-  // Based on type-assignment rules from script-to-video-skill SKILL.md
+  // Content-signal rules from script-to-video-skill SKILL.md -- full catalog.
+  // Priority: fixed anchors first (title/outro), then content signals, then pool rotation.
   function assignSceneTypes(items) {
+    // Pool cycles for variety when no specific signal matches
+    const POOL = [
+      'kinetic-text','callout','stat-reveal','quote-card','list-reveal',
+      'comparison','flow-steps','kinetic-impact','counter-up','progress-ring',
+      'bar-chart','doodle-split','cta-callout','split-layout','threejs-object',
+    ];
     const out = [];
+    let poolIdx = 0;
     items.forEach((it, i) => {
       const s = it.sentence;
       let type;
-      if (i === 0) type = 'title-card';
-      else if (i === items.length - 1) type = 'outro-card';
-      else if (/\b\d+(\.\d+)?\s*%/.test(s)) type = 'stat-reveal';
-      else if (/^["“]/.test(s) || /\bsaid\b|\bsays\b/.test(s)) type = 'quote-card';
-      else if (/\bvs\.?\b|\bcompared to\b|\bversus\b/i.test(s)) type = 'comparison';
-      else if (/(\w+,\s*\w+,\s*(?:and\s+)?\w+)/.test(s)) type = 'list-reveal';
-      else if (/\bfirst\b.*\bsecond\b|\bthen\b.*\bfinally\b|\bstep\b/i.test(s)) type = 'flow-steps';
-      else type = (i % 2 === 0) ? 'kinetic-text' : 'callout';
-      // No-repeat rule
-      if (out.length && out[out.length - 1].type === type) {
-        const fallbacks = ['kinetic-text', 'callout', 'stat-reveal', 'quote-card'];
-        type = fallbacks.find(f => f !== type) || type;
+      if (i === 0) {
+        type = 'title-card';
+      } else if (i === items.length - 1) {
+        type = 'outro-card';
+      } else if (/\b(subscribe|download|start free|get started|sign up|join now|try it|buy now|watch now|learn more|click here|register now)\b/i.test(s)) {
+        type = 'cta-callout';
+      } else if (/\bvs\.?\b|\bversus\b|\bcompared to\b/i.test(s)) {
+        type = 'comparison';
+      } else if (/\b\d+(?:\.\d+)?\s*%.*\b\d+(?:\.\d+)?\s*%/i.test(s)) {
+        type = 'bar-chart';
+      } else if (/\b\d+(?:\.\d+)?\s*%/.test(s) && /\b(grew|increased|reached|hit|surpassed|achieved|represents|makes up|accounts for|are|is)\b/i.test(s)) {
+        type = 'progress-ring';
+      } else if (/\b\d+(?:\.\d+)?\s*%/.test(s)) {
+        type = 'stat-reveal';
+      } else if (/\b(grew|increased|jumped|reached|hit|surpassed|doubled|tripled)\b.*\b\d+\b|\b\d+\b.*\b(users|customers|subscribers|downloads|sales|visits|followers|views|installs)\b/i.test(s)) {
+        type = 'counter-up';
+      } else if (/^["\u201C\u201D]/.test(s) || /\bsaid\b|\bsays\b|\baccording to\b/i.test(s)) {
+        type = 'quote-card';
+      } else if (/\bfirst\b.*\bsecond\b|\bthen\b.*\bfinally\b|\bstep\b|\bphase\b|\bstage\b/i.test(s)) {
+        type = 'flow-steps';
+      } else if (/(\w+,\s*\w+,\s*(?:and\s+)?\w+)/.test(s) && s.split(/[,;]/).length >= 3) {
+        type = 'list-reveal';
+      } else if (/\b(3D|three\.?js|rendering|geometry|polygon|mesh|sphere|torus|rotating object)\b/i.test(s)) {
+        type = 'threejs-object';
+      } else if (s.replace(/[^a-z0-9\s]/gi, '').split(/\s+/).length <= 7) {
+        type = 'kinetic-impact';
+      } else if (/\b(imagine|picture|think of|consider|what if|here's the thing|the key|the truth|the secret|the real)\b/i.test(s)) {
+        type = 'doodle-split';
+      } else {
+        type = POOL[poolIdx % POOL.length];
+        poolIdx++;
+      }
+      // No-repeat rule -- pick next-best from pool if same type as previous
+      const prev = out.length ? out[out.length - 1].type : null;
+      if (prev === type && !['title-card', 'outro-card'].includes(type)) {
+        const alts = POOL.filter(t => t !== type && t !== prev);
+        type = alts.length ? alts[poolIdx % alts.length] : POOL[(poolIdx + 1) % POOL.length];
+        poolIdx++;
       }
       out.push({ ...it, id: i + 1, type });
     });
     return out;
   }
-
   // ---------------------------------------------------------- theme catalog
   // All 10 themes from https://github.com/pjecuacion/script-to-video-skill/tree/master/themes
   // Each entry now includes:
@@ -339,7 +372,15 @@
     'flow-steps':   ['/media/doodles/running.svg', '/media/doodles/sprinting.svg', '/media/doodles/roller-skating.svg'],
     'stat-reveal':  ['/media/doodles/jumping.svg', '/media/doodles/ballet.svg', '/media/doodles/dog-jump.svg'],
     'kinetic-text': ['/media/doodles/reading.svg', '/media/doodles/coffee.svg', '/media/doodles/petting.svg'],
-  };
+    // New scene types
+    'kinetic-impact':['/media/doodles/sprinting.svg', '/media/doodles/jumping.svg', '/media/doodles/moshing.svg'],
+    'counter-up':   ['/media/doodles/ballet.svg', '/media/doodles/dog-jump.svg', '/media/doodles/levitate.svg'],
+    'progress-ring':['/media/doodles/float.svg', '/media/doodles/groovy.svg', '/media/doodles/roller-skating.svg'],
+    'bar-chart':    ['/media/doodles/unboxing.svg', '/media/doodles/chilling.svg', '/media/doodles/strolling.svg'],
+    'doodle-split': ['/media/doodles/loving.svg', '/media/doodles/swinging.svg', '/media/doodles/dancing.svg'],
+    'cta-callout':  ['/media/doodles/zombieing.svg', '/media/doodles/moshing.svg', '/media/doodles/jumping.svg'],
+    'split-layout': ['/media/doodles/sitting.svg', '/media/doodles/reading.svg', '/media/doodles/coffee.svg'],
+    'threejs-object':[],
 
   // Per-scene-type accent: small fffuel scribble near the content
   const DOODLES_ACCENT = {
@@ -348,10 +389,19 @@
     'quote-card':   '/media/doodles/fffuel/misc-12.svg',  // underline
     'callout':      '/media/doodles/fffuel/circle-1.svg', // circle emphasis
     'list-reveal':  '/media/doodles/fffuel/arrow-3.svg',  // arrow pointing in
-    'comparison':   '/media/doodles/fffuel/arrow-15.svg', // double arrow
-    'flow-steps':   '/media/doodles/fffuel/arrow-1.svg',  // flowing arrow
-    'stat-reveal':  '/media/doodles/fffuel/misc-1.svg',   // underline emphasis
-    'kinetic-text': '/media/doodles/fffuel/line-2.svg',   // scribble underline
+    'comparison':      '/media/doodles/fffuel/arrow-15.svg', // double arrow
+    'flow-steps':      '/media/doodles/fffuel/arrow-1.svg',  // flowing arrow
+    'stat-reveal':     '/media/doodles/fffuel/misc-1.svg',   // underline emphasis
+    'kinetic-text':    '/media/doodles/fffuel/line-2.svg',   // scribble underline
+    // New scene types
+    'kinetic-impact':  '/media/doodles/fffuel/line-5.svg',   // bold underline
+    'counter-up':      '/media/doodles/fffuel/misc-20.svg',  // starburst
+    'progress-ring':   '/media/doodles/fffuel/circle-8.svg', // circle emphasis
+    'bar-chart':       '/media/doodles/fffuel/arrow-8.svg',  // upward arrow
+    'doodle-split':    '/media/doodles/fffuel/misc-5.svg',   // scribble dot
+    'cta-callout':     '/media/doodles/fffuel/arrow-12.svg', // pointing arrow
+    'split-layout':    '/media/doodles/fffuel/line-4.svg',   // horizontal rule
+    'threejs-object':  '/media/doodles/fffuel/circle-12.svg',// orbit circle
   };
 
   // Pick a character for this scene: rotate through the 3 variants using scene id
@@ -569,6 +619,251 @@ tl.from('#s${s.id}-t',{y:60,opacity:0,duration:0.7,ease:'power3.out'},${s.startT
 tl.to('#s${s.id}-rule',{width:'280px',duration:0.7,ease:'power2.inOut'},${s.startTime}+0.95);`,
       };
     },
+
+    // ── New scene types ────────────────────────────────────────────────────────
+
+    // kinetic-impact: one short punchy phrase dominates the canvas
+    'kinetic-impact': (s, T) => {
+      const sp = T.signaturePatterns;
+      const words = s.sentence.replace(/[.!?,]+$/, '').split(/\s+/);
+      const impactWords = words.slice(-Math.min(3, words.length));
+      const prefix = words.length > impactWords.length ? words.slice(0, words.length - impactWords.length).join(' ') : '';
+      const impact = impactWords.join(' ').toUpperCase();
+      const ts = sp?.headlineTextShadow ? `;text-shadow:${sp.headlineTextShadow}` : '';
+      const impactSize = impact.length > 20 ? '110px' : impact.length > 12 ? '140px' : '180px';
+      return {
+        html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
+  <div class="scene-bg"></div>
+  ${doodleAccent('kinetic-impact', T)}
+  <div class="scene-content" style="align-items:center;text-align:center;gap:20px;">
+    ${prefix ? `<div id="s${s.id}-pre" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.body};font-size:44px;color:${T.colors.muted};letter-spacing:0.04em;">${esc(prefix)}</div>` : ''}
+    <div id="s${s.id}-imp" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:${impactSize};color:${T.colors.accent};line-height:1;letter-spacing:-0.02em${ts};">${esc(impact)}</div>
+    <div id="s${s.id}-line" style="width:0;height:4px;background:${T.colors.text};"></div>
+  </div>
+</div>`,
+        gsap: `${prefix ? `tl.from('#s${s.id}-pre',{y:-30,opacity:0,duration:0.4,ease:'power2.out'},${s.startTime}+0.1);` : ''}
+tl.fromTo('#s${s.id}-imp',{scale:1.4,opacity:0},{scale:1,opacity:1,duration:0.5,ease:'expo.out'},${s.startTime}+${prefix ? 0.3 : 0.15});
+tl.to('#s${s.id}-line',{width:'400px',duration:0.6,ease:'power2.inOut'},${s.startTime}+0.65);`,
+      };
+    },
+
+    // counter-up: big number animated from zero using GSAP
+    'counter-up': (s, T) => {
+      const numMatch = s.sentence.match(/\b(\d[\d,]*(?:\.\d+)?)\b/);
+      const num = numMatch ? parseFloat(numMatch[1].replace(/,/g, '')) : 100;
+      const suffix = /\s*%/.test(s.sentence) ? '%' : /\bx\b/i.test(s.sentence) ? '\u00d7' : '';
+      const label = s.sentence.replace(numMatch ? numMatch[0] : '', '').replace(/[.!?,]+/g, ' ').trim().toUpperCase().slice(0, 80);
+      const sp = T.signaturePatterns;
+      const ts = sp?.headlineTextShadow ? `;text-shadow:${sp.headlineTextShadow}` : '';
+      return {
+        html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
+  <div class="scene-bg"></div>
+  ${doodleImg('counter-up', T, s.id)}
+  ${doodleAccent('counter-up', T)}
+  <div class="scene-content" style="align-items:center;text-align:center;">
+    <div id="s${s.id}-num" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:200px;color:${T.colors.text};line-height:1${ts};">0${esc(suffix)}</div>
+    <div id="s${s.id}-lbl" style="font-family:${T.typography.fontFamily};font-weight:500;font-size:42px;color:${T.colors.muted};letter-spacing:0.08em;margin-top:24px;">${esc(label)}</div>
+  </div>
+</div>`,
+        gsap: `var _o${s.id}={val:0};
+tl.to(_o${s.id},{val:${num},duration:1.4,ease:'power2.out',onUpdate:function(){var el=document.getElementById('s${s.id}-num');if(el)el.textContent=Math.round(_o${s.id}.val).toLocaleString()+'${esc(suffix)}'}},${s.startTime}+0.3);
+tl.from('#s${s.id}-lbl',{y:30,opacity:0,duration:0.4,ease:'power2.out'},${s.startTime}+0.15);`,
+      };
+    },
+
+    // progress-ring: SVG animated arc showing a percentage
+    'progress-ring': (s, T) => {
+      const pctRaw = (s.sentence.match(/\b(\d+(?:\.\d+)?)\s*%/) || ['', '75'])[1];
+      const pct = Math.min(100, Math.max(1, parseFloat(pctRaw)));
+      const label = s.sentence.replace(/\d+(?:\.\d+)?\s*%/g, '').replace(/[.!?,]+/g, ' ').trim().slice(0, 100);
+      const r = 160, cx = 200;
+      const circ = +(2 * Math.PI * r).toFixed(1);
+      const offset = +(circ * (1 - pct / 100)).toFixed(1);
+      return {
+        html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
+  <div class="scene-bg"></div>
+  ${doodleAccent('progress-ring', T)}
+  <div class="scene-content" style="align-items:center;text-align:center;flex-direction:row;gap:100px;padding:80px 160px;">
+    <svg id="s${s.id}-svg" width="360" height="360" viewBox="0 0 400 400" style="flex-shrink:0;opacity:0;">
+      <circle cx="${cx}" cy="${cx}" r="${r}" fill="none" stroke="${T.colors.surface}" stroke-width="22"/>
+      <circle id="s${s.id}-ring" cx="${cx}" cy="${cx}" r="${r}" fill="none" stroke="${T.colors.accent}"
+        stroke-width="22" stroke-dasharray="${circ}" stroke-dashoffset="${circ}"
+        transform="rotate(-90 ${cx} ${cx})" stroke-linecap="round"/>
+      <text x="${cx}" y="${cx + 12}" text-anchor="middle" dominant-baseline="middle"
+        font-family="${T.typography.fontFamily}" font-size="72" font-weight="${T.typography.weights.headline}"
+        fill="${T.colors.text}">${pct}%</text>
+    </svg>
+    <div id="s${s.id}-lbl" style="font-family:${T.typography.fontFamily};font-weight:500;font-size:52px;color:${T.colors.muted};max-width:800px;text-align:left;line-height:1.35;">${esc(label)}</div>
+  </div>
+</div>`,
+        gsap: `tl.to('#s${s.id}-svg',{opacity:1,duration:0.4,ease:'power2.out'},${s.startTime}+0.2);
+tl.to('#s${s.id}-ring',{strokeDashoffset:${offset},duration:1.4,ease:'power2.out'},${s.startTime}+0.3);
+tl.from('#s${s.id}-lbl',{x:60,opacity:0,duration:0.6,ease:'power2.out'},${s.startTime}+0.5);`,
+      };
+    },
+
+    // bar-chart: horizontal bars, values parsed from sentence or illustrative fallback
+    'bar-chart': (s, T) => {
+      const parsed = [...s.sentence.matchAll(/(\b[A-Za-z][A-Za-z0-9\s]{1,18}?)\s*[:\-–]\s*(\d+(?:\.\d+)?)/g)]
+        .slice(0, 4).map(m => ({ label: m[1].trim(), val: parseFloat(m[2]) }));
+      const nums = [...s.sentence.matchAll(/\b(\d+(?:\.\d+)?)\s*%?/g)].map(m => parseFloat(m[1]));
+      const bars = parsed.length >= 2 ? parsed
+        : nums.length >= 2 ? nums.slice(0, 4).map((v, i) => ({ label: ['Q1','Q2','Q3','Q4'][i], val: v }))
+        : [{ label:'Q1',val:42 },{ label:'Q2',val:67 },{ label:'Q3',val:85 },{ label:'Q4',val:73 }];
+      const maxVal = Math.max(...bars.map(b => b.val));
+      const barHTML = bars.map((b, i) => `<div id="s${s.id}-row${i}" style="display:flex;align-items:center;gap:24px;margin-bottom:24px;">
+      <div style="font-family:${T.typography.fontFamily};font-size:30px;color:${T.colors.muted};width:150px;text-align:right;flex-shrink:0;">${esc(b.label)}</div>
+      <div style="flex:1;height:50px;background:${T.colors.surface};border-radius:6px;overflow:hidden;">
+        <div id="s${s.id}-fill${i}" style="width:0%;height:100%;background:${T.colors.accent};border-radius:6px;"></div>
+      </div>
+      <div style="font-family:${T.typography.fontFamily};font-size:30px;font-weight:700;color:${T.colors.text};width:70px;flex-shrink:0;">${b.val}</div>
+    </div>`).join('');
+      const tweens = bars.map((b, i) => {
+        const pctW = (b.val / maxVal * 100).toFixed(1);
+        return `tl.from('#s${s.id}-row${i}',{x:-50,opacity:0,duration:0.4,ease:'power2.out'},${s.startTime}+${(0.2 + i * 0.15).toFixed(2)});
+tl.to('#s${s.id}-fill${i}',{width:'${pctW}%',duration:0.9,ease:'power2.out'},${s.startTime}+${(0.3 + i * 0.15).toFixed(2)});`;
+      }).join('\n');
+      return {
+        html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
+  <div class="scene-bg"></div>
+  ${doodleAccent('bar-chart', T)}
+  <div class="scene-content" style="justify-content:center;">
+    <div style="width:100%;max-width:1400px;">${barHTML}</div>
+  </div>
+</div>`,
+        gsap: tweens,
+      };
+    },
+
+    // doodle-split: prominent character illustration right, text left
+    'doodle-split': (s, T) => {
+      const sp = T.signaturePatterns;
+      const sz = T.typography.sizes?.body || '88px';
+      const ts = sp?.headlineTextShadow ? `;text-shadow:${sp.headlineTextShadow}` : '';
+      const variants = DOODLES_CHAR['doodle-split'];
+      const charSrc = variants && variants.length ? variants[(s.id || 0) % variants.length] : '';
+      const dark = ['shadow-cut','neon-tokyo','blueprint','dusk-gradient','terminal-green','velvet-standard'].includes(T.id);
+      const charFilter = dark ? 'invert(1) brightness(1.8)' : 'none';
+      return {
+        html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
+  <div class="scene-bg"></div>
+  ${doodleAccent('doodle-split', T)}
+  <div class="scene-content" style="flex-direction:row;gap:80px;align-items:center;padding:80px 120px;">
+    <div id="s${s.id}-txt" style="flex:1;">
+      <div style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:${sz};color:${T.colors.text};line-height:1.2${ts};">${esc(s.sentence)}</div>
+    </div>
+    <div id="s${s.id}-img" style="flex:0 0 480px;display:flex;align-items:center;justify-content:center;">
+      ${charSrc ? `<img src="${charSrc}" alt="" aria-hidden="true" style="height:580px;width:auto;opacity:${dark ? '0.85' : '0.9'};filter:${charFilter};">` : ''}
+    </div>
+  </div>
+</div>`,
+        gsap: `tl.from('#s${s.id}-txt',{x:-80,opacity:0,duration:0.6,ease:'expo.out'},${s.startTime}+0.2);
+tl.from('#s${s.id}-img',{x:80,opacity:0,duration:0.6,ease:'expo.out'},${s.startTime}+0.35);`,
+      };
+    },
+
+    // cta-callout: call-to-action with accent pill button
+    'cta-callout': (s, T) => {
+      const sp = T.signaturePatterns;
+      const ts = sp?.headlineTextShadow ? `;text-shadow:${sp.headlineTextShadow}` : '';
+      const actionMatch = s.sentence.match(/\b(subscribe|download|start|try|get started|join|sign up|click|buy|register|learn more|watch now|start free)\b/i);
+      const btnLabel = actionMatch ? actionMatch[0].toUpperCase() : 'GET STARTED';
+      return {
+        html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
+  <div class="scene-bg"></div>
+  ${doodleImg('cta-callout', T, s.id)}
+  ${doodleAccent('cta-callout', T)}
+  <div class="scene-content" style="align-items:center;text-align:center;gap:48px;">
+    <div id="s${s.id}-t" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:72px;color:${T.colors.text};max-width:1300px;line-height:1.2${ts};">${esc(s.sentence)}</div>
+    <div id="s${s.id}-btn" style="background:${T.colors.accent};color:#ffffff;font-family:${T.typography.fontFamily};font-weight:700;font-size:36px;letter-spacing:0.12em;padding:28px 80px;border-radius:8px;display:inline-block;">
+      ${esc(btnLabel)} &#8594;
+    </div>
+  </div>
+</div>`,
+        gsap: `tl.from('#s${s.id}-t',{y:40,opacity:0,duration:0.5,ease:'power2.out'},${s.startTime}+0.2);
+tl.fromTo('#s${s.id}-btn',{scale:0.8,opacity:0},{scale:1,opacity:1,duration:0.5,ease:'back.out(1.8)'},${s.startTime}+0.6);`,
+      };
+    },
+
+    // split-layout: two-column — text left, decorative panel right
+    'split-layout': (s, T) => {
+      const sp = T.signaturePatterns;
+      const sz = T.typography.sizes?.sub || '52px';
+      const ts = sp?.headlineTextShadow ? `;text-shadow:${sp.headlineTextShadow}` : '';
+      const panelStyle = sp?.glassmorphism
+        ? `background:rgba(255,255,255,0.7);backdrop-filter:blur(16px);border-radius:20px;border:1px solid rgba(255,255,255,0.9);`
+        : `background:${T.colors.surface};border-radius:16px;border:1px solid ${T.colors.accent}33;`;
+      return {
+        html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
+  <div class="scene-bg"></div>
+  ${doodleAccent('split-layout', T)}
+  <div class="scene-content" style="flex-direction:row;gap:80px;align-items:center;padding:80px 120px;">
+    <div id="s${s.id}-left" style="flex:1;">
+      <div style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:${sz};color:${T.colors.text};line-height:1.35${ts};">${esc(s.sentence)}</div>
+    </div>
+    <div id="s${s.id}-right" style="flex:0 0 560px;height:480px;${panelStyle}display:flex;align-items:center;justify-content:center;">
+      <div style="font-family:${T.typography.fontFamily};font-size:120px;font-weight:${T.typography.weights.headline};color:${T.colors.accent};opacity:0.35;user-select:none;">${doodleImg('split-layout', T, s.id) ? '' : '&#10022;'}</div>
+    </div>
+  </div>
+</div>`,
+        gsap: `tl.from('#s${s.id}-left',{x:-60,opacity:0,duration:0.6,ease:'power2.out'},${s.startTime}+0.2);
+tl.from('#s${s.id}-right',{x:60,opacity:0,duration:0.6,ease:'power2.out'},${s.startTime}+0.35);`,
+      };
+    },
+
+    // threejs-object: full 3D Three.js scene — geometry driven by sentence content
+    // Three.js must be served locally at /js/three.min.js (see SKILL.md note on bundling)
+    // RAF loop runs independently; HyperFrames captures frames after rAF fires.
+    'threejs-object': (s, T) => {
+      const sp = T.signaturePatterns;
+      const sz = T.typography.sizes?.sub || '52px';
+      const ts = sp?.headlineTextShadow ? `;text-shadow:${sp.headlineTextShadow}` : '';
+      const accent6 = T.colors.accent.replace('#', '');
+      const accentAlt6 = T.colors.accentAlt.replace('#', '');
+      let geomCtor;
+      if (/\bAI\b|\bneural\b|\bnetwork\b|\balgorithm\b|\bknot\b|\bcomplex\b/i.test(s.sentence)) {
+        geomCtor = 'TorusKnotGeometry(1,0.35,128,16)';
+      } else if (/\bglobe\b|\bworld\b|\bplanet\b|\bsphere\b|\bearth\b/i.test(s.sentence)) {
+        geomCtor = 'IcosahedronGeometry(1.4,1)';
+      } else if (/\bcube\b|\bbox\b|\bblock\b/i.test(s.sentence)) {
+        geomCtor = 'BoxGeometry(1.5,1.5,1.5)';
+      } else {
+        geomCtor = 'TorusGeometry(1.2,0.4,32,80)';
+      }
+      return {
+        html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
+  <div class="scene-bg"></div>
+  <canvas id="s${s.id}-cv" style="position:absolute;inset:0;width:1920px;height:1080px;pointer-events:none;"></canvas>
+  <div class="scene-content" style="align-items:flex-start;justify-content:center;">
+    <div id="s${s.id}-t" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:${sz};color:${T.colors.text};max-width:1000px;line-height:1.3;z-index:1;position:relative${ts};">${esc(s.sentence)}</div>
+  </div>
+</div>`,
+        gsap: `tl.from('#s${s.id}-t',{y:40,opacity:0,duration:0.6,ease:'power2.out'},${s.startTime}+0.4);`,
+        // threeInit runs once at page load; canvas renders continuously via RAF.
+        threeInit: `(function(){
+  if(typeof THREE==='undefined'){console.warn('[s2v] Three.js not loaded, skipping threejs-object s${s.id}');return;}
+  var cv=document.getElementById('s${s.id}-cv');
+  if(!cv)return;
+  var W=1920,H=1080;
+  var renderer=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true});
+  renderer.setSize(W,H,false);renderer.setPixelRatio(1);
+  var scene=new THREE.Scene();
+  var cam=new THREE.PerspectiveCamera(45,W/H,0.1,1000);
+  cam.position.z=4;
+  var geo=new THREE.${geomCtor};
+  var mat=new THREE.MeshStandardMaterial({color:0x${accent6},metalness:0.6,roughness:0.25});
+  var mesh=new THREE.Mesh(geo,mat);
+  mesh.position.set(5.5,0,0);
+  scene.add(mesh);
+  scene.add(new THREE.AmbientLight(0xffffff,0.5));
+  var dl=new THREE.DirectionalLight(0x${accentAlt6},1.4);
+  dl.position.set(5,4,5);scene.add(dl);
+  var dl2=new THREE.DirectionalLight(0x${accent6},0.6);
+  dl2.position.set(-4,-2,3);scene.add(dl2);
+  (function tick(){requestAnimationFrame(tick);mesh.rotation.x+=0.007;mesh.rotation.y+=0.011;renderer.render(scene,cam);})();
+}())`,
+      };
+    },
   };
 
   function splitWords(text, sceneId) {
@@ -619,6 +914,9 @@ tl.to('#s${s.id}-rule',{width:'280px',duration:0.7,ease:'power2.inOut'},${s.star
         : rawHTML;
     }
     const sceneJS = sceneBlocks.map(b => b.gsap).join('\n');
+    // Three.js init blocks (one per threejs-object scene) — run at page load via RAF
+    const threeInits = sceneBlocks.map(b => b.threeInit).filter(Boolean).join('\n');
+    const hasThree = threeInits.length > 0;
     // Show each clip only within its time window
     const visJS = scenes.map(s => {
       const endTime = +(s.startTime + s.duration).toFixed(3);
@@ -637,7 +935,7 @@ tl.to('#s${s.id}-rule',{width:'280px',duration:0.7,ease:'power2.inOut'},${s.star
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=1920, height=1080">
 ${fontLink}
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"><\/script>
+${hasThree ? '<script src="/js/three.min.js"><\/script>\n' : ''}<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"><\/script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { width:1920px; height:1080px; overflow:hidden; background:${T.colors.bg}; }
@@ -665,6 +963,7 @@ ${sceneHTML}
   var tl = gsap.timeline({ paused: true });
 ${visJS}
 ${sceneJS}
+${threeInits}
   window.__timelines[${JSON.stringify(slug)}] = tl;
 
   // Standalone preview: play audio + timeline together
@@ -698,6 +997,16 @@ ${sceneJS}
   // ---------------------------------------------------------- 9. main entrypoint
   async function run({ scriptText, voice, refAudioFile, server, onProgress, signal, themeId, workflow, catalogFile }) {
     onProgress?.('Parsing script…');
+
+    // Talking-cut: requires video-chopping support not yet implemented in the browser-only pipeline.
+    // Use the HyperFrames CLI skill (SKILL.md) for talking-cut projects.
+    if (workflow === 'talking-cut') {
+      throw new Error(
+        'Talking-cut workflow is coming soon \u2014 it requires video-chopping support not yet ' +
+        'implemented in the browser-only pipeline. Use the HyperFrames CLI skill (SKILL.md) for talking-cut projects.'
+      );
+    }
+
     const { meta, sentences } = parseScript(scriptText);
     if (sentences.length < 2) throw new Error('Need at least 2 sentences. Got ' + sentences.length);
     if (voice) meta.voice = voice;
