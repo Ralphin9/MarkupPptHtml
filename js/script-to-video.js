@@ -10,7 +10,7 @@
  *   front-matter:
  *     ---
  *     title: My video
- *     theme: shadow-cut          # visual identity (only "shadow-cut" implemented)
+ *     theme: shadow-cut          # visual identity — one of 10 bundled themes
  *     voice: auto                # "auto" or "clone"
  *     ref_text: ""               # transcript of ref_audio (clone mode)
  *     ---
@@ -228,70 +228,85 @@
     return out;
   }
 
+  // ---------------------------------------------------------- theme catalog
+  // All 10 themes from https://github.com/pjecuacion/script-to-video-skill/tree/master/themes
+  const THEMES = {
+    'shadow-cut':     { id:'shadow-cut',     name:'Shadow Cut',     colors:{bg:'#0a0a0a',surface:'#111111',text:'#e2e2e2',muted:'#8899aa',accent:'#c0392b',accentAlt:'#e74c3c'}, typography:{fontFamily:"'Outfit',sans-serif",       googleFonts:'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&display=swap',             weights:{headline:900,body:400}}, captions:{color:'#fff',          textShadow:'0 2px 14px rgba(0,0,0,.95)'} },
+    'neon-tokyo':     { id:'neon-tokyo',     name:'Neon Tokyo',     colors:{bg:'#06061a',surface:'#0d0d2b',text:'#e8e8ff',muted:'#7b7ba8',accent:'#00f5ff',accentAlt:'#ff2d78'}, typography:{fontFamily:"'JetBrains Mono',monospace",  googleFonts:'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap',      weights:{headline:800,body:400}}, captions:{color:'#00f5ff',      textShadow:'0 0 16px rgba(0,245,255,0.7)'} },
+    'blueprint':      { id:'blueprint',      name:'Blueprint',      colors:{bg:'#0a1628',surface:'#0d1f3c',text:'#e8f0ff',muted:'#4d6a99',accent:'#4da6ff',accentAlt:'#ffffff'}, typography:{fontFamily:"'IBM Plex Mono',monospace",   googleFonts:'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap',          weights:{headline:700,body:400}}, captions:{color:'#4da6ff',      textShadow:'0 0 12px rgba(77,166,255,0.5)'} },
+    'broadsheet':     { id:'broadsheet',     name:'Broadsheet',     colors:{bg:'#f5f0e8',surface:'#ede8de',text:'#1c1c1c',muted:'#6b6055',accent:'#1c1c1c',accentAlt:'#8b0000'}, typography:{fontFamily:"'Playfair Display',serif",    googleFonts:'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap',        weights:{headline:900,body:400}}, captions:{color:'#1c1c1c',      textShadow:'none'} },
+    'brutalist':      { id:'brutalist',      name:'Brutalist',      colors:{bg:'#ffffff',surface:'#f0f0f0',text:'#000000',muted:'#444444',accent:'#ff0000',accentAlt:'#000000'}, typography:{fontFamily:"'Bebas Neue',sans-serif",     googleFonts:'https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap',                               weights:{headline:400,body:400}}, captions:{color:'#000000',      textShadow:'none'} },
+    'dusk-gradient':  { id:'dusk-gradient',  name:'Dusk Gradient',  colors:{bg:'#1a0533',surface:'#2d0a4e',text:'#fff4e6',muted:'#c49a7a',accent:'#ff6b35',accentAlt:'#ffd166'}, bgStyle:'linear-gradient(135deg,#1a0533 0%,#6b1a5c 50%,#c0392b 80%,#ff6b35 100%)', typography:{fontFamily:"'Syne',sans-serif",           googleFonts:'https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&display=swap',                    weights:{headline:800,body:400}}, captions:{color:'#fff4e6',      textShadow:'0 2px 14px rgba(0,0,0,0.8)'} },
+    'frost':          { id:'frost',          name:'Frost',          colors:{bg:'#ffffff',surface:'#f0f4f8',text:'#0f172a',muted:'#64748b',accent:'#1e3a5f',accentAlt:'#3b82f6'}, typography:{fontFamily:"'Inter',sans-serif",           googleFonts:'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',             weights:{headline:700,body:400}}, captions:{color:'#0f172a',      textShadow:'none'} },
+    'open-page':      { id:'open-page',      name:'Open Page',      colors:{bg:'#ffffff',surface:'#f5f5f0',text:'#1a1a1a',muted:'#6b7280',accent:'#e63946',accentAlt:'#c1121f'}, typography:{fontFamily:"'Patrick Hand',cursive",      googleFonts:'https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap',                               weights:{headline:400,body:400}}, captions:{color:'#1a1a1a',      textShadow:'none'} },
+    'terminal-green': { id:'terminal-green', name:'Terminal Green', colors:{bg:'#0d0d0d',surface:'#111111',text:'#00ff41',muted:'#2a7a3a',accent:'#00ff41',accentAlt:'#39ff14'}, typography:{fontFamily:"'JetBrains Mono',monospace",  googleFonts:'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap',      weights:{headline:700,body:400}}, captions:{color:'#00ff41',      textShadow:'0 0 10px rgba(0,255,65,0.8)'} },
+    'velvet-standard':{ id:'velvet-standard',name:'Velvet Standard',colors:{bg:'#0a0a0a',surface:'#111111',text:'#f8f8f8',muted:'#888888',accent:'#c9a84c',accentAlt:'#e8c96a'}, typography:{fontFamily:"'Cormorant Garamond',serif",   googleFonts:'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&display=swap', weights:{headline:300,body:400}}, captions:{color:'#c9a84c',      textShadow:'0 2px 12px rgba(0,0,0,0.9)'} },
+  };
+  function getTheme(id) { return THEMES[id] || THEMES['shadow-cut']; }
+
   // ---------------------------------------------------------- 6. scene HTML/JS templates
-  // Each renderer returns { html, gsap } where {{ID}}/{{T}}/{{D}}/{{TEXT}} are
-  // template tokens replaced by buildHyperframeHTML. All templates use the
-  // shadow-cut palette (#0a0a0a bg, #e2e2e2 text, #c0392b accent).
+  // Each renderer receives (s, T) where T = getTheme(themeId). Colors, fonts and
+  // weights are injected from the active theme so every scene respects the chosen palette.
   const SCENE = {
-    'title-card': (s) => ({
+    'title-card': (s, T) => ({
       html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
   <div class="scene-content" style="align-items:center;text-align:center;">
-    <h1 id="s${s.id}-t" style="font-family:Outfit,sans-serif;font-weight:900;font-size:130px;color:#e2e2e2;line-height:1.05;">${esc(s.sentence)}</h1>
-    <div id="s${s.id}-bar" style="width:0px;height:6px;background:#c0392b;margin-top:36px;"></div>
+    <h1 id="s${s.id}-t" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:130px;color:${T.colors.text};line-height:1.05;">${esc(s.sentence)}</h1>
+    <div id="s${s.id}-bar" style="width:0px;height:6px;background:${T.colors.accent};margin-top:36px;"></div>
   </div>
 </div>`,
       gsap: `tl.from('#s${s.id}-t',{y:60,opacity:0,duration:0.7,ease:'power3.out'},${s.startTime}+0.2);
 tl.to('#s${s.id}-bar',{width:'320px',duration:0.7,ease:'power2.inOut'},${s.startTime}+0.6);`,
     }),
-    'kinetic-text': (s) => ({
+    'kinetic-text': (s, T) => ({
       html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
   <div class="scene-content" style="align-items:flex-start;">
-    <div id="s${s.id}-k" style="font-family:Outfit,sans-serif;font-weight:900;font-size:88px;color:#e2e2e2;line-height:1.1;max-width:1500px;">${splitWords(s.sentence, s.id)}</div>
+    <div id="s${s.id}-k" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:88px;color:${T.colors.text};line-height:1.1;max-width:1500px;">${splitWords(s.sentence, s.id)}</div>
   </div>
 </div>`,
       gsap: `tl.from('#s${s.id}-k .kw',{y:80,opacity:0,duration:0.45,ease:'power3.out',stagger:{each:0.06,from:'start'}},${s.startTime}+0.1);`,
     }),
-    'callout': (s) => ({
+    'callout': (s, T) => ({
       html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
   <div class="scene-content" style="align-items:center;text-align:center;">
-    <div id="s${s.id}-c" style="font-family:Outfit,sans-serif;font-weight:900;font-size:104px;color:#e2e2e2;max-width:1400px;line-height:1.15;">${esc(s.sentence)}</div>
+    <div id="s${s.id}-c" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:104px;color:${T.colors.text};max-width:1400px;line-height:1.15;">${esc(s.sentence)}</div>
   </div>
 </div>`,
       gsap: `tl.fromTo('#s${s.id}-c',{scale:0.85,opacity:0},{scale:1,opacity:1,duration:0.6,ease:'back.out(1.5)'},${s.startTime}+0.1);`,
     }),
-    'stat-reveal': (s) => {
+    'stat-reveal': (s, T) => {
       const num = (s.sentence.match(/\d+(?:\.\d+)?/) || ['0'])[0];
       const label = s.sentence.replace(num, '').replace(/[%.]/g, '').trim().toUpperCase().slice(0, 60);
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
   <div class="scene-content" style="align-items:center;text-align:center;">
-    <div id="s${s.id}-num" style="font-family:Outfit,sans-serif;font-weight:900;font-size:200px;color:#e2e2e2;line-height:1;">${esc(num)}<span style="color:#c0392b;">%</span></div>
-    <div id="s${s.id}-lbl" style="font-family:Outfit,sans-serif;font-weight:500;font-size:42px;color:#8899aa;letter-spacing:0.08em;margin-top:24px;">${esc(label)}</div>
+    <div id="s${s.id}-num" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:200px;color:${T.colors.text};line-height:1;">${esc(num)}<span style="color:${T.colors.accent};">%</span></div>
+    <div id="s${s.id}-lbl" style="font-family:${T.typography.fontFamily};font-weight:500;font-size:42px;color:${T.colors.muted};letter-spacing:0.08em;margin-top:24px;">${esc(label)}</div>
   </div>
 </div>`,
         gsap: `tl.from('#s${s.id}-num',{scale:0.6,opacity:0,duration:0.6,ease:'back.out(2)'},${s.startTime}+0.15);
 tl.from('#s${s.id}-lbl',{y:30,opacity:0,duration:0.4,ease:'power2.out'},${s.startTime}+0.55);`,
       };
     },
-    'quote-card': (s) => ({
+    'quote-card': (s, T) => ({
       html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
   <div class="scene-content" style="align-items:flex-start;justify-content:center;">
-    <div id="s${s.id}-q" style="background:#111;padding:60px 80px;border-left:8px solid #c0392b;max-width:1400px;position:relative;">
-      <div style="position:absolute;top:-30px;left:56px;font-family:Outfit,sans-serif;font-size:180px;color:#c0392b;line-height:1;">"</div>
-      <blockquote style="font-family:Outfit,sans-serif;font-weight:400;font-size:48px;color:#e2e2e2;line-height:1.5;padding-top:36px;margin:0;">${esc(s.sentence)}</blockquote>
+    <div id="s${s.id}-q" style="background:${T.colors.surface};padding:60px 80px;border-left:8px solid ${T.colors.accent};max-width:1400px;position:relative;">
+      <div style="position:absolute;top:-30px;left:56px;font-family:${T.typography.fontFamily};font-size:180px;color:${T.colors.accent};line-height:1;">"</div>
+      <blockquote style="font-family:${T.typography.fontFamily};font-weight:400;font-size:48px;color:${T.colors.text};line-height:1.5;padding-top:36px;margin:0;">${esc(s.sentence)}</blockquote>
     </div>
   </div>
 </div>`,
       gsap: `tl.fromTo('#s${s.id}-q',{opacity:0,y:30},{opacity:1,y:0,duration:0.6,ease:'power2.out'},${s.startTime}+0.15);`,
     }),
-    'list-reveal': (s) => {
+    'list-reveal': (s, T) => {
       const items = s.sentence.split(/[,;]|\band\b/i).map(x => x.trim()).filter(Boolean).slice(0, 5);
-      const lis = items.map((t, i) => `<li id="s${s.id}-li${i}" style="font-family:Outfit,sans-serif;font-weight:500;font-size:54px;color:#e2e2e2;display:flex;align-items:center;gap:24px;"><span style="width:14px;height:14px;border-radius:50%;background:#c0392b;flex-shrink:0;"></span>${esc(t)}</li>`).join('');
+      const lis = items.map((t, i) => `<li id="s${s.id}-li${i}" style="font-family:${T.typography.fontFamily};font-weight:500;font-size:54px;color:${T.colors.text};display:flex;align-items:center;gap:24px;"><span style="width:14px;height:14px;border-radius:50%;background:${T.colors.accent};flex-shrink:0;"></span>${esc(t)}</li>`).join('');
       const stagger = items.map((_, i) => `tl.from('#s${s.id}-li${i}',{x:-60,opacity:0,duration:0.4,ease:'power2.out'},${s.startTime}+${(0.3 + i * 0.18).toFixed(2)});`).join('\n');
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
@@ -303,7 +318,7 @@ tl.from('#s${s.id}-lbl',{y:30,opacity:0,duration:0.4,ease:'power2.out'},${s.star
         gsap: stagger,
       };
     },
-    'comparison': (s) => {
+    'comparison': (s, T) => {
       const parts = s.sentence.split(/\bvs\.?\b|\bversus\b|\bcompared to\b/i);
       const a = (parts[0] || 'Before').trim().slice(0, 60);
       const b = (parts[1] || 'After').trim().slice(0, 60);
@@ -311,12 +326,12 @@ tl.from('#s${s.id}-lbl',{y:30,opacity:0,duration:0.4,ease:'power2.out'},${s.star
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
   <div class="scene-content" style="flex-direction:row;gap:60px;align-items:stretch;">
-    <div id="s${s.id}-a" style="flex:1;background:#111;border-radius:16px;padding:60px;border:2px solid #222;display:flex;align-items:center;justify-content:center;">
-      <div style="font-family:Outfit,sans-serif;font-weight:700;font-size:46px;color:#8899aa;text-align:center;">${esc(a)}</div>
+    <div id="s${s.id}-a" style="flex:1;background:${T.colors.surface};border-radius:16px;padding:60px;border:2px solid ${T.colors.muted};display:flex;align-items:center;justify-content:center;">
+      <div style="font-family:${T.typography.fontFamily};font-weight:700;font-size:46px;color:${T.colors.muted};text-align:center;">${esc(a)}</div>
     </div>
-    <div id="s${s.id}-vs" style="align-self:center;font-family:Outfit,sans-serif;font-weight:900;font-size:52px;color:#c0392b;">VS</div>
-    <div id="s${s.id}-b" style="flex:1;background:#150909;border-radius:16px;padding:60px;border:2px solid #c0392b;display:flex;align-items:center;justify-content:center;">
-      <div style="font-family:Outfit,sans-serif;font-weight:700;font-size:46px;color:#e2e2e2;text-align:center;">${esc(b)}</div>
+    <div id="s${s.id}-vs" style="align-self:center;font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:52px;color:${T.colors.accent};">VS</div>
+    <div id="s${s.id}-b" style="flex:1;background:${T.colors.surface};border-radius:16px;padding:60px;border:2px solid ${T.colors.accent};display:flex;align-items:center;justify-content:center;">
+      <div style="font-family:${T.typography.fontFamily};font-weight:700;font-size:46px;color:${T.colors.text};text-align:center;">${esc(b)}</div>
     </div>
   </div>
 </div>`,
@@ -325,14 +340,14 @@ tl.from('#s${s.id}-vs',{scale:0.5,opacity:0,duration:0.4,ease:'back.out(3)'},${s
 tl.from('#s${s.id}-b',{x:80,opacity:0,duration:0.6,ease:'expo.out'},${s.startTime}+0.7);`,
       };
     },
-    'flow-steps': (s) => {
+    'flow-steps': (s, T) => {
       const steps = s.sentence.split(/[,;]|\bthen\b|\bfinally\b/i).map(x => x.trim()).filter(Boolean).slice(0, 3);
       while (steps.length < 3) steps.push('—');
       const cells = steps.map((t, i) => `
-        <div id="s${s.id}-st${i}" style="background:#111;padding:48px;flex:1;text-align:center;">
-          <div style="font-size:52px;font-weight:900;color:#c0392b;margin-bottom:12px;">${i + 1}</div>
-          <div style="font-size:30px;font-weight:700;color:#e2e2e2;line-height:1.3;">${esc(t)}</div>
-        </div>${i < steps.length - 1 ? `<div id="s${s.id}-arr${i}" style="font-size:60px;color:#6b7280;padding:0 16px;align-self:center;">→</div>` : ''}`).join('');
+        <div id="s${s.id}-st${i}" style="background:${T.colors.surface};padding:48px;flex:1;text-align:center;">
+          <div style="font-size:52px;font-weight:${T.typography.weights.headline};color:${T.colors.accent};margin-bottom:12px;">${i + 1}</div>
+          <div style="font-size:30px;font-weight:700;color:${T.colors.text};line-height:1.3;">${esc(t)}</div>
+        </div>${i < steps.length - 1 ? `<div id="s${s.id}-arr${i}" style="font-size:60px;color:${T.colors.muted};padding:0 16px;align-self:center;">→</div>` : ''}`).join('');
       const tweens = steps.map((_, i) => `tl.from('#s${s.id}-st${i}',{y:30,opacity:0,duration:0.4,ease:'power2.out'},${s.startTime}+${(0.3 + i * 0.4).toFixed(2)});`).join('\n');
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
@@ -344,13 +359,13 @@ tl.from('#s${s.id}-b',{x:80,opacity:0,duration:0.6,ease:'expo.out'},${s.startTim
         gsap: tweens,
       };
     },
-    'outro-card': (s) => ({
+    'outro-card': (s, T) => ({
       html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
   <div class="scene-content" style="align-items:center;text-align:center;gap:28px;">
-    <div id="s${s.id}-lbl" style="font-size:22px;font-weight:700;letter-spacing:8px;color:#c0392b;text-transform:uppercase;">THANKS FOR WATCHING</div>
-    <div id="s${s.id}-t" style="font-family:Outfit,sans-serif;font-weight:900;font-size:120px;color:#e2e2e2;line-height:1.05;">${esc(s.sentence)}</div>
-    <div id="s${s.id}-rule" style="width:0px;height:3px;background:#c0392b;"></div>
+    <div id="s${s.id}-lbl" style="font-size:22px;font-weight:700;letter-spacing:8px;color:${T.colors.accent};text-transform:uppercase;">THANKS FOR WATCHING</div>
+    <div id="s${s.id}-t" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:120px;color:${T.colors.text};line-height:1.05;">${esc(s.sentence)}</div>
+    <div id="s${s.id}-rule" style="width:0px;height:3px;background:${T.colors.accent};"></div>
   </div>
 </div>`,
       gsap: `tl.from('#s${s.id}-lbl',{y:-20,opacity:0,duration:0.4,ease:'power2.out'},${s.startTime}+0.2);
@@ -370,9 +385,10 @@ tl.to('#s${s.id}-rule',{width:'280px',duration:0.7,ease:'power2.inOut'},${s.star
   }
 
   // ---------------------------------------------------------- 7. compose iframe HTML
-  function buildHyperframeHTML(meta, scenes, audioDataUrl, totalDuration) {
+  function buildHyperframeHTML(meta, scenes, audioDataUrl, totalDuration, themeId) {
+    const T = getTheme(themeId || meta.theme);
     const slug = (meta.title || 'video').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'video';
-    const sceneBlocks = scenes.map(s => SCENE[s.type]?.(s) || SCENE['kinetic-text'](s));
+    const sceneBlocks = scenes.map(s => (SCENE[s.type] || SCENE['kinetic-text'])(s, T));
     const sceneHTML = sceneBlocks.map(b => b.html).join('\n');
     const sceneJS = sceneBlocks.map(b => b.gsap).join('\n');
     // Show each clip only within its time window
@@ -380,17 +396,22 @@ tl.to('#s${s.id}-rule',{width:'280px',duration:0.7,ease:'power2.inOut'},${s.star
       const endTime = +(s.startTime + s.duration).toFixed(3);
       return `tl.set('#s${s.id}',{opacity:1},${s.startTime});\ntl.set('#s${s.id}',{opacity:0},${endTime});`;
     }).join('\n');
+    const fontLink = T.typography.googleFonts
+      ? `<link rel="stylesheet" href="${T.typography.googleFonts}">` : '';
+    const sceneBgCss = T.bgStyle
+      ? `background:${T.bgStyle};` : `background:${T.colors.bg};`;
 
     return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=1920, height=1080">
+${fontLink}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"><\/script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { width:1920px; height:1080px; overflow:hidden; background:#000; }
+  html, body { width:1920px; height:1080px; overflow:hidden; background:${T.colors.bg}; }
   [data-composition-id] { position:absolute; inset:0; overflow:hidden; }
   .clip { position:absolute; inset:0; opacity:0; }
-  .scene-bg { position:absolute; inset:0; background:#0a0a0a; }
+  .scene-bg { position:absolute; inset:0; ${sceneBgCss} }
   .scene-content { position:relative; width:100%; height:100%; padding:120px 160px;
     display:flex; flex-direction:column; justify-content:center; gap:24px; box-sizing:border-box; }
   body { transform-origin: top left; }
@@ -443,23 +464,31 @@ ${sceneJS}
   }
 
   // ---------------------------------------------------------- 9. main entrypoint
-  async function run({ scriptText, voice, refAudioFile, server, onProgress, signal }) {
+  async function run({ scriptText, voice, refAudioFile, server, onProgress, signal, themeId, workflow, catalogFile }) {
     onProgress?.('Parsing script…');
     const { meta, sentences } = parseScript(scriptText);
     if (sentences.length < 2) throw new Error('Need at least 2 sentences. Got ' + sentences.length);
     if (voice) meta.voice = voice;
+    if (themeId && themeId !== 'auto') meta.theme = themeId;
 
-    onProgress?.(`Synthesizing ${sentences.length} sentences (~${scriptText.length} chars)…`);
-    const fullText = sentences.join(' ');
-    const wavBlob = await ttsViaOmniVoice({
-      text: fullText,
-      voice: meta.voice,
-      refAudioFile,
-      refText: meta.ref_text,
-      server,
-      onProgress,
-      signal,
-    });
+    let wavBlob;
+    if (workflow === 'catalog-showcase') {
+      if (!catalogFile) throw new Error('Catalog showcase mode needs an audio or video file.');
+      onProgress?.(`Using provided file: ${catalogFile.name}…`);
+      wavBlob = catalogFile;
+    } else {
+      onProgress?.(`Synthesizing ${sentences.length} sentences (~${scriptText.length} chars)…`);
+      const fullText = sentences.join(' ');
+      wavBlob = await ttsViaOmniVoice({
+        text: fullText,
+        voice: meta.voice,
+        refAudioFile,
+        refText: meta.ref_text,
+        server,
+        onProgress,
+        signal,
+      });
+    }
 
     onProgress?.('Measuring audio…');
     const totalDuration = await audioDuration(wavBlob);
@@ -470,14 +499,14 @@ ${sceneJS}
     onProgress?.('Assigning scene types…');
     const scenes = assignSceneTypes(timed);
 
-    onProgress?.('Encoding WAV → data URL…');
+    onProgress?.('Encoding audio → data URL…');
     const audioDataUrl = await blobToDataURL(wavBlob);
     if (audioDataUrl.length > 4_500_000) {
       console.warn('[script-to-video] audio data URL is', Math.round(audioDataUrl.length / 1024), 'KB — localStorage may overflow.');
     }
 
-    onProgress?.('Building HyperFrame composition…');
-    const html = buildHyperframeHTML(meta, scenes, audioDataUrl, totalDuration);
+    onProgress?.(`Building HyperFrame composition (theme: ${meta.theme})…`);
+    const html = buildHyperframeHTML(meta, scenes, audioDataUrl, totalDuration, meta.theme);
 
     onProgress?.('Injecting slide into deck…');
     const audioBlobUrl = URL.createObjectURL(wavBlob);
@@ -499,5 +528,5 @@ ${sceneJS}
     });
   }
 
-  window.ScriptToVideo = { run, parseScript, assignSceneTypes, estimateTimings };
+  window.ScriptToVideo = { run, parseScript, assignSceneTypes, estimateTimings, THEMES };
 })();

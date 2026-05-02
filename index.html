@@ -54,6 +54,12 @@
     #s2v-modal[data-server="local"] .s2v-local-note { display:block; }
     #s2v-modal .s2v-clone-fields { display:none; }
     #s2v-modal[data-voice="clone"] .s2v-clone-fields { display:block; }
+    #s2v-modal .s2v-chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; margin-bottom:2px; }
+    #s2v-modal .s2v-chip { padding:5px 12px; border-radius:20px; border:1px solid #444; background:#1a1a20; color:#9bd; font-size:12px; cursor:pointer; white-space:nowrap; font-family:inherit; }
+    #s2v-modal .s2v-chip:hover { background:#2a2a36; border-color:#9bd; }
+    #s2v-catalog-section { display:none; }
+    #s2v-modal[data-workflow="catalog-showcase"] #s2v-server-section { display:none; }
+    #s2v-modal[data-workflow="catalog-showcase"] #s2v-catalog-section { display:block; }
     /* AI topic generator */
     #s2v-ai-box { background:#111820; border:1px solid #1e3a52; border-radius:8px; padding:12px 14px; margin:10px 0 4px; }
     #s2v-ai-box summary { cursor:pointer; font-size:12px; font-weight:700; color:#9bd; text-transform:uppercase; letter-spacing:.08em; list-style:none; display:flex; align-items:center; gap:6px; }
@@ -808,6 +814,13 @@ section { font-family: 'Helvetica Neue'; }
         and adds a new slide with the timed composition.
       </div>
 
+      <label for="s2v-workflow">Workflow</label>
+      <select id="s2v-workflow">
+        <option value="narrative" selected>Narrative — generate voiceover with OmniVoice</option>
+        <option value="catalog-showcase">Catalog showcase — use your own audio/video file</option>
+      </select>
+
+      <div id="s2v-server-section">
       <label for="s2v-server">OmniVoice server</label>
       <select id="s2v-server-mode" style="margin-bottom:6px;">
         <option value="hf" selected>Hugging Face Space (free, slow cold-start, may queue)</option>
@@ -821,6 +834,13 @@ section { font-family: 'Helvetica Neue'; }
       </div>
       <div class="s2v-local-note" id="s2v-local-note">
         Local CPU OmniVoice is private and free, but slow: even short scripts can take a few minutes. Use the Hugging Face Space or a GPU machine for longer narration.
+      </div>
+      </div><!-- /s2v-server-section -->
+
+      <div id="s2v-catalog-section">
+        <label for="s2v-catalog-file">Audio/video file (mp3, wav, m4a, mp4)</label>
+        <input id="s2v-catalog-file" type="file" accept="audio/*,video/mp4,.mp4" />
+        <div style="font-size:11px;color:#7a8;margin-top:4px;">Your file’s audio is used directly — no TTS synthesis is run.</div>
       </div>
 
       <label for="s2v-file">Load .txt script (optional)</label>
@@ -845,6 +865,13 @@ section { font-family: 'Helvetica Neue'; }
         </div>
         <label style="margin:8px 0 4px;">Topic / prompt</label>
         <input id="s2v-topic" type="text" placeholder="e.g. Why AI is changing how we ship software" />
+        <div class="s2v-chips" id="s2v-topic-chips">
+          <button class="s2v-chip" type="button" data-prompt="why user stories matter">why user stories matter</button>
+          <button class="s2v-chip" type="button" data-prompt="how microservices improve scalability">microservices &amp; scalability</button>
+          <button class="s2v-chip" type="button" data-prompt="why AI is changing how we ship software">AI changes software shipping</button>
+          <button class="s2v-chip" type="button" data-prompt="__catalog-showcase">catalog showcase ▸</button>
+          <button class="s2v-chip" type="button" data-prompt="__talking-cut">talking-cut ▸</button>
+        </div>
         <div class="ai-row" style="grid-template-columns:auto 1fr;align-items:center;gap:8px;margin-top:8px;">
           <label style="margin:0;white-space:nowrap;">Sentences</label>
           <input id="s2v-sentences" type="range" min="4" max="16" value="8" style="padding:0;border:none;background:none;" oninput="document.getElementById('s2v-sentences-val').textContent=this.value" />
@@ -868,6 +895,25 @@ section { font-family: 'Helvetica Neue'; }
         <div class="s2v-clone-fields">
           <label for="s2v-ref">Reference audio (.mp3 / .wav, ≤30s)</label>
           <input id="s2v-ref" type="file" accept="audio/*" />
+        </div>
+      </div>
+
+      <div class="s2v-row">
+        <div>
+          <label for="s2v-theme">Visual theme</label>
+          <select id="s2v-theme">
+            <option value="auto">Auto (from script front-matter)</option>
+            <option value="shadow-cut">Shadow Cut — dark, cinematic, red</option>
+            <option value="neon-tokyo">Neon Tokyo — cyberpunk, cyan/pink</option>
+            <option value="blueprint">Blueprint — navy engineering, mono</option>
+            <option value="broadsheet">Broadsheet — editorial newspaper</option>
+            <option value="brutalist">Brutalist — stark, high-contrast</option>
+            <option value="dusk-gradient">Dusk Gradient — sunset, creator</option>
+            <option value="frost">Frost — clean SaaS, blue/white</option>
+            <option value="open-page">Open Page — light, handwritten</option>
+            <option value="terminal-green">Terminal Green — hacker/dev</option>
+            <option value="velvet-standard">Velvet Standard — luxury, gold</option>
+          </select>
         </div>
       </div>
 

@@ -1427,6 +1427,9 @@
     const btnGo = modal.querySelector('#s2v-go');
     const btnCancel = modal.querySelector('#s2v-cancel');
     const btnSample = modal.querySelector('#s2v-load-sample');
+    const elTheme = modal.querySelector('#s2v-theme');
+    const elWorkflow = modal.querySelector('#s2v-workflow');
+    const elCatalogFile = modal.querySelector('#s2v-catalog-file');
 
     function log(msg) {
       const ts = new Date().toLocaleTimeString();
@@ -1446,6 +1449,31 @@
     elVoice.addEventListener('change', () => {
       modal.dataset.voice = elVoice.value;
     });
+
+    // Workflow toggle: show/hide server section vs catalog file input
+    if (elWorkflow) {
+      elWorkflow.addEventListener('change', () => {
+        modal.dataset.workflow = elWorkflow.value;
+      });
+    }
+
+    // Prompt chips: fill topic or switch workflow mode
+    const chipContainer = modal.querySelector('#s2v-topic-chips');
+    if (chipContainer) {
+      chipContainer.addEventListener('click', (e) => {
+        const chip = e.target.closest('.s2v-chip');
+        if (!chip) return;
+        const prompt = chip.dataset.prompt;
+        if (prompt === '__catalog-showcase') {
+          if (elWorkflow) { elWorkflow.value = 'catalog-showcase'; elWorkflow.dispatchEvent(new Event('change')); }
+        } else if (prompt === '__talking-cut') {
+          alert('Talking-cut workflow is coming soon — it requires video-chopping support not yet implemented.');
+        } else {
+          const elTopic = modal.querySelector('#s2v-topic');
+          if (elTopic) { elTopic.value = prompt; elTopic.focus(); }
+        }
+      });
+    }
 
     function applyServerMode() {
       const m = elServerMode.value;
@@ -1590,6 +1618,9 @@
         const ok = confirm(`Local CPU OmniVoice is slow. This script has ${sentenceCount} sentences and may take several minutes. Continue?`);
         if (!ok) return;
       }
+      if (elWorkflow?.value === 'catalog-showcase' && !elCatalogFile?.files?.[0]) {
+        alert('Catalog showcase mode needs an audio or video file — use the file picker above.'); return;
+      }
 
       btnGo.disabled = true;
       const abortCtrl = new AbortController();
@@ -1617,6 +1648,9 @@
           server: (elServer.value || '').trim() || null,
           onProgress: log,
           signal: abortCtrl.signal,
+          themeId: elTheme?.value || 'auto',
+          workflow: elWorkflow?.value || 'narrative',
+          catalogFile: elWorkflow?.value === 'catalog-showcase' ? elCatalogFile?.files?.[0] : null,
         });
         log(`✅ Slide added with ${result.scenes.length} scenes (${result.totalDuration.toFixed(1)}s).`);
         toast('Script→Video: slide added — open the new last slide.');
