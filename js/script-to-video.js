@@ -317,27 +317,62 @@
   };
   function getTheme(id) { return THEMES[id] || THEMES['shadow-cut']; }
 
-  // ---------------------------------------------------------- doodle library (Open Doodles, CC0)
-  // Served locally from /media/doodles/. Mapped by scene type.
-  // Dark themes get opacity:0.18 + invert(1) filter so the line-art reads on dark bg.
-  // Light themes get opacity:0.22 at natural color.
-  const DOODLES = {
-    'title-card':      '/media/doodles/float.svg',
-    'outro-card':      '/media/doodles/jumping.svg',
-    'quote-card':      '/media/doodles/sitting-reading.svg',
-    'callout':         '/media/doodles/meditating.svg',
-    'list-reveal':     '/media/doodles/unboxing.svg',
-    'comparison':      '/media/doodles/sitting.svg',
-    'flow-steps':      '/media/doodles/running.svg',
-    'stat-reveal':     '/media/doodles/jumping.svg',
-    'kinetic-text':    '/media/doodles/reading.svg',
+  // ---------------------------------------------------------- doodle library
+  // Sources (all free / open-licensed):
+  //   Open Doodles (Pablo Stanley) — CC0  — /media/doodles/*.svg
+  //   fffuel dddoodle pack (Syntax.fm) — CC-BY 4.0 — /media/doodles/fffuel/*.svg
+  //
+  // Character doodles: right-side decoration per scene type (Open Doodles).
+  // Accent doodles   : small decorative scribbles injected around content (fffuel).
+  //
+  // Dark themes  → invert(1) brightness(1.8) + low opacity so line-art reads on dark bg.
+  // Light themes → natural color at slightly higher opacity.
+
+  // Per-scene-type character: main large illustration placed bottom-right
+  const DOODLES_CHAR = {
+    'title-card':   ['/media/doodles/float.svg', '/media/doodles/levitate.svg', '/media/doodles/groovy.svg'],
+    'outro-card':   ['/media/doodles/jumping.svg', '/media/doodles/dancing.svg', '/media/doodles/moshing.svg'],
+    'quote-card':   ['/media/doodles/sitting-reading.svg', '/media/doodles/reading.svg', '/media/doodles/reading-side.svg'],
+    'callout':      ['/media/doodles/meditating.svg', '/media/doodles/chilling.svg', '/media/doodles/sitting.svg'],
+    'list-reveal':  ['/media/doodles/unboxing.svg', '/media/doodles/strolling.svg', '/media/doodles/plant.svg'],
+    'comparison':   ['/media/doodles/sitting.svg', '/media/doodles/clumsy.svg', '/media/doodles/selfie.svg'],
+    'flow-steps':   ['/media/doodles/running.svg', '/media/doodles/sprinting.svg', '/media/doodles/roller-skating.svg'],
+    'stat-reveal':  ['/media/doodles/jumping.svg', '/media/doodles/ballet.svg', '/media/doodles/dog-jump.svg'],
+    'kinetic-text': ['/media/doodles/reading.svg', '/media/doodles/coffee.svg', '/media/doodles/petting.svg'],
   };
-  function doodleImg(sceneType, T) {
-    const src = DOODLES[sceneType]; if (!src) return '';
+
+  // Per-scene-type accent: small fffuel scribble near the content
+  const DOODLES_ACCENT = {
+    'title-card':   '/media/doodles/fffuel/misc-3.svg',   // star burst
+    'outro-card':   '/media/doodles/fffuel/misc-7.svg',   // heart scribble
+    'quote-card':   '/media/doodles/fffuel/misc-12.svg',  // underline
+    'callout':      '/media/doodles/fffuel/circle-1.svg', // circle emphasis
+    'list-reveal':  '/media/doodles/fffuel/arrow-3.svg',  // arrow pointing in
+    'comparison':   '/media/doodles/fffuel/arrow-15.svg', // double arrow
+    'flow-steps':   '/media/doodles/fffuel/arrow-1.svg',  // flowing arrow
+    'stat-reveal':  '/media/doodles/fffuel/misc-1.svg',   // underline emphasis
+    'kinetic-text': '/media/doodles/fffuel/line-2.svg',   // scribble underline
+  };
+
+  // Pick a character for this scene: rotate through the 3 variants using scene id
+  function doodleImg(sceneType, T, sceneId) {
+    const variants = DOODLES_CHAR[sceneType];
+    if (!variants) return '';
+    const src = variants[(sceneId || 0) % variants.length];
     const dark = ['shadow-cut','neon-tokyo','blueprint','dusk-gradient','terminal-green','velvet-standard'].includes(T.id);
     const filter = dark ? 'invert(1) brightness(1.8)' : 'none';
-    const opacity = dark ? '0.13' : '0.2';
-    return `<img src="${src}" alt="" aria-hidden="true" style="position:absolute;right:100px;bottom:60px;height:520px;width:auto;opacity:${opacity};filter:${filter};pointer-events:none;user-select:none;">`;
+    const opacity = dark ? '0.12' : '0.18';
+    return `<img src="${src}" alt="" aria-hidden="true" style="position:absolute;right:80px;bottom:40px;height:500px;width:auto;opacity:${opacity};filter:${filter};pointer-events:none;user-select:none;">`;
+  }
+
+  // Small accent scribble: top-left or near headline
+  function doodleAccent(sceneType, T) {
+    const src = DOODLES_ACCENT[sceneType];
+    if (!src) return '';
+    const dark = ['shadow-cut','neon-tokyo','blueprint','dusk-gradient','terminal-green','velvet-standard'].includes(T.id);
+    // Tint accent doodles to the theme accent color via SVG filter trick (sepia+saturate)
+    const filter = dark ? `invert(1) sepia(1) saturate(5) hue-rotate(160deg) opacity(0.35)` : `sepia(1) saturate(3) hue-rotate(300deg) opacity(0.3)`;
+    return `<img src="${src}" alt="" aria-hidden="true" style="position:absolute;left:120px;top:100px;height:110px;width:auto;filter:${filter};pointer-events:none;user-select:none;">`;
   }
 
   // ---------------------------------------------------------- 6. scene HTML/JS templates
@@ -368,7 +403,8 @@ tl.from('#s${s.id}-box',{opacity:0,y:30,duration:0.6,ease:'power2.out'},${s.star
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
-  ${doodleImg('title-card', T)}
+  ${doodleImg('title-card', T, s.id)}
+  ${doodleAccent('title-card', T)}
   <div class="scene-content" style="align-items:center;text-align:center;">
     <h1 id="s${s.id}-t" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:${hl};color:${T.colors.text};line-height:1.05${ts};">${esc(s.sentence)}</h1>
     <div id="s${s.id}-bar" style="width:0px;height:6px;background:${T.colors.accent};margin-top:36px;"></div>
@@ -385,6 +421,8 @@ tl.to('#s${s.id}-bar',{width:'320px',duration:0.7,ease:'power2.inOut'},${s.start
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
+  ${doodleImg('kinetic-text', T, s.id)}
+  ${doodleAccent('kinetic-text', T)}
   <div class="scene-content" style="align-items:flex-start;">
     <div id="s${s.id}-k" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:${sz};color:${T.colors.text};line-height:1.1;max-width:1500px${ts};">${splitWords(s.sentence, s.id)}</div>
   </div>
@@ -399,6 +437,8 @@ tl.to('#s${s.id}-bar',{width:'320px',duration:0.7,ease:'power2.inOut'},${s.start
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
+  ${doodleImg('callout', T, s.id)}
+  ${doodleAccent('callout', T)}
   <div class="scene-content" style="align-items:center;text-align:center;">
     <div id="s${s.id}-c" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:${sz};color:${T.colors.text};max-width:1400px;line-height:1.15${ts};">${esc(s.sentence)}</div>
   </div>
@@ -412,7 +452,8 @@ tl.to('#s${s.id}-bar',{width:'320px',duration:0.7,ease:'power2.inOut'},${s.start
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
-  ${doodleImg('stat-reveal', T)}
+  ${doodleImg('stat-reveal', T, s.id)}
+  ${doodleAccent('stat-reveal', T)}
   <div class="scene-content" style="align-items:center;text-align:center;">
     <div id="s${s.id}-num" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:200px;color:${T.colors.text};line-height:1;">${esc(num)}<span style="color:${T.colors.accent};">%</span></div>
     <div id="s${s.id}-lbl" style="font-family:${T.typography.fontFamily};font-weight:500;font-size:42px;color:${T.colors.muted};letter-spacing:0.08em;margin-top:24px;">${esc(label)}</div>
@@ -430,7 +471,8 @@ tl.from('#s${s.id}-lbl',{y:30,opacity:0,duration:0.4,ease:'power2.out'},${s.star
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
-  ${doodleImg('quote-card', T)}
+  ${doodleImg('quote-card', T, s.id)}
+  ${doodleAccent('quote-card', T)}
   <div class="scene-content" style="align-items:flex-start;justify-content:center;">
     <div id="s${s.id}-q" style="${surfaceStyle}padding:60px 80px;border-left:8px solid ${T.colors.accent};max-width:1200px;position:relative;">
       <div style="position:absolute;top:-30px;left:56px;font-family:${T.typography.fontFamily};font-size:180px;color:${T.colors.accent};line-height:1;">&ldquo;</div>
@@ -448,6 +490,8 @@ tl.from('#s${s.id}-lbl',{y:30,opacity:0,duration:0.4,ease:'power2.out'},${s.star
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
+  ${doodleImg('list-reveal', T, s.id)}
+  ${doodleAccent('list-reveal', T)}
   <div class="scene-content">
     <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:24px;">${lis}</ul>
   </div>
@@ -469,6 +513,7 @@ tl.from('#s${s.id}-lbl',{y:30,opacity:0,duration:0.4,ease:'power2.out'},${s.star
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
+  ${doodleAccent('comparison', T)}
   <div class="scene-content" style="flex-direction:row;gap:60px;align-items:stretch;">
     <div id="s${s.id}-a" style="flex:1;${panelStyle}padding:60px;display:flex;align-items:center;justify-content:center;">
       <div style="font-family:${T.typography.fontFamily};font-weight:700;font-size:46px;color:${T.colors.muted};text-align:center;">${esc(a)}</div>
@@ -496,6 +541,7 @@ tl.from('#s${s.id}-b',{x:80,opacity:0,duration:0.6,ease:'expo.out'},${s.startTim
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
+  ${doodleAccent('flow-steps', T)}
   <div class="scene-content" style="align-items:center;">
     <div style="display:flex;align-items:stretch;justify-content:center;width:100%;">${cells}</div>
   </div>
@@ -510,7 +556,8 @@ tl.from('#s${s.id}-b',{x:80,opacity:0,duration:0.6,ease:'expo.out'},${s.startTim
       return {
         html: `<div id="s${s.id}" class="clip" data-start="${s.startTime}" data-duration="${s.duration}" data-track-index="1">
   <div class="scene-bg"></div>
-  ${doodleImg('outro-card', T)}
+  ${doodleImg('outro-card', T, s.id)}
+  ${doodleAccent('outro-card', T)}
   <div class="scene-content" style="align-items:center;text-align:center;gap:28px;">
     <div id="s${s.id}-lbl" style="font-size:22px;font-weight:700;letter-spacing:8px;color:${T.colors.accent};text-transform:uppercase;">THANKS FOR WATCHING</div>
     <div id="s${s.id}-t" style="font-family:${T.typography.fontFamily};font-weight:${T.typography.weights.headline};font-size:${hl};color:${T.colors.text};line-height:1.05${ts};">${esc(s.sentence)}</div>
