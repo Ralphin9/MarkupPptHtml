@@ -1,8 +1,33 @@
-# Optional local OmniVoice server for Script -> Video.
-# Requires Python 3.10-3.12. Python 3.12 is recommended on Windows.
-# Install PyTorch first for your CPU/CUDA target, then this file:
+# Optional local OmniVoice server for Script → Video.
+#
+# Python 3.10–3.12 required. Python 3.12 is recommended on Windows.
+#
+# Windows — use the launcher (handles venv + install automatically):
+#   .\run-omnivoice-local.ps1     (PowerShell)
+#   .\run-omnivoice-local.bat     (CMD / double-click)
+#
+# Windows — manual setup (PowerShell):
+#   py -3.12 -m venv .venv-omnivoice
+#   .venv-omnivoice\Scripts\Activate.ps1
+#   python -m pip install --upgrade pip
+#   # CPU-only PyTorch (change URL for CUDA 12.1 → /whl/cu121):
 #   python -m pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
 #   python -m pip install -r requirements-omnivoice.txt
+#   omnivoice-demo --ip 0.0.0.0 --port 8001 --no-asr
+#
+# macOS / Linux — manual setup:
+#   python3 -m venv .venv-omnivoice
+#   source .venv-omnivoice/bin/activate
+#   pip install --upgrade pip
+#   pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+#   pip install -r requirements-omnivoice.txt
+#   omnivoice-demo --ip 0.0.0.0 --port 8001 --no-asr
+#
+# Notes:
+#   --no-asr skips downloading the large Whisper ASR model.
+#   Clone mode still works when ref_text is set in the script front-matter.
+#   Windows: a sitecustomize.py patch in tools/omnivoice_sitecustomize/
+#            suppresses WinError 10054 connection-reset noise in the terminal.
 
 omnivoice
 gradio
