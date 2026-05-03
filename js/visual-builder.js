@@ -804,6 +804,7 @@ window.VisualBuilder = (function () {
           .replace(/"/g, '&quot;');
         return '<div class="el-hyperframe" style="width:' + w + 'px;max-width:100%;">'
           + '<iframe sandbox="allow-scripts allow-same-origin allow-popups allow-forms" '
+          + 'allow="autoplay; fullscreen" '
           + 'loading="lazy" referrerpolicy="no-referrer" '
           + 'style="width:100%;height:' + h + 'px;border:0;border-radius:8px;background:#0d1117;" '
           + 'srcdoc="' + safeSrc + '"></iframe>'

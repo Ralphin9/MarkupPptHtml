@@ -966,17 +966,19 @@ tl.from('#s${s.id}-right',{x:60,opacity:0,duration:0.6,ease:'power2.out'},${s.st
     const standalonePlayback = options.standalone ? `
   var video = document.getElementById('source-video');
   video.controls = true;
-  function start(){
-    video.muted = false;
+  video.muted = true;
+  function start(unmute){
+    if (unmute) video.muted = false;
     video.play().catch(function(){});
     tl.play(video.currentTime || 0);
   }
   video.addEventListener('timeupdate', function(){
     if (Math.abs(tl.time() - video.currentTime) > 0.12) tl.time(video.currentTime);
   });
-  video.addEventListener('click', start);
-  window.addEventListener('pointerdown', start, true);
-  document.body.addEventListener('click', start);
+  video.addEventListener('click', function(){ start(true); });
+  window.addEventListener('pointerdown', function(){ start(true); }, true);
+  document.body.addEventListener('click', function(){ start(true); });
+  setTimeout(function(){ start(false); }, 100);
 ` : `
   // HyperFrames owns media playback — no imperative play/pause/currentTime here
 `;
