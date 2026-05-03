@@ -933,7 +933,7 @@ tl.from('#s${s.id}-right',{x:60,opacity:0,duration:0.6,ease:'power2.out'},${s.st
     return scheduled;
   }
 
-  function buildTalkingCutHTML(meta, scenes, mediaDataUrl, totalDuration, themeId) {
+  function buildTalkingCutHTML(meta, scenes, mediaDataUrl, totalDuration, themeId, options = {}) {
     const isRotate = themeId === 'rotate';
     const themeKeys = Object.keys(THEMES);
     const sceneThemes = scenes.map((scene, index) =>
@@ -963,6 +963,23 @@ tl.from('#s${s.id}-right',{x:60,opacity:0,duration:0.6,ease:'power2.out'},${s.st
       ? [...new Set(Object.values(THEMES).map(theme => theme.typography.googleFonts).filter(Boolean))]
           .map(url => `<link rel="stylesheet" href="${url}">`).join('\n')
       : (primaryTheme.typography.googleFonts ? `<link rel="stylesheet" href="${primaryTheme.typography.googleFonts}">` : '');
+    const standalonePlayback = options.standalone ? `
+  var video = document.getElementById('source-video');
+  video.controls = true;
+  function start(){
+    video.muted = false;
+    video.play().catch(function(){});
+    tl.play(video.currentTime || 0);
+  }
+  video.addEventListener('timeupdate', function(){
+    if (Math.abs(tl.time() - video.currentTime) > 0.12) tl.time(video.currentTime);
+  });
+  video.addEventListener('click', start);
+  window.addEventListener('pointerdown', start, true);
+  document.body.addEventListener('click', start);
+` : `
+  // HyperFrames owns media playback — no imperative play/pause/currentTime here
+`;
 
     return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -1002,14 +1019,13 @@ ${visJS}
 ${sceneJS}
 ${threeInits}
   window.__timelines[${JSON.stringify(slug)}] = tl;
-
-  // HyperFrames owns media playback — no imperative play/pause/currentTime here
+${standalonePlayback}
 <\/script>
 </body></html>`;
   }
 
   // ---------------------------------------------------------- 7. compose iframe HTML
-  function buildHyperframeHTML(meta, scenes, audioDataUrl, totalDuration, themeId) {
+  function buildHyperframeHTML(meta, scenes, audioDataUrl, totalDuration, themeId, options = {}) {
     const isRotate = themeId === 'rotate';
     const themeKeys = Object.keys(THEMES);
 
@@ -1062,6 +1078,19 @@ ${threeInits}
     // .scene-bg CSS: rotate mode omits bg (applied inline per-scene above); normal mode uses global bg
     const sceneBgCss = isRotate ? '' : (T.bgStyle ? `background:${T.bgStyle};` : `background:${T.colors.bg};`);
     const sceneBgExtraCss = isRotate ? '' : (T.signaturePatterns?.sceneBgExtraCss || '');
+    const standalonePlayback = options.standalone ? `
+  var au = document.getElementById('main-audio');
+  au.controls = true;
+  function start(){ au.play().catch(function(){}); tl.play(au.currentTime || 0); }
+  au.addEventListener('timeupdate', function(){
+    if (Math.abs(tl.time() - au.currentTime) > 0.12) tl.time(au.currentTime);
+  });
+  au.addEventListener('click', start);
+  window.addEventListener('pointerdown', start, true);
+  document.body.addEventListener('click', start);
+` : `
+  // HyperFrames owns media playback — no imperative play/pause here
+`;
 
     return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -1097,8 +1126,7 @@ ${visJS}
 ${sceneJS}
 ${threeInits}
   window.__timelines[${JSON.stringify(slug)}] = tl;
-
-  // HyperFrames owns media playback — no imperative play/pause here
+${standalonePlayback}
 <\/script>
 </body></html>`;
   }
@@ -1176,23 +1204,26 @@ ${threeInits}
 
     let finalScenes = scenes;
     let html;
+    let previewHtml;
     if (workflow === 'talking-cut') {
       onProgress?.(`Scheduling talking-cut graphic overlays (theme: ${meta.theme})…`);
       finalScenes = scheduleTalkingCutScenes(scenes, totalDuration);
       // Deck preview uses blob URL; exported HTML uses relative asset path
-      injectIntoDeck(meta, buildTalkingCutHTML(meta, finalScenes, mediaBlobUrl, totalDuration, meta.theme));
+      injectIntoDeck(meta, buildTalkingCutHTML(meta, finalScenes, mediaBlobUrl, totalDuration, meta.theme, { standalone: true }));
       html = sanitizeExportHtml(buildTalkingCutHTML(meta, finalScenes, assetPath, totalDuration, meta.theme));
+      previewHtml = sanitizeExportHtml(buildTalkingCutHTML(meta, finalScenes, assetPath, totalDuration, meta.theme, { standalone: true }));
     } else {
       onProgress?.(`Building HyperFrame composition (theme: ${meta.theme})…`);
-      injectIntoDeck(meta, buildHyperframeHTML(meta, scenes, mediaBlobUrl, totalDuration, meta.theme));
+      injectIntoDeck(meta, buildHyperframeHTML(meta, scenes, mediaBlobUrl, totalDuration, meta.theme, { standalone: true }));
       html = sanitizeExportHtml(buildHyperframeHTML(meta, scenes, assetPath, totalDuration, meta.theme));
+      previewHtml = sanitizeExportHtml(buildHyperframeHTML(meta, scenes, assetPath, totalDuration, meta.theme, { standalone: true }));
     }
 
     onProgress?.(`Done — ${finalScenes.length} scenes, ${totalDuration.toFixed(1)}s.`);
     return {
       slug,
       scenes: finalScenes, totalDuration, wavBlob, audioBlobUrl: mediaBlobUrl,
-      html, workflow, mediaKind, sourceFileName, assetFileName, htmlFileName,
+      html, previewHtml, workflow, mediaKind, sourceFileName, assetFileName, htmlFileName,
     };
   }
 

@@ -1793,6 +1793,15 @@
         htmlLink.download = htmlDownloadName;
         htmlLink.textContent = '⬇ Download HyperFrames index.html';
         htmlLink.style.cssText = 'display:inline-block;margin-top:8px;margin-left:12px;color:#9bd;text-decoration:underline;';
+        const previewHtmlName = `${result.slug || 'script-video'}-browser-preview.html`;
+        const previewHtmlUrl = result.previewHtml
+          ? URL.createObjectURL(new Blob([result.previewHtml], { type: 'text/html' }))
+          : '';
+        const previewHtmlLink = document.createElement('a');
+        previewHtmlLink.href = previewHtmlUrl;
+        previewHtmlLink.download = previewHtmlName;
+        previewHtmlLink.textContent = '⬇ Download browser preview HTML';
+        previewHtmlLink.style.cssText = 'display:inline-block;margin-top:8px;margin-left:12px;color:#9bd;text-decoration:underline;';
         const copyCliBtn = document.createElement('button');
         copyCliBtn.type = 'button';
         copyCliBtn.textContent = '📋 Copy HyperFrames CLI Steps';
@@ -1800,8 +1809,9 @@
         const cliSteps = [
           'npx hyperframes init my-video',
           'cd my-video',
-          `Copy-Item "C:/Users/ralph/Downloads/New folder/${htmlDownloadName}" ".\\index.html"`,
-          `Copy-Item "C:/Users/ralph/Downloads/New folder/${mediaDownloadName}" ".\\assets\\${mediaDownloadName}"`,
+          'New-Item -ItemType Directory -Force ".\\assets" | Out-Null',
+          `Copy-Item "C:/Users/ralph/Downloads/${htmlDownloadName}" ".\\index.html"`,
+          `Copy-Item "C:/Users/ralph/Downloads/${mediaDownloadName}" ".\\assets\\${mediaDownloadName}"`,
           'npx hyperframes preview',
           'npx hyperframes render --output output.mp4',
         ].join('\n');
@@ -1824,11 +1834,12 @@
         elLog.appendChild(a);
         elLog.appendChild(mediaLink);
         elLog.appendChild(htmlLink);
+        if (result.previewHtml) elLog.appendChild(previewHtmlLink);
         elLog.appendChild(copyCliBtn);
         elLog.appendChild(docsLink);
         const cliHint = document.createElement('div');
         cliHint.style.cssText = 'margin-top:8px;color:#7a8;font-size:11px;line-height:1.35;';
-        cliHint.textContent = `HyperFrames CLI: 1) npx hyperframes init my-video  2) Copy-Item ${htmlDownloadName} to my-video/index.html  3) Copy-Item ${mediaDownloadName} to my-video/assets/  4) npx hyperframes preview  5) npx hyperframes render --output output.mp4`;
+        cliHint.textContent = `HyperFrames CLI: download both files to C:/Users/ralph/Downloads, then copy ${htmlDownloadName} to my-video/index.html and ${mediaDownloadName} to my-video/assets/. Opening the downloaded index.html directly with file:// also needs the same assets folder beside it.`;
         elLog.appendChild(cliHint);
       } catch (e) {
         if (e?.name === 'AbortError') {
