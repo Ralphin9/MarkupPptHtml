@@ -1527,6 +1527,7 @@
     const btnCancel = modal.querySelector('#s2v-cancel');
     const btnSample = modal.querySelector('#s2v-load-sample');
     const elTheme = modal.querySelector('#s2v-theme');
+    const elQuality = modal.querySelector('#s2v-quality');
     const elWorkflow = modal.querySelector('#s2v-workflow');
     const elCatalogFile = modal.querySelector('#s2v-catalog-file');
 
@@ -1534,6 +1535,37 @@
       const ts = new Date().toLocaleTimeString();
       elLog.textContent += `\n[${ts}] ${msg}`;
       elLog.scrollTop = elLog.scrollHeight;
+    }
+    function parseFrontMatterRefText(script) {
+      const m = String(script || '').match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);
+      if (!m) return '';
+      const lines = m[1].split('\n');
+      for (const line of lines) {
+        const kv = line.match(/^\s*ref_text\s*:\s*(.+?)\s*$/i);
+        if (kv) return kv[1].replace(/^['"]|['"]$/g, '').trim();
+      }
+      return '';
+    }
+    function getAudioFileDurationSeconds(file) {
+      return new Promise((resolve, reject) => {
+        const a = new Audio();
+        const u = URL.createObjectURL(file);
+        const cleanup = () => URL.revokeObjectURL(u);
+        a.addEventListener('loadedmetadata', () => {
+          const d = Number(a.duration);
+          cleanup();
+          if (!Number.isFinite(d) || d <= 0) {
+            reject(new Error('Could not read reference audio duration.'));
+          } else {
+            resolve(d);
+          }
+        }, { once: true });
+        a.addEventListener('error', () => {
+          cleanup();
+          reject(new Error('Could not decode reference audio file.'));
+        }, { once: true });
+        a.src = u;
+      });
     }
     function open() {
       modal.classList.remove('hidden');
@@ -1726,9 +1758,41 @@
       const voice = elVoice.value;
       const refFile = voice === 'clone' ? elRef.files?.[0] : null;
       if (voice === 'clone' && !refFile) { alert('Clone mode needs a reference audio file.'); return; }
+      if (voice === 'clone') {
+        const isNarrative = (elWorkflow?.value || 'narrative') === 'narrative';
+        if (!isNarrative) {
+          alert('Clone mode is only used by Narrative workflow.');
+          return;
+        }
+        const name = (refFile?.name || '').toLowerCase();
+        const mime = (refFile?.type || '').toLowerCase();
+        const looksLikeMp3OrWav = /\.(mp3|wav)$/i.test(name)
+          || /audio\/(mpeg|mp3|wav|x-wav|wave)/i.test(mime);
+        if (!looksLikeMp3OrWav) {
+          alert('Reference audio must be .mp3 or .wav.');
+          return;
+        }
+        let refDuration = 0;
+        try {
+          refDuration = await getAudioFileDurationSeconds(refFile);
+        } catch (err) {
+          alert((err && err.message) || 'Could not read reference audio. Use a valid .mp3/.wav file.');
+          return;
+        }
+        if (refDuration > 30.0) {
+          alert(`Reference audio is ${refDuration.toFixed(1)}s. Please use <= 30s.`);
+          return;
+        }
+        const refText = parseFrontMatterRefText(script);
+        if (!refText) {
+          alert('Clone mode also needs ref_text in YAML front-matter (transcript of the reference clip).');
+          return;
+        }
+      }
       const sentenceCount = script.replace(/---[\s\S]*?---\s*/, '').split(/(?<=[.!?])\s+(?=[A-Z0-9"“'])/).filter(Boolean).length;
       if (elServerMode.value === 'local' && sentenceCount > 2) {
-        const ok = confirm(`Local CPU OmniVoice is slow. This script has ${sentenceCount} sentences and may take several minutes. Continue?`);
+        const qualityLabel = (elQuality?.value || 'balanced');
+        const ok = confirm(`Local CPU OmniVoice is slow. This script has ${sentenceCount} sentences and quality profile "${qualityLabel}" may take several minutes. Continue?`);
         if (!ok) return;
       }
       if (['catalog-showcase', 'talking-cut'].includes(elWorkflow?.value) && !elCatalogFile?.files?.[0]) {
@@ -1765,6 +1829,7 @@
           onProgress: log,
           signal: abortCtrl.signal,
           themeId: elTheme?.value || 'auto',
+          qualityProfile: elQuality?.value || 'balanced',
           workflow: elWorkflow?.value || 'narrative',
           catalogFile: ['catalog-showcase', 'talking-cut'].includes(elWorkflow?.value) ? elCatalogFile?.files?.[0] : null,
         });
@@ -1846,7 +1911,16 @@
           log('⏹ Cancelled.');
         } else {
           console.error('[script-to-video] failed', e);
-          log('❌ ' + (e?.message || e));
+          const raw = String(e?.message || e || 'Unknown error');
+          if (/failed to fetch/i.test(raw)) {
+            if (voice === 'clone') {
+              log('❌ Clone request failed to reach OmniVoice. Check localhost:8001, keep reference clip <=30s, and include ref_text in YAML.');
+            } else {
+              log('❌ Could not reach OmniVoice (network/server error). Verify localhost:8001 or switch to HF Space.');
+            }
+          } else {
+            log('❌ ' + raw);
+          }
         }
       } finally {
         clearInterval(timerInterval);

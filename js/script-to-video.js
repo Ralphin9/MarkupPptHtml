@@ -127,22 +127,61 @@
   }
 
   // ---------------------------------------------------------- 2. TTS
-  async function ttsViaOmniVoice({ text, voice, refAudioFile, refText, server, onProgress, signal }) {
+  function getQualityPreset(profile, isLocalTarget) {
+    const selected = String(profile || 'balanced').toLowerCase();
+    const presets = {
+      fast: {
+        localSteps: 4,
+        hfSteps: 32,
+        cloneGuidance: 2.0,
+        designGuidance: 3.0,
+      },
+      balanced: {
+        localSteps: 8,
+        hfSteps: 50,
+        cloneGuidance: 2.4,
+        designGuidance: 3.5,
+      },
+      high: {
+        localSteps: 12,
+        hfSteps: 64,
+        cloneGuidance: 2.8,
+        designGuidance: 4.0,
+      },
+    };
+    const cfg = presets[selected] || presets.balanced;
+    return {
+      profile: presets[selected] ? selected : 'balanced',
+      steps: isLocalTarget ? cfg.localSteps : cfg.hfSteps,
+      cloneGuidance: cfg.cloneGuidance,
+      designGuidance: cfg.designGuidance,
+    };
+  }
+
+  async function ttsViaOmniVoice({ text, voice, refAudioFile, refText, server, onProgress, signal, qualityProfile }) {
     const target = (server && server.trim()) || OMNIVOICE_SPACE;
     const isLocalTarget = /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?\/?/i.test(target);
-    const steps = isLocalTarget ? 4 : 50;
+    const preset = getQualityPreset(qualityProfile, isLocalTarget);
+    const steps = preset.steps;
     const duration = null;
 
+    if (voice === 'clone' && !refAudioFile) {
+      throw new Error('Clone mode needs a reference audio file (.mp3/.wav, <=30s).');
+    }
+    if (voice === 'clone' && !String(refText || '').trim()) {
+      throw new Error('Clone mode needs ref_text in YAML front-matter (transcript of the reference audio).');
+    }
+
     const cloneArgs = [
-      text, 'Auto', refAudioFile, refText || '', '', steps, 2.0, true, 1.0, duration, true, true,
+      text, 'Auto', refAudioFile, refText || '', '', steps, preset.cloneGuidance, true, 1.0, duration, true, true,
     ];
     const designArgs = [
-      text, 'Auto', steps, 3.5, true, 1.0, duration, true, true,
+      text, 'Auto', steps, preset.designGuidance, true, 1.0, duration, true, true,
       'Auto', 'Auto', 'Auto', 'Auto', 'Auto', 'Auto',
     ];
     const randomArgs = {
       text, language: 'Auto',
-      instruct: '', ns: steps, gs: 3.5, dn: true, sp: 1.0, du: duration,
+      instruct: '', ns: steps, gs: preset.designGuidance, dn: true, sp: 1.0, du: duration,
       pp: true, po: true,
     };
 
@@ -158,7 +197,7 @@
 
     if (isLocalTarget && voice !== 'clone') {
       onProgress?.(`Connecting to ${target}…`);
-      onProgress?.(`Synthesizing audio locally with ${steps} steps. CPU can take a few minutes on Windows…`);
+      onProgress?.(`Synthesizing audio locally (${preset.profile} profile, ${steps} steps). CPU can take a few minutes on Windows…`);
       result = await predictViaLocalGradio(target, '/_design_fn', designArgs, signal);
     } else {
       onProgress?.('Loading OmniVoice client…');
@@ -168,7 +207,11 @@
 
       onProgress?.(`Connecting to ${target}…`);
       const app = await Client.connect(target);
-      onProgress?.('Synthesizing audio (this can take 10-60s on HF free tier)…');
+      if (voice === 'clone' && isLocalTarget) {
+        onProgress?.(`Synthesizing cloned voice locally (${preset.profile} profile, ${steps} steps). Keep reference clip short and add ref_text transcript in YAML.`);
+      } else {
+        onProgress?.(`Synthesizing audio (${preset.profile} profile, ${steps} steps). HF free tier can take 10-60s…`);
+      }
 
       for (const attempt of attempts) {
         try {
@@ -177,6 +220,13 @@
           break;
         } catch (error) {
           const message = String(error?.message || error || '');
+          if (/failed to fetch/i.test(message)) {
+            throw new Error(
+              isLocalTarget
+                ? 'Failed to fetch from local OmniVoice. Ensure server is running on http://localhost:8001 and reachable, then retry.'
+                : 'Failed to fetch from OmniVoice endpoint. Check internet connection or try again shortly.'
+            );
+          }
           const canTryLegacyRandom = attempt.apiName === '/_design_fn'
             && /endpoint|fn_index|not found|404/i.test(message);
           if (!canTryLegacyRandom) throw error;
@@ -1151,7 +1201,7 @@ ${standalonePlayback}
   }
 
   // ---------------------------------------------------------- 9. main entrypoint
-  async function run({ scriptText, voice, refAudioFile, server, onProgress, signal, themeId, workflow, catalogFile }) {
+  async function run({ scriptText, voice, refAudioFile, server, onProgress, signal, themeId, qualityProfile, workflow, catalogFile }) {
     onProgress?.('Parsing script…');
     const { meta, sentences } = parseScript(scriptText);
     if (sentences.length < 2) throw new Error('Need at least 2 sentences. Got ' + sentences.length);
@@ -1181,6 +1231,7 @@ ${standalonePlayback}
         server,
         onProgress,
         signal,
+        qualityProfile,
       });
     }
 
