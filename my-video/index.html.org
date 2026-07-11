@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<meta name="viewport" content="width=1920, height=1080">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:1920px; height:1080px; overflow:hidden; background:#0a0a0a; }
+  [data-composition-id] { position:absolute; inset:0; overflow:hidden; }
+  .clip { position:absolute; inset:0; opacity:0; }
+  .scene-bg { position:absolute; inset:0; background:#0a0a0a; }
+  .scene-content { position:relative; width:100%; height:100%; padding:120px 160px;
+    display:flex; flex-direction:column; justify-content:center; gap:24px; box-sizing:border-box; }
+  body { transform-origin: top left; }
+</style>
+</head><body>
+<div data-hf-id="hf-aoe8" data-composition-id="knocking-from-the-walls" data-start="0" data-duration="7.12" data-width="1920" data-height="1080">
+  <audio data-hf-id="hf-wq6h" id="main-audio" data-start="0" data-duration="7.12" data-main-audio="" src="assets/knocking-from-the-walls-audio.wav"></audio>
+<div data-hf-id="hf-xqhx" id="s1" class="clip" data-start="0" data-duration="5.168" data-track-index="1">
+  <div data-hf-id="hf-8rns" class="scene-bg"></div>
+  <div data-hf-id="hf-c475" class="scene-content" style="align-items:center;text-align:center;">
+    <h1 data-hf-id="hf-vq0d" id="s1-t" style="font-family:'Outfit',sans-serif;font-weight:900;font-size:120px;color:#e2e2e2;line-height:1.05;">--------------------- It was past midnight when Adam heard knocking from inside the walls.</h1>
+    <div data-hf-id="hf-cc4x" id="s1-bar" style="width:0px;height:6px;background:#c0392b;margin-top:36px;"></div>
+  </div>
+</div>
+<div data-hf-id="hf-r9x9" id="s2" class="clip" data-start="5.168" data-duration="1.952" data-track-index="1">
+  <div data-hf-id="hf-mhds" class="scene-bg"></div>
+  <div data-hf-id="hf-idec" class="scene-content" style="align-items:center;text-align:center;gap:28px;">
+    <div data-hf-id="hf-fnn4" id="s2-lbl" style="font-size:22px;font-weight:700;letter-spacing:8px;color:#c0392b;text-transform:uppercase;">THANKS FOR WATCHING</div>
+    <div data-hf-id="hf-lrx2" id="s2-t" style="font-family:'Outfit',sans-serif;font-weight:900;font-size:120px;color:#e2e2e2;line-height:1.05;">At first, he thought it was pipes.</div>
+    <div data-hf-id="hf-gbr8" id="s2-rule" style="width:0px;height:3px;background:#c0392b;"></div>
+  </div>
+</div>
+</div>
+<script>
+  // Auto-fit to iframe size
+  function fit(){
+    var sx = window.innerWidth/1920, sy = window.innerHeight/1080, s = Math.min(sx, sy);
+    document.body.style.transform = 'scale('+s+')';
+  }
+  fit(); window.addEventListener('resize', fit);
+
+  window.__timelines = window.__timelines || {};
+  var tl = gsap.timeline({ paused: true });
+tl.set('#s1',{opacity:1},0);
+tl.set('#s1',{opacity:0},5.168);
+tl.set('#s2',{opacity:1},5.168);
+tl.set('#s2',{opacity:0},7.12);
+tl.from('#s1-t',{y:60,opacity:0,duration:0.7,ease:'power3.out'},0+0.2);
+tl.to('#s1-bar',{width:'320px',duration:0.7,ease:'power2.inOut'},0+0.6);
+tl.from('#s2-lbl',{y:-20,opacity:0,duration:0.4,ease:'power2.out'},5.168+0.2);
+tl.from('#s2-t',{y:60,opacity:0,duration:0.7,ease:'power3.out'},5.168+0.45);
+tl.to('#s2-rule',{width:'280px',duration:0.7,ease:'power2.inOut'},5.168+0.95);
+
+  window.__timelines["knocking-from-the-walls"] = tl;
+
+  // HyperFrames owns media playback — no imperative play/pause here
+
+</script>
+</body></html>

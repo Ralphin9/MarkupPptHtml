@@ -1,0 +1,14 @@
+ALREDY INTEGARTE THIS PROEJCT IN THIS PROEJCT https://github.com/pjecuacion/script-to-video-skill above uses omnivoice we want alternative intergation as its has speed of processing https://github.com/supertone-inc/supertonic
+
+
+integrate to BELOW doodles folder 
+https://github.com/MariaLetta/mega-doodles-pack
+
+integrate this in our app, understand and doo
+https://github.com/souzatharsis/podcastfy  this is About
+An Open Source Python alternative to NotebookLM's podcast feature: Transforming Multimodal Content into Captivating Multilingual Audio Conversations with GenAI
+
+THIS IS VERY TRICK SO DO VERY LAST 
+integrate below for post editining 
+https://github.com/Ralphin9/podcast-anything/tree/feature/caption-styles-final3
+use this part Video Editor	http://localhost:5000	Caption editor & video tools

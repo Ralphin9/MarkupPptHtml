@@ -1,0 +1,28 @@
+# Optional local OmniVoice server for Script -> Video.
+# Requires Python 3.10-3.12. Python 3.12 is recommended on Windows.
+# Install PyTorch first for your CPU/CUDA target, then this file:
+#   python -m pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+#   python -m pip install -r requirements-omnivoice.txt
+
+omnivoice
+gradio
+hf-gradio
+gradio-client
+transformers
+accelerate
+safetensors
+tokenizers
+huggingface-hub
+librosa
+soundfile
+soxr
+audioread
+numba
+scikit-learn
+pandas
+fastapi
+uvicorn
+python-multipart
+webdataset
+tensorboardx
+psutil

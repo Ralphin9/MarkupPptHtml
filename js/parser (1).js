@@ -1,0 +1,446 @@
+/**
+ * parser.js — Full Marpit-spec parser.
+ *
+ * Supports:
+ * - Front-matter global directives (theme, paginate, header, footer, class, etc.)
+ * - Local/spot directives via HTML comments and underscore prefix
+ * - Marp image syntax: ![bg left 50%](url), ![w:200](url), filters
+ * - Fragmented lists (* vs -)
+ * - Math (KaTeX): $inline$ and $$block$$
+ * - Emoji shortcodes
+ * - Fit heading: # <!-- fit --> text
+ * - Scoped style blocks
+ */
+window.SlideParser = (function () {
+  'use strict';
+
+  const SLIDE_SEPARATOR = /^---$/m;
+
+  // ===== Emoji map =====
+  const EMOJI_MAP = {
+    rocket:'🚀',star:'⭐',fire:'🔥',heart:'❤️',check:'✅',x:'❌',
+    warning:'⚠️',info:'ℹ️',bulb:'💡',tada:'🎉',thumbsup:'👍',
+    thumbsdown:'👎',eyes:'👀',wave:'👋',sparkles:'✨',zap:'⚡',
+    gear:'⚙️',lock:'🔒',key:'🔑',book:'📖',chart:'📊',link:'🔗',
+    pin:'📌',memo:'📝','package':'📦',wrench:'🔧',hammer:'🔨',
+    shield:'🛡️',globe:'🌍',sun:'☀️',moon:'🌙',cloud:'☁️',
+    rainbow:'🌈',python:'🐍',js:'📜',coffee:'☕','100':'💯',
+    muscle:'💪',brain:'🧠',computer:'💻',pizza:'🍕',
+  };
+
+  // ===== Front-matter =====
+  function parseFrontMatter(raw) {
+    const defaults = {
+      marp: false, theme: 'default', paginate: true,
+      header: '', footer: '', math: 'katex', class: '', style: '',
+      headingDivider: false, size: '16:9',
+    };
+    const match = raw.match(/^---\s*\n([\s\S]*?)\n---/);
+    if (!match) return { directives: defaults, bodyStart: 0 };
+
+    const block = match[1];
+    const directives = { ...defaults };
+    block.split('\n').forEach(line => {
+      const kv = line.match(/^\s*([\w-]+)\s*:\s*(.+)\s*$/);
+      if (kv) {
+        let val = kv[2].trim();
+        if (val === 'true') val = true;
+        else if (val === 'false') val = false;
+        directives[kv[1].trim()] = val;
+      }
+    });
+
+    return { directives, bodyStart: match[0].length };
+  }
+
+  // ===== Spot directives (per-slide HTML comments + underscore) =====
+  function parseSpotDirectives(raw) {
+    const dirs = {};
+    // <!-- key: value --> style
+    const commentRe = /<!--\s*([\s\S]*?)\s*-->/g;
+    let m;
+    while ((m = commentRe.exec(raw)) !== null) {
+      m[1].split('\n').forEach(line => {
+        const kv = line.match(/^\s*([\w-]+)\s*:\s*(.+)\s*$/);
+        if (kv) dirs[kv[1].trim()] = kv[2].trim();
+      });
+    }
+    // _key: value style (Marpit scoped local directives)
+    const underRe = /^_(\w[\w-]*)\s*:\s*(.+)$/gm;
+    while ((m = underRe.exec(raw)) !== null) {
+      dirs[m[1].trim()] = m[2].trim();
+    }
+    return dirs;
+  }
+
+  function stripDirectives(raw) {
+    // First: convert HyperFrame markers into the iframe markup that the
+    // renderer will emit verbatim. Must happen BEFORE the comment-strip
+    // pass below (which would otherwise eat the `<!-- el:hyperframe -->`
+    // sentinel) and before `marked.parse`, so the resulting <iframe>
+    // passes through as a raw HTML block.
+    raw = expandHyperFrames(raw);
+
+    return raw
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/^_\w[\w-]*\s*:\s*.+$/gm, '')
+      .trim();
+  }
+
+  function expandHyperFrames(raw) {
+    const markerRe = /<!--\s*el:hyperframe(?:\s+w=(\d+))?(?:\s+h=(\d+))?\s*-->\s*<div class="el-hyperframe-src"[^>]*>/gi;
+    let output = '';
+    let lastIndex = 0;
+    let match;
+
+    while ((match = markerRe.exec(raw)) !== null) {
+      const bodyStart = markerRe.lastIndex;
+      const closeStart = findClosingDiv(raw, bodyStart);
+      if (closeStart < 0) continue;
+
+      const closeEndMatch = raw.slice(closeStart).match(/^<\/div\s*>/i);
+      if (!closeEndMatch) continue;
+
+      output += raw.slice(lastIndex, match.index);
+      const width  = parseInt(match[1], 10) || 1280;
+      const height = parseInt(match[2], 10) || 360;
+      const body = raw.slice(bodyStart, closeStart);
+      const srcdoc = buildIframeSrcdoc(body);
+      output += '\n\n<div class="el-hyperframe" style="width:' + width + 'px;max-width:100%;">'
+        + '<iframe sandbox="allow-scripts allow-same-origin allow-popups allow-forms" '
+        + 'loading="lazy" referrerpolicy="no-referrer" '
+        + 'style="width:100%;height:' + height + 'px;border:0;border-radius:8px;background:#0d1117;" '
+        + 'srcdoc="' + srcdoc + '"></iframe>'
+        + '</div>\n\n';
+
+      lastIndex = closeStart + closeEndMatch[0].length;
+      markerRe.lastIndex = lastIndex;
+    }
+
+    return output ? output + raw.slice(lastIndex) : raw;
+  }
+
+  function buildIframeSrcdoc(content) {
+    const trimmed = String(content || '').trim();
+    const html = /^\s*(?:<!doctype\s+html\b|<html\b)/i.test(trimmed)
+      ? trimmed
+      : '<!doctype html><html><head><meta charset="utf-8"></head><body>' + trimmed + '</body></html>';
+    return html.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  }
+
+  function findClosingDiv(raw, startIndex) {
+    const tagRe = /<\/?div\b[^>]*>/gi;
+    tagRe.lastIndex = startIndex;
+    let depth = 1;
+    let tag;
+
+    while ((tag = tagRe.exec(raw)) !== null) {
+      const text = tag[0];
+      if (/^<\/div/i.test(text)) depth -= 1;
+      else depth += 1;
+      if (depth === 0) return tag.index;
+    }
+
+    return -1;
+  }
+
+  // ===== Marpit Image Syntax =====
+  // ![alt w:200 h:100 bg left blur sepia](url)
+  function parseImageSyntax(md) {
+    const images = [];
+    const imgRe = /!\[([^\]]*)\]\(([^)]+)\)/g;
+    let m;
+    while ((m = imgRe.exec(md)) !== null) {
+      const alt = m[1];
+      const url = m[2];
+      const tokens = alt.split(/\s+/);
+      const img = { url, alt: '', bg: false, position: '', sizing: '', filters: [], width: '', height: '' };
+
+      tokens.forEach(tok => {
+        const lower = tok.toLowerCase();
+        if (lower === 'bg') img.bg = true;
+        else if (['left','right','center','top','bottom'].includes(lower)) img.position = lower;
+        else if (['contain','cover','fit','auto'].includes(lower)) img.sizing = lower;
+        else if (['vertical'].includes(lower)) img.position = lower;
+        else if (lower.match(/^w:\d/)) img.width = tok.slice(2);
+        else if (lower.match(/^h:\d/)) img.height = tok.slice(2);
+        else if (['blur','brightness','contrast','grayscale','invert','opacity','saturate','sepia','drop-shadow','hue-rotate'].includes(lower)) img.filters.push(lower);
+        else if (lower.match(/^\d+%?$/) || lower.match(/^\d+px$/)) img.sizing = tok;
+        else img.alt += (img.alt ? ' ' : '') + tok;
+      });
+
+      images.push(img);
+    }
+    return images;
+  }
+
+  // ===== Detect slide type =====
+  function detectSlideType(html, rawMd) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const hasH1 = !!tmp.querySelector('h1');
+    const hasPre = !!tmp.querySelector('pre');
+    const hasTable = !!tmp.querySelector('table');
+    const hasImg = !!tmp.querySelector('img');
+    const hasList = !!tmp.querySelector('ul, ol');
+    const childCount = tmp.children.length;
+
+    if (rawMd.match(/^#+\s*<!--\s*fit\s*-->/m)) return 'fit';
+    if (hasH1 && childCount <= 3 && !hasPre && !hasTable && !hasImg && !hasList) return 'title';
+    if (hasPre && !hasTable) return 'code';
+    if (hasTable) return 'table';
+    if (hasImg && childCount <= 3) return 'image';
+    return 'content';
+  }
+
+  // ===== Process math =====
+  function processMath(html) {
+    if (typeof katex === 'undefined') return html;
+    // Block math
+    html = html.replace(/\$\$([\s\S]+?)\$\$/g, (_, expr) => {
+      try { return '<div class="katex-display">' + katex.renderToString(expr.trim(), { displayMode: true, throwOnError: false }) + '</div>'; }
+      catch { return '<div class="katex-display">' + expr + '</div>'; }
+    });
+    // Inline math
+    html = html.replace(/\$([^\$\n]+?)\$/g, (_, expr) => {
+      try { return katex.renderToString(expr.trim(), { displayMode: false, throwOnError: false }); }
+      catch { return expr; }
+    });
+    return html;
+  }
+
+  // ===== Process emoji =====
+  function processEmoji(html) {
+    return html.replace(/:(\w+):/g, (match, name) => EMOJI_MAP[name] || match);
+  }
+
+  // ===== Fragmented lists: * items become class="fragment" =====
+  function processFragments(html, rawMd) {
+    // Check if any lines start with * (not **)
+    if (!rawMd.match(/^\*\s+[^\*]/m)) return html;
+    // Wrap <li> items with Marpit-compatible fragment attributes.
+    let count = 0;
+    const withItems = html.replace(/<li>/g, () => {
+      count += 1;
+      return '<li class="fragment" data-marpit-fragment="' + count + '">';
+    });
+    if (count === 0) return html;
+    return withItems.replace(/<ul>/, '<ul data-marpit-fragments="' + count + '">');
+  }
+
+  // ===== Handle bg images from Marpit syntax =====
+  function extractBgImage(images) {
+    const bg = images.find(i => i.bg);
+    if (!bg) return null;
+    return {
+      url: bg.url,
+      position: bg.position || 'cover',
+      sizing: bg.sizing || '',
+      filters: bg.filters || [],
+    };
+  }
+
+  // ===== Main parse =====
+  function parse(markdown) {
+    if (!markdown || !markdown.trim()) return [];
+
+    const { directives, bodyStart } = parseFrontMatter(markdown);
+    const body = markdown.slice(bodyStart).trim();
+    const rawSlides = body.split(SLIDE_SEPARATOR).filter(s => s.trim());
+
+    // Configure marked
+    if (typeof marked !== 'undefined') {
+      marked.setOptions({ gfm: true, breaks: false, pedantic: false });
+    }
+
+    return rawSlides.map((raw, index) => {
+      const spotDirs = parseSpotDirectives(raw);
+      const cleanMd = stripDirectives(raw);
+      const images = parseImageSyntax(cleanMd);
+      const bgImage = extractBgImage(images);
+
+      let html = '';
+      if (typeof marked !== 'undefined') {
+        html = marked.parse(cleanMd);
+      } else {
+        html = '<p>' + cleanMd.replace(/\n/g, '<br>') + '</p>';
+      }
+
+      html = processMath(html);
+      html = processEmoji(html);
+      html = processFragments(html, cleanMd);
+
+      const type = detectSlideType(html, cleanMd);
+      const slideDirectives = { ...directives, ...spotDirs };
+
+      return {
+        index, rawMarkdown: raw, cleanMarkdown: cleanMd,
+        html, type, directives: slideDirectives,
+        bgImage, images,
+        theme: slideDirectives.theme || directives.theme || 'default',
+      };
+    });
+  }
+
+  // ===== generateMarkdown: slide data model → Markdown (reverse) =====
+  function generateMarkdown(slideModels, globalDirectives) {
+    const lines = [];
+
+    // Front matter
+    lines.push('---');
+    lines.push('marp: true');
+    if (globalDirectives.theme) lines.push('theme: ' + globalDirectives.theme);
+    if (globalDirectives.paginate !== undefined) lines.push('paginate: ' + globalDirectives.paginate);
+    if (globalDirectives.header) lines.push('header: ' + globalDirectives.header);
+    if (globalDirectives.footer) lines.push('footer: ' + globalDirectives.footer);
+    if (globalDirectives.math) lines.push('math: ' + globalDirectives.math);
+    if (globalDirectives.transition) {
+      const dur = globalDirectives.transitionDuration ? ' ' + globalDirectives.transitionDuration : '';
+      lines.push('transition: ' + globalDirectives.transition + dur);
+    }
+    if (globalDirectives.style) lines.push('style: |\n  ' + globalDirectives.style.replace(/\n/g, '\n  '));
+    lines.push('---');
+    lines.push('');
+
+    slideModels.forEach((slide, si) => {
+      if (si > 0) {
+        lines.push('');
+        lines.push('---');
+        lines.push('');
+      }
+
+      // Slide directives
+      if (slide.directives) {
+        const d = slide.directives;
+        if (d.backgroundColor) lines.push('<!-- backgroundColor: ' + d.backgroundColor + ' -->');
+        if (d.color) lines.push('<!-- color: ' + d.color + ' -->');
+        if (d.backgroundImage) lines.push('<!-- backgroundImage: ' + d.backgroundImage + ' -->');
+        if (d.backgroundSize) lines.push('<!-- backgroundSize: ' + d.backgroundSize + ' -->');
+        if (d.class) lines.push('<!-- class: ' + d.class + ' -->');
+        if (Object.keys(d).some(k => !['backgroundColor','color','backgroundImage','backgroundSize','class'].includes(k))) {
+          // Other custom directives
+          Object.keys(d).forEach(k => {
+            if (!['backgroundColor','color','backgroundImage','backgroundSize','class'].includes(k)) {
+              lines.push('<!-- ' + k + ': ' + d[k] + ' -->');
+            }
+          });
+        }
+      }
+
+      // Elements
+      if (slide.elements) {
+        slide.elements.forEach(el => {
+          lines.push('');
+          // Optional size/rotation sentinel — preserved across markdown round-trip.
+          // Format: <!-- el-style w=400 h=200 r=15 -->  (any field optional)
+          const styleParts = [];
+          if (el.styleW) styleParts.push('w=' + parseInt(el.styleW, 10));
+          if (el.styleH) styleParts.push('h=' + parseInt(el.styleH, 10));
+          if (el.rotate) styleParts.push('r=' + parseFloat(el.rotate));
+          if (styleParts.length) lines.push('<!-- el-style ' + styleParts.join(' ') + ' -->');
+          lines.push(elementToMarkdown(el));
+        });
+      }
+    });
+
+    return lines.join('\n');
+  }
+
+  // ===== Element → Markdown =====
+  function elementToMarkdown(el) {
+    switch (el.type) {
+      case 'heading': {
+        const prefix = '#'.repeat(el.level || 1);
+        const fit = el.fit ? ' <!-- fit -->' : '';
+        return prefix + fit + ' ' + (el.content || 'Heading');
+      }
+      case 'fittext': {
+        return '# <!-- fit --> ' + (el.content || 'BIG TEXT');
+      }
+      case 'html': {
+        // Raw HTML element — wrapped in `.el-html` so the slide-frame flex
+        // layout doesn't stretch direct <button>/<div> children. The wrapper
+        // also serves as the round-trip marker on parse-back.
+        return '<div class="el-html">\n' + (el.content || '') + '\n</div>';
+      }
+      case 'hyperframe': {
+        // HyperFrame element — sandboxed composition. Stored as an HTML
+        // comment + raw markup block so it round-trips through Markdown.
+        const w = parseInt(el.width, 10) || 1280;
+        const h = parseInt(el.height, 10) || 360;
+        return '<!-- el:hyperframe w=' + w + ' h=' + h + ' -->\n'
+          + '<div class="el-hyperframe-src" style="display:none">\n'
+          + (el.content || '')
+          + '\n</div>';
+      }
+      case 'text':
+        return el.content || 'Text content';
+      case 'bullets': {
+        const items = (el.content || 'Item 1\nItem 2\nItem 3').split('\n');
+        return items.map(i => '- ' + i.replace(/^[-*]\s*/, '')).join('\n');
+      }
+      case 'numbered': {
+        const items = (el.content || 'First\nSecond\nThird').split('\n');
+        return items.map((it, idx) => (idx + 1) + '. ' + it.replace(/^\d+\.\s*/, '')).join('\n');
+      }
+      case 'fragments': {
+        const items = (el.content || 'Step 1\nStep 2\nStep 3').split('\n');
+        return items.map(i => '* ' + i.replace(/^[*-]\s*/, '')).join('\n');
+      }
+      case 'code': {
+        const lang = el.language || '';
+        return '```' + lang + '\n' + (el.content || '// code') + '\n```';
+      }
+      case 'table': {
+        return el.content || '| Col A | Col B |\n|-------|-------|\n| 1     | 2     |';
+      }
+      case 'image': {
+        let alt = el.alt || '';
+        if (el.bgMode) alt = el.bgMode + (el.sizing ? ' ' + el.sizing : '') + (alt ? ' ' + alt : '');
+        if (el.width) alt += ' w:' + el.width;
+        if (el.height) alt += ' h:' + el.height;
+        if (el.filters && el.filters.length) alt += ' ' + el.filters.join(' ');
+        return '![' + alt.trim() + '](' + (el.url || 'https://via.placeholder.com/600x300') + ')';
+      }
+      case 'quote':
+        return (el.content || 'Quote text').split('\n').map(l => '> ' + l).join('\n');
+      case 'math':
+        return '$$\n' + (el.content || 'E = mc^2') + '\n$$';
+      case 'columns': {
+        const left = el.leftContent || '### Left\n- A\n- B';
+        const right = el.rightContent || '### Right\n- X\n- Y';
+        return '<div class="columns">\n<div class="col">\n\n' + left + '\n\n</div>\n<div class="col">\n\n' + right + '\n\n</div>\n</div>';
+      }
+      case 'hr':
+        return '---';
+      case 'imageCompare': {
+        const left = el.leftImage || 'https://via.placeholder.com/400x250?text=Before';
+        const right = el.rightImage || 'https://via.placeholder.com/400x250?text=After';
+        const ll = el.leftLabel || 'Before';
+        const rl = el.rightLabel || 'After';
+        return '<div class="image-compare-container">\n<div class="ic-side"><img src="' + left + '" alt="' + ll + '"><span class="ic-label">' + ll + '</span></div>\n<div class="ic-arrow"><span class="ic-arrow-icon">⟷</span></div>\n<div class="ic-side"><img src="' + right + '" alt="' + rl + '"><span class="ic-label">' + rl + '</span></div>\n</div>';
+      }
+      case 'imageCombine': {
+        const srcs = el.sourceImages || [];
+        const srcItems = srcs.map(s => '<div class="cmb-source"><img src="' + (s.url || '') + '" alt="' + (s.label || '') + '"><span class="cmb-label">' + (s.label || '') + '</span></div>').join('\n');
+        const res = el.resultImage || '';
+        const rl = el.resultLabel || 'Result';
+        return '<div class="image-combine-container">\n<div class="cmb-sources">\n' + srcItems + '\n</div>\n<div class="cmb-arrow"><span class="cmb-arrow-icon">⟶</span></div>\n<div class="cmb-result"><img src="' + res + '" alt="' + rl + '"><span class="cmb-label">' + rl + '</span></div>\n</div>';
+      }
+      case 'imageGrid': {
+        const imgs = el.images || [];
+        const items = imgs.map(img => {
+          const w = img.width ? 'width:' + img.width + 'px;' : '';
+          const h = img.height ? 'height:' + img.height + 'px;' : '';
+          const st = (w || h) ? ' style="' + w + h + 'object-fit:cover"' : '';
+          return '<div class="ig-item"><img src="' + (img.url || '') + '" alt="' + (img.caption || '') + '"' + st + '><span class="ig-caption">' + (img.caption || '') + '</span></div>';
+        }).join('\n');
+        return '<div class="image-grid-container">\n' + items + '\n</div>';
+      }
+      default:
+        return el.content || '';
+    }
+  }
+
+  return { parse, parseFrontMatter, parseImageSyntax, generateMarkdown, elementToMarkdown };
+})();

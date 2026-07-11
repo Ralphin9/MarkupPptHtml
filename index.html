@@ -7,7 +7,7 @@
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
 
   <!-- Markdown Parser -->
@@ -76,310 +76,305 @@
 </head>
 <body>
   <!-- ========== TOP HEADER BAR ========== -->
-  <header id="app-header">
-    <div class="header-left">
-      <h1 class="logo"><span class="logo-icon">📊</span> MarkupPptHtml | Marp | ExplainDev | Obsidianmd</h1>
+  <header data-hf-id="hf-iqf4" id="app-header">
+    <div data-hf-id="hf-9v4z" class="header-left">
+      <h1 data-hf-id="hf-xt4e" class="logo"><span data-hf-id="hf-09b1" class="logo-icon">📊</span> MarkupPptHtml | Marp | ExplainDev | Obsidianmd</h1>
     </div>
-    <div class="header-center">
-      <div class="mode-switcher">
-        <button class="mode-btn active" data-mode="visual" title="Visual Builder">
-          <span>🎨</span> Visual
+    <div data-hf-id="hf-00q3" class="header-center">
+      <div data-hf-id="hf-d70f" class="mode-switcher">
+        <button data-hf-id="hf-h536" class="mode-btn active" data-mode="visual" title="Visual Builder">
+          <span data-hf-id="hf-3925">🎨</span> Visual
         </button>
-        <button class="mode-btn" data-mode="markdown" title="Markdown Editor">
-          <span>📝</span> Markdown
+        <button data-hf-id="hf-bhbp" class="mode-btn" data-mode="markdown" title="Markdown Editor">
+          <span data-hf-id="hf-klm3">📝</span> Markdown
         </button>
-        <button class="mode-btn" data-mode="split" title="Split View">
-          <span>⬜</span> Split
+        <button data-hf-id="hf-3cvg" class="mode-btn" data-mode="split" title="Split View">
+          <span data-hf-id="hf-qvif">⬜</span> Split
         </button>
-        <button class="mode-btn" data-mode="tutorial" title="Tutorial Builder — annotate code like ExplainDev">
-          <span>💡</span> Tutorial
+        <button data-hf-id="hf-0cem" class="mode-btn" data-mode="tutorial" title="Tutorial Builder — annotate code like ExplainDev">
+          <span data-hf-id="hf-sjqn">💡</span> Tutorial
         </button>
       </div>
     </div>
-    <div class="header-right">
-      <select id="theme-select" title="Select Theme">
-          <option value="default">Default</option>
-          <option value="dark">Dark</option>
-          <option value="gaia">Gaia</option>
-          <option value="uncover">Uncover</option>
-          <option value="gradient">Gradient</option>
-          <option value="tutorial">Tutorial (IDE)</option>
-          <option value="neon">Neon</option>
+    <div data-hf-id="hf-77im" class="header-right">
+      <select data-hf-id="hf-uuyy" id="theme-select" title="Select Theme">
+          <option data-hf-id="hf-z9i5" value="default">Default</option>
+          <option data-hf-id="hf-0sxx" value="dark">Dark</option>
+          <option data-hf-id="hf-c4qt" value="gaia">Gaia</option>
+          <option data-hf-id="hf-w0ad" value="uncover">Uncover</option>
+          <option data-hf-id="hf-j41l" value="gradient">Gradient</option>
+          <option data-hf-id="hf-ik6a" value="tutorial">Tutorial (IDE)</option>
+          <option data-hf-id="hf-q6i9" value="neon">Neon</option>
           <!-- Awesome-Marp Themes -->
-          <option value="awesome-marp-blue">Awesome-Marp Blue</option>
-          <option value="awesome-marp-dark">Awesome-Marp Dark</option>
-          <option value="awesome-marp-green">Awesome-Marp Green</option>
-          <option value="awesome-marp-red">Awesome-Marp Red</option>
-          <option value="awesome-marp-purple">Awesome-Marp Purple</option>
-          <option value="awesome-marp-brown">Awesome-Marp Brown</option>
+          <option data-hf-id="hf-nouq" value="awesome-marp-blue">Awesome-Marp Blue</option>
+          <option data-hf-id="hf-4gqm" value="awesome-marp-dark">Awesome-Marp Dark</option>
+          <option data-hf-id="hf-74vo" value="awesome-marp-green">Awesome-Marp Green</option>
+          <option data-hf-id="hf-wv1s" value="awesome-marp-red">Awesome-Marp Red</option>
+          <option data-hf-id="hf-907u" value="awesome-marp-purple">Awesome-Marp Purple</option>
+          <option data-hf-id="hf-z9ly" value="awesome-marp-brown">Awesome-Marp Brown</option>
       </select>
-      <button id="btn-templates" title="Templates">📋 Templates</button>
-      <button id="btn-load-hf-launch" title="Load HeyGen Hyperframes Launch storyboard sample (16 slides)">🎬 HF Launch</button>
-      <button id="btn-script-to-video" title="Script → Video — OmniVoice TTS + HyperFrames composition">🎤 Script→Video</button>
-      <button id="btn-import-design" title="Import DESIGN.md (Google Labs design tokens)">🎨 DESIGN.md</button>
-      <button id="btn-present" title="Present (F5)">▶ Present</button>
-      <div class="export-dropdown">
-        <button id="btn-export" title="Export">⬇ Export</button>
-        <div class="export-menu" id="export-menu">
-          <button data-export="html">📄 HTML Presentation</button>
-          <button data-export="pdf">📑 PDF Document</button>
-          <button data-export="pptx">📊 PowerPoint (PPTX)</button>
-          <button data-export="png">🖼 PNG Images (all)</button>
-          <button data-export="md">📝 Markdown File</button>
+      <button data-hf-id="hf-swwv" id="btn-templates" title="Templates">📋 Templates</button>
+      <button data-hf-id="hf-jtha" id="btn-load-hf-launch" title="Load HeyGen Hyperframes Launch storyboard sample (16 slides)">🎬 HF Launch</button>
+      <button data-hf-id="hf-jv1k" id="btn-script-to-video" title="Script → Video — OmniVoice TTS + HyperFrames composition">🎤 Script→Video</button>
+      <button data-hf-id="hf-01j3" id="btn-import-design" title="Import DESIGN.md (Google Labs design tokens)">🎨 DESIGN.md</button>
+      <button data-hf-id="hf-i8np" id="btn-present" title="Present (F5)">▶ Present</button>
+      <div data-hf-id="hf-5dcs" class="export-dropdown">
+        <button data-hf-id="hf-xapj" id="btn-export" title="Export">⬇ Export</button>
+        <div data-hf-id="hf-2j1e" class="export-menu" id="export-menu">
+          <button data-hf-id="hf-w315" data-export="html">📄 HTML Presentation</button>
+          <button data-hf-id="hf-lie3" data-export="pdf">📑 PDF Document</button>
+          <button data-hf-id="hf-zdzf" data-export="pptx">📊 PowerPoint (PPTX)</button>
+          <button data-hf-id="hf-o12x" data-export="png">🖼 PNG Images (all)</button>
+          <button data-hf-id="hf-cl28" data-export="md">📝 Markdown File</button>
         </div>
       </div>
     </div>
   </header>
 
   <!-- ========== MAIN 3-PANEL LAYOUT ========== -->
-  <main id="app-main">
+  <main data-hf-id="hf-kx6w" id="app-main">
     <!-- ====== LEFT PANEL ====== -->
-    <aside id="left-panel">
-      <div class="left-tabs">
-        <button class="left-tab active" data-tab="slides-tab">Slides</button>
-        <button class="left-tab" data-tab="elements-tab">Elements</button>
-        <button class="left-tab" data-tab="images-tab">Images</button>
+    <aside data-hf-id="hf-fehi" id="left-panel">
+      <div data-hf-id="hf-0avs" class="left-tabs">
+        <button data-hf-id="hf-i2qd" class="left-tab active" data-tab="slides-tab">Slides</button>
+        <button data-hf-id="hf-vz9p" class="left-tab" data-tab="elements-tab">Elements</button>
+        <button data-hf-id="hf-8mmv" class="left-tab" data-tab="images-tab">Images</button>
       </div>
 
       <!-- Slide Thumbnails -->
-      <div class="left-tab-content active" id="slides-tab">
-        <div class="slide-list-actions">
-          <button id="btn-add-slide" title="Add blank slide">+ Slide</button>
-          <button id="btn-duplicate-slide" title="Duplicate">⧉ Clone</button>
-          <button id="btn-delete-slide" title="Delete slide" class="btn-danger-sm">🗑</button>
+      <div data-hf-id="hf-x26j" class="left-tab-content active" id="slides-tab">
+        <div data-hf-id="hf-nj5q" class="slide-list-actions">
+          <button data-hf-id="hf-pdqb" id="btn-add-slide" title="Add blank slide">+ Slide</button>
+          <button data-hf-id="hf-5kg2" id="btn-duplicate-slide" title="Duplicate">⧉ Clone</button>
+          <button data-hf-id="hf-x4yb" id="btn-delete-slide" title="Delete slide" class="btn-danger-sm">🗑</button>
         </div>
-        <div id="slide-list" class="slide-list"></div>
+        <div data-hf-id="hf-hfem" id="slide-list" class="slide-list"></div>
       </div>
 
       <!-- Draggable Elements Palette -->
-      <div class="left-tab-content" id="elements-tab">
-        <p class="tab-hint">Drag onto slide or click to add</p>
-        <div class="element-palette">
-          <div class="element-item" draggable="true" data-element="heading">
-            <span class="el-icon">H</span><span class="el-label">Heading</span>
+      <div data-hf-id="hf-kuqy" class="left-tab-content" id="elements-tab">
+        <p data-hf-id="hf-632w" class="tab-hint">Drag onto slide or click to add</p>
+        <div data-hf-id="hf-rvfe" class="element-palette">
+          <div data-hf-id="hf-y7oi" class="element-item" draggable="true" data-element="heading">
+            <span data-hf-id="hf-xsv0" class="el-icon">H</span><span data-hf-id="hf-k5jj" class="el-label">Heading</span>
           </div>
-          <div class="element-item" draggable="true" data-element="text">
-            <span class="el-icon">T</span><span class="el-label">Text</span>
+          <div data-hf-id="hf-hkqn" class="element-item" draggable="true" data-element="text">
+            <span data-hf-id="hf-2kjc" class="el-icon">T</span><span data-hf-id="hf-ignw" class="el-label">Text</span>
           </div>
-          <div class="element-item" draggable="true" data-element="bullets">
-            <span class="el-icon">☰</span><span class="el-label">Bullet List</span>
+          <div data-hf-id="hf-h4g1" class="element-item" draggable="true" data-element="bullets">
+            <span data-hf-id="hf-txd0" class="el-icon">☰</span><span data-hf-id="hf-4xi5" class="el-label">Bullet List</span>
           </div>
-          <div class="element-item" draggable="true" data-element="numbered">
-            <span class="el-icon">1.</span><span class="el-label">Numbered</span>
+          <div data-hf-id="hf-qbq8" class="element-item" draggable="true" data-element="numbered">
+            <span data-hf-id="hf-ybiz" class="el-icon">1.</span><span data-hf-id="hf-egyj" class="el-label">Numbered</span>
           </div>
-          <div class="element-item" draggable="true" data-element="fragments">
-            <span class="el-icon">✦</span><span class="el-label">Fragment List</span>
+          <div data-hf-id="hf-jr1x" class="element-item" draggable="true" data-element="fragments">
+            <span data-hf-id="hf-qkoe" class="el-icon">✦</span><span data-hf-id="hf-adz1" class="el-label">Fragment List</span>
           </div>
-          <div class="element-item" draggable="true" data-element="code">
-            <span class="el-icon">&lt;/&gt;</span><span class="el-label">Code Block</span>
+          <div data-hf-id="hf-svrt" class="element-item" draggable="true" data-element="code">
+            <span data-hf-id="hf-6cs9" class="el-icon">&lt;/&gt;</span><span data-hf-id="hf-agpf" class="el-label">Code Block</span>
           </div>
-          <div class="element-item" draggable="true" data-element="table">
-            <span class="el-icon">▦</span><span class="el-label">Table</span>
+          <div data-hf-id="hf-zufc" class="element-item" draggable="true" data-element="table">
+            <span data-hf-id="hf-dx2m" class="el-icon">▦</span><span data-hf-id="hf-hf3h" class="el-label">Table</span>
           </div>
-          <div class="element-item" draggable="true" data-element="image">
-            <span class="el-icon">🖼</span><span class="el-label">Image</span>
+          <div data-hf-id="hf-q5g1" class="element-item" draggable="true" data-element="image">
+            <span data-hf-id="hf-irb1" class="el-icon">🖼</span><span data-hf-id="hf-4pow" class="el-label">Image</span>
           </div>
-          <div class="element-item" draggable="true" data-element="quote">
-            <span class="el-icon">&ldquo;</span><span class="el-label">Blockquote</span>
+          <div data-hf-id="hf-i93k" class="element-item" draggable="true" data-element="quote">
+            <span data-hf-id="hf-hk0w" class="el-icon">“</span><span data-hf-id="hf-f7k0" class="el-label">Blockquote</span>
           </div>
-          <div class="element-item" draggable="true" data-element="math">
-            <span class="el-icon">∑</span><span class="el-label">Math</span>
+          <div data-hf-id="hf-5idi" class="element-item" draggable="true" data-element="math">
+            <span data-hf-id="hf-7ytz" class="el-icon">∑</span><span data-hf-id="hf-exlp" class="el-label">Math</span>
           </div>
-          <div class="element-item" draggable="true" data-element="columns">
-            <span class="el-icon">▥</span><span class="el-label">Two Columns</span>
+          <div data-hf-id="hf-cy5r" class="element-item" draggable="true" data-element="columns">
+            <span data-hf-id="hf-ebdn" class="el-icon">▥</span><span data-hf-id="hf-qcu8" class="el-label">Two Columns</span>
           </div>
-          <div class="element-item" draggable="true" data-element="hr">
-            <span class="el-icon">—</span><span class="el-label">Divider</span>
+          <div data-hf-id="hf-8xey" class="element-item" draggable="true" data-element="hr">
+            <span data-hf-id="hf-edko" class="el-icon">—</span><span data-hf-id="hf-lyv4" class="el-label">Divider</span>
           </div>
-          <div class="element-item" draggable="true" data-element="fittext">
-            <span class="el-icon">FIT</span><span class="el-label">Fit Heading</span>
+          <div data-hf-id="hf-bkws" class="element-item" draggable="true" data-element="fittext">
+            <span data-hf-id="hf-6rcz" class="el-icon">FIT</span><span data-hf-id="hf-5kj4" class="el-label">Fit Heading</span>
           </div>
-          <div class="element-item" draggable="true" data-element="html" title="Raw HTML — great for DESIGN.md component classes">
-            <span class="el-icon">⟨∕⟩</span><span class="el-label">HTML / Component</span>
+          <div data-hf-id="hf-86lh" class="element-item" draggable="true" data-element="html" title="Raw HTML — great for DESIGN.md component classes">
+            <span data-hf-id="hf-ebk6" class="el-icon">⟨∕⟩</span><span data-hf-id="hf-bk0w" class="el-label">HTML / Component</span>
           </div>
-          <div class="element-item" draggable="true" data-element="hyperframe" title="HyperFrame — sandboxed iframe with HTML+CSS+JS (GSAP-friendly)">
-            <span class="el-icon">▶</span><span class="el-label">HyperFrame</span>
+          <div data-hf-id="hf-qdcq" class="element-item" draggable="true" data-element="hyperframe" title="HyperFrame — sandboxed iframe with HTML+CSS+JS (GSAP-friendly)">
+            <span data-hf-id="hf-k9z2" class="el-icon">▶</span><span data-hf-id="hf-x6ss" class="el-label">HyperFrame</span>
           </div>
-          <div class="element-item" draggable="true" data-element="imageCompare">
-            <span class="el-icon">↔</span><span class="el-label">Image Compare</span>
+          <div data-hf-id="hf-3hs8" class="element-item" draggable="true" data-element="imageCompare">
+            <span data-hf-id="hf-zid4" class="el-icon">↔</span><span data-hf-id="hf-vvxb" class="el-label">Image Compare</span>
           </div>
-          <div class="element-item" draggable="true" data-element="imageCombine">
-            <span class="el-icon">⊕</span><span class="el-label">Image Combine</span>
+          <div data-hf-id="hf-eb0u" class="element-item" draggable="true" data-element="imageCombine">
+            <span data-hf-id="hf-sh8r" class="el-icon">⊕</span><span data-hf-id="hf-zdop" class="el-label">Image Combine</span>
           </div>
-          <div class="element-item" draggable="true" data-element="imageGrid">
-            <span class="el-icon">▦</span><span class="el-label">Image Grid</span>
+          <div data-hf-id="hf-1ict" class="element-item" draggable="true" data-element="imageGrid">
+            <span data-hf-id="hf-tmsy" class="el-icon">▦</span><span data-hf-id="hf-atcw" class="el-label">Image Grid</span>
           </div>
         </div>
       </div>
 
       <!-- Image Manager -->
-      <div class="left-tab-content" id="images-tab">
-        <div class="image-manager">
-          <div class="img-upload-area" id="img-upload-area">
-            <input type="file" id="img-file-input" accept="image/*" multiple hidden>
-            <span class="upload-icon">📁</span>
-            <p>Drop images here or <button id="btn-browse-images">Browse</button></p>
+      <div data-hf-id="hf-lhxr" class="left-tab-content" id="images-tab">
+        <div data-hf-id="hf-fa71" class="image-manager">
+          <div data-hf-id="hf-3jts" class="img-upload-area" id="img-upload-area">
+            <input data-hf-id="hf-om9b" type="file" id="img-file-input" accept="image/*" multiple hidden>
+            <span data-hf-id="hf-5hhm" class="upload-icon">📁</span>
+            <p data-hf-id="hf-4ynf">Drop images here or <button data-hf-id="hf-nk8m" id="btn-browse-images">Browse</button></p>
           </div>
-          <div class="img-url-input">
-            <input type="text" id="img-url-field" placeholder="Paste image URL...">
-            <button id="btn-add-url-image" title="Add">+</button>
+          <div data-hf-id="hf-vaae" class="img-url-input">
+            <input data-hf-id="hf-3415" type="text" id="img-url-field" placeholder="Paste image URL...">
+            <button data-hf-id="hf-g8it" id="btn-add-url-image" title="Add">+</button>
           </div>
-          <div id="image-gallery" class="image-gallery"></div>
+          <div data-hf-id="hf-bvzm" id="image-gallery" class="image-gallery"></div>
         </div>
       </div>
     </aside>
 
     <!-- ====== CENTER PANEL ====== -->
-    <section id="center-panel">
-      <div class="center-header">
-        <div class="center-header-left">
-          <button id="btn-prev-slide" title="Previous">◀</button>
-          <span id="slide-indicator">1 / 1</span>
-          <button id="btn-next-slide" title="Next">▶</button>
-          <span class="sep">|</span>
-          <span id="slide-count-badge">0 slides</span>
+    <section data-hf-id="hf-yijv" id="center-panel">
+      <div data-hf-id="hf-z6ab" class="center-header">
+        <div data-hf-id="hf-a2pj" class="center-header-left">
+          <button data-hf-id="hf-qft4" id="btn-prev-slide" title="Previous">◀</button>
+          <span data-hf-id="hf-sjlm" id="slide-indicator">1 / 1</span>
+          <button data-hf-id="hf-g3be" id="btn-next-slide" title="Next">▶</button>
+          <span data-hf-id="hf-kbj9" class="sep">|</span>
+          <span data-hf-id="hf-lgrn" id="slide-count-badge">0 slides</span>
         </div>
-        <div class="center-header-right" id="visual-toolbar-area">
-          <div class="quick-add-toolbar" id="quick-toolbar">
-            <button data-quick="heading" title="Add Heading">H</button>
-            <button data-quick="text" title="Add Text">T</button>
-            <button data-quick="bullets" title="Add List">☰</button>
-            <button data-quick="code" title="Add Code">&lt;/&gt;</button>
-            <button data-quick="html" title="Add HTML / Component (raw, for DESIGN.md classes)">⟨/⟩</button>
-            <button data-quick="table" title="Add Table">▦</button>
-            <button data-quick="image" title="Add Image">🖼</button>
-            <button id="btn-quick-video" title="Add Local Video File">🎬</button>
-            <input id="input-video-file" type="file" accept="video/*" style="display:none;">
-            <button data-quick="math" title="Add Math">∑</button>
-            <div class="toolbar-separator"></div>
-            <button id="btn-delete-element" title="Delete Selected (Del)" class="btn-danger-sm">🗑</button>
-            <button id="btn-move-up" title="Move Up (Alt+↑)" class="btn-move">⬆</button>
-            <button id="btn-move-down" title="Move Down (Alt+↓)" class="btn-move">⬇</button>
+        <div data-hf-id="hf-yqh8" class="center-header-right" id="visual-toolbar-area">
+          <div data-hf-id="hf-08wy" class="quick-add-toolbar" id="quick-toolbar">
+            <button data-hf-id="hf-8d41" data-quick="heading" title="Add Heading">H</button>
+            <button data-hf-id="hf-jfpn" data-quick="text" title="Add Text">T</button>
+            <button data-hf-id="hf-8rek" data-quick="bullets" title="Add List">☰</button>
+            <button data-hf-id="hf-v79q" data-quick="code" title="Add Code">&lt;/&gt;</button>
+            <button data-hf-id="hf-95ng" data-quick="html" title="Add HTML / Component (raw, for DESIGN.md classes)">⟨/⟩</button>
+            <button data-hf-id="hf-2hqr" data-quick="table" title="Add Table">▦</button>
+            <button data-hf-id="hf-lfra" data-quick="image" title="Add Image">🖼</button>
+            <button data-hf-id="hf-copc" id="btn-quick-video" title="Add Local Video File">🎬</button>
+            <input data-hf-id="hf-9wg2" id="input-video-file" type="file" accept="video/*" style="display:none;">
+            <button data-hf-id="hf-xi3m" data-quick="math" title="Add Math">∑</button>
+            <div data-hf-id="hf-1wof" class="toolbar-separator"></div>
+            <button data-hf-id="hf-cx2g" id="btn-delete-element" title="Delete Selected (Del)" class="btn-danger-sm">🗑</button>
+            <button data-hf-id="hf-8b0s" id="btn-move-up" title="Move Up (Alt+↑)" class="btn-move">⬆</button>
+            <button data-hf-id="hf-5qcp" id="btn-move-down" title="Move Down (Alt+↓)" class="btn-move">⬇</button>
           </div>
         </div>
       </div>
 
       <!-- Visual canvas -->
-      <div id="visual-canvas-wrapper" class="canvas-area">
-        <div id="visual-canvas" class="slide-canvas-visual">
-          <div id="drop-zone" class="drop-zone"></div>
+      <div data-hf-id="hf-ysez" id="visual-canvas-wrapper" class="canvas-area">
+        <div data-hf-id="hf-55d4" id="visual-canvas" class="slide-canvas-visual">
+          <div data-hf-id="hf-a5mq" id="drop-zone" class="drop-zone"></div>
         </div>
       </div>
 
       <!-- Markdown editor -->
-      <div id="markdown-panel" class="canvas-area hidden">
-        <textarea id="markdown-editor" spellcheck="false" placeholder="Write Markdown here..."></textarea>
+      <div data-hf-id="hf-vdyq" id="markdown-panel" class="canvas-area hidden">
+        <textarea data-hf-id="hf-q76h" id="markdown-editor" spellcheck="false" placeholder="Write Markdown here..."></textarea>
       </div>
 
       <!-- ====== TUTORIAL BUILDER PANEL ====== -->
-      <div id="tutorial-panel" class="hidden">
+      <div data-hf-id="hf-a5l1" id="tutorial-panel" class="hidden">
         <!-- Toolbar -->
-        <div id="tut-toolbar">
-          <div class="tut-tool-group">
-            <input id="tut-title-input" type="text" value="Code Tutorial" placeholder="Tutorial title…" title="Slide title">
+        <div data-hf-id="hf-tx9m" id="tut-toolbar">
+          <div data-hf-id="hf-vu24" class="tut-tool-group">
+            <input data-hf-id="hf-kdnq" id="tut-title-input" type="text" value="Code Tutorial" placeholder="Tutorial title…" title="Slide title">
           </div>
-          <div class="tut-sep"></div>
-          <div class="tut-tool-group">
-            <select id="tut-lang-select" title="Code language">
-              <option value="javascript">JavaScript</option>
-              <option value="typescript">TypeScript</option>
-              <option value="python">Python</option>
-              <option value="bash">Bash / Shell</option>
-              <option value="html">HTML</option>
-              <option value="css">CSS</option>
-              <option value="json">JSON</option>
-              <option value="sql">SQL</option>
-              <option value="java">Java</option>
-              <option value="csharp">C#</option>
-              <option value="cpp">C++</option>
-              <option value="go">Go</option>
-              <option value="rust">Rust</option>
-              <option value="ruby">Ruby</option>
-              <option value="php">PHP</option>
-              <option value="swift">Swift</option>
+          <div data-hf-id="hf-pkzw" class="tut-sep"></div>
+          <div data-hf-id="hf-nnus" class="tut-tool-group">
+            <select data-hf-id="hf-8y71" id="tut-lang-select" title="Code language">
+              <option data-hf-id="hf-kinv" value="javascript">JavaScript</option>
+              <option data-hf-id="hf-noxf" value="typescript">TypeScript</option>
+              <option data-hf-id="hf-uu91" value="python">Python</option>
+              <option data-hf-id="hf-zer6" value="bash">Bash / Shell</option>
+              <option data-hf-id="hf-g90z" value="html">HTML</option>
+              <option data-hf-id="hf-jhxp" value="css">CSS</option>
+              <option data-hf-id="hf-3p8t" value="json">JSON</option>
+              <option data-hf-id="hf-w0ut" value="sql">SQL</option>
+              <option data-hf-id="hf-o4st" value="java">Java</option>
+              <option data-hf-id="hf-t6f2" value="csharp">C#</option>
+              <option data-hf-id="hf-lb8r" value="cpp">C++</option>
+              <option data-hf-id="hf-sydp" value="go">Go</option>
+              <option data-hf-id="hf-ppc5" value="rust">Rust</option>
+              <option data-hf-id="hf-abcl" value="ruby">Ruby</option>
+              <option data-hf-id="hf-yl05" value="php">PHP</option>
+              <option data-hf-id="hf-xyo1" value="swift">Swift</option>
             </select>
           </div>
-          <div class="tut-sep"></div>
-          <div class="tut-tool-group">
-            <button id="tut-annotate-btn" class="tut-btn primary" title="Select text in the editor, then click to add an annotation callout">
+          <div data-hf-id="hf-kt5w" class="tut-sep"></div>
+          <div data-hf-id="hf-mgxp" class="tut-tool-group">
+            <button data-hf-id="hf-8i7c" id="tut-annotate-btn" class="tut-btn primary" title="Select text in the editor, then click to add an annotation callout">
               💡 Annotate Selection
             </button>
-            <button id="tut-add-text-btn" class="tut-btn" title="Add a free-floating text callout">
+            <button data-hf-id="hf-2f4q" id="tut-add-text-btn" class="tut-btn" title="Add a free-floating text callout">
               + Text
             </button>
           </div>
-          <div class="tut-sep"></div>
-          <div class="tut-tool-group">
-            <button id="tut-export-btn" class="tut-btn success" title="Download slide as PNG image">
+          <div data-hf-id="hf-jm8t" class="tut-sep"></div>
+          <div data-hf-id="hf-mv8q" class="tut-tool-group">
+            <button data-hf-id="hf-vyr5" id="tut-export-btn" class="tut-btn success" title="Download slide as PNG image">
               📸 Download PNG
             </button>
-            <button id="tut-export-gif-btn" class="tut-btn" title="Export as animated GIF">
+            <button data-hf-id="hf-i01z" id="tut-export-gif-btn" class="tut-btn" title="Export as animated GIF">
               🎞 Export GIF
             </button>
-            <button id="tut-insert-btn" class="tut-btn primary" title="Insert as image element in current slide">
+            <button data-hf-id="hf-4ol8" id="tut-insert-btn" class="tut-btn primary" title="Insert as image element in current slide">
               📥 Insert to Slide
             </button>
-             <button id="tut-insert-interactive-btn" class="tut-btn" title="Insert as interactive tutorial element in current slide">
+             <button data-hf-id="hf-e5vj" id="tut-insert-interactive-btn" class="tut-btn" title="Insert as interactive tutorial element in current slide">
                🧩 Insert as Interactive Tutorial
              </button>
-            <button id="tut-clear-btn" class="tut-btn" title="Remove all annotations">
+            <button data-hf-id="hf-xtsi" id="tut-clear-btn" class="tut-btn" title="Remove all annotations">
               🗑 Clear
             </button>
           </div>
-          <span id="tut-hint">Select code in the editor → click Annotate Selection → drag callouts &amp; edit text</span>
+          <span data-hf-id="hf-sxut" id="tut-hint">Select code in the editor → click Annotate Selection → drag callouts &amp; edit text</span>
         </div>
 
         <!-- Split: editor left, canvas right -->
-        <div id="tut-split">
+        <div data-hf-id="hf-blsv" id="tut-split">
 
           <!-- Left: code editor -->
-          <div id="tut-editor-panel">
-            <div id="tut-editor-panel-header">Code Editor</div>
-            <textarea
-              id="tut-code-editor"
-              spellcheck="false"
-              autocomplete="off"
-              autocorrect="off"
-              autocapitalize="off"
-              placeholder="Paste or type your code here…&#10;Select any portion and click &#34;Annotate Selection&#34; to explain it.">
+          <div data-hf-id="hf-pwx3" id="tut-editor-panel">
+            <div data-hf-id="hf-fkbn" id="tut-editor-panel-header">Code Editor</div>
+            <textarea data-hf-id="hf-0fga" id="tut-code-editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="Paste or type your code here…
+Select any portion and click &quot;Annotate Selection&quot; to explain it.">
             </textarea>
           </div>
 
           <!-- Right: visual canvas -->
-          <div id="tut-canvas-panel">
-            <div id="tut-slide">
+          <div data-hf-id="hf-4y6w" id="tut-canvas-panel">
+            <div data-hf-id="hf-fwe0" id="tut-slide">
               <!-- Title -->
-              <div id="tut-slide-title-el" contenteditable="true" spellcheck="false">Code Tutorial</div>
+              <div data-hf-id="hf-4a1g" id="tut-slide-title-el" contenteditable="true" spellcheck="false">Code Tutorial</div>
 
               <!-- Code block -->
-              <div id="tut-slide-code-wrap">
-                <div id="tut-slide-code-bar">
-                  <span id="tut-slide-code-lang-badge">javascript</span>
+              <div data-hf-id="hf-4c7n" id="tut-slide-code-wrap">
+                <div data-hf-id="hf-avdm" id="tut-slide-code-bar">
+                  <span data-hf-id="hf-qg2n" id="tut-slide-code-lang-badge">javascript</span>
                 </div>
-                <pre id="tut-slide-code-pre"><code id="tut-code-display"></code></pre>
+                <pre data-hf-id="hf-y6qo" id="tut-slide-code-pre"><code data-hf-id="hf-zblj" id="tut-code-display"></code></pre>
               </div>
 
               <!-- Empty state -->
-              <div id="tut-empty-hint">
-                <span class="hint-icon">💡</span>
-                <p>Select code in the editor and click<br><strong>Annotate Selection</strong> to add a callout</p>
+              <div data-hf-id="hf-wiwe" id="tut-empty-hint">
+                <span data-hf-id="hf-lkmm" class="hint-icon">💡</span>
+                <p data-hf-id="hf-j9ox">Select code in the editor and click<br data-hf-id="hf-x5px"><strong data-hf-id="hf-xtkk">Annotate Selection</strong> to add a callout</p>
               </div>
 
               <!-- Arrows SVG overlay -->
-              <svg id="tut-arrows-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+              <svg data-hf-id="hf-ouc7" id="tut-arrows-svg" xmlns="http://www.w3.org/2000/svg" />
 
               <!-- Draggable annotation cards -->
-              <div id="tut-annot-layer"></div>
+              <div data-hf-id="hf-qbq7" id="tut-annot-layer"></div>
 
               <!-- Export overlay -->
-              <div id="tut-exporting-overlay" class="hidden">
+              <div data-hf-id="hf-olmb" id="tut-exporting-overlay" class="hidden">
                 ⏳ Generating PNG…
               </div>
 
               <!-- GIF export overlay -->
-              <div id="tut-gif-overlay" class="hidden">
-                <span id="tut-gif-status">🎞 Preparing GIF…</span>
-                <div id="tut-gif-progress-bar"><div id="tut-gif-progress-fill"></div></div>
+              <div data-hf-id="hf-fhbr" id="tut-gif-overlay" class="hidden">
+                <span data-hf-id="hf-u6lv" id="tut-gif-status">🎞 Preparing GIF…</span>
+                <div data-hf-id="hf-28m3" id="tut-gif-progress-bar"><div data-hf-id="hf-nl13" id="tut-gif-progress-fill"></div></div>
               </div>
             </div>
           </div>
@@ -389,399 +384,415 @@
     </section>
 
     <!-- ====== RIGHT PANEL ====== -->
-    <aside id="right-panel">
-      <div class="right-tabs">
-        <button class="right-tab active" data-tab="props-tab">Properties</button>
-        <button class="right-tab" data-tab="directives-tab">Directives</button>
-        <button class="right-tab" data-tab="style-tab">Style</button>
+    <aside data-hf-id="hf-b97r" id="right-panel">
+      <div data-hf-id="hf-1yt3" class="right-tabs">
+        <button data-hf-id="hf-echn" class="right-tab active" data-tab="props-tab">Properties</button>
+        <button data-hf-id="hf-7z4g" class="right-tab" data-tab="directives-tab">Directives</button>
+        <button data-hf-id="hf-8imw" class="right-tab" data-tab="style-tab">Style</button>
       </div>
 
       <!-- Properties Panel -->
-      <div class="right-tab-content active" id="props-tab">
-        <div id="props-none" class="props-placeholder">
-          <p>Select an element to edit its properties</p>
+      <div data-hf-id="hf-wb4w" class="right-tab-content active" id="props-tab">
+        <div data-hf-id="hf-iq79" id="props-none" class="props-placeholder">
+          <p data-hf-id="hf-udy8">Select an element to edit its properties</p>
         </div>
-        <div id="props-editor" class="props-form hidden">
-          <div class="prop-group">
-            <label>Type</label>
-            <span id="prop-type" class="prop-readonly"></span>
+        <div data-hf-id="hf-6isd" id="props-editor" class="props-form hidden">
+          <div data-hf-id="hf-v2t1" class="prop-group">
+            <label data-hf-id="hf-e585">Type</label>
+            <span data-hf-id="hf-ori5" id="prop-type" class="prop-readonly"></span>
           </div>
-          <div class="prop-group" id="prop-content-group">
-            <label>Content</label>
-            <textarea id="prop-content" rows="5"></textarea>
+          <div data-hf-id="hf-0h42" class="prop-group" id="prop-content-group">
+            <label data-hf-id="hf-vvsq">Content</label>
+            <textarea data-hf-id="hf-1siu" id="prop-content" rows="5"></textarea>
           </div>
-          <div class="prop-group hidden" id="prop-hyperframe-import-group">
-            <label>HyperFrame HTML</label>
-            <button type="button" id="prop-hyperframe-import" class="btn-primary">Import HTML File</button>
-            <input type="file" id="prop-hyperframe-file" accept=".html,.htm,text/html" hidden>
-            <div id="prop-hyperframe-import-progress" class="prop-import-progress hidden">
-              <div class="prop-import-progress-bar"><span></span></div>
-              <div class="prop-import-progress-label">Ready</div>
+          <div data-hf-id="hf-sv2u" class="prop-group hidden" id="prop-hyperframe-import-group">
+            <label data-hf-id="hf-fh9n">HyperFrame HTML</label>
+            <button data-hf-id="hf-pmmy" type="button" id="prop-hyperframe-import" class="btn-primary">Import HTML File</button>
+            <input data-hf-id="hf-jffq" type="file" id="prop-hyperframe-file" accept=".html,.htm,text/html" hidden>
+            <div data-hf-id="hf-4oos" id="prop-hyperframe-import-progress" class="prop-import-progress hidden">
+              <div data-hf-id="hf-52fx" class="prop-import-progress-bar"><span data-hf-id="hf-uckh"></span></div>
+              <div data-hf-id="hf-ali3" class="prop-import-progress-label">Ready</div>
             </div>
           </div>
-          <div class="prop-group" id="prop-transform-group">
-            <label>Size & Rotation</label>
-            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-              <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#9ca3af;">W
-                <input type="number" id="prop-style-w" min="40" step="10" placeholder="auto" style="width:70px;">
+          <div data-hf-id="hf-e30d" class="prop-group" id="prop-transform-group">
+            <label data-hf-id="hf-acbc">Size &amp; Rotation</label>
+            <div data-hf-id="hf-x9vj" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <label data-hf-id="hf-0gww" style="display:flex;align-items:center;gap:4px;font-size:11px;color:#9ca3af;">W
+                <input data-hf-id="hf-n8el" type="number" id="prop-style-w" min="40" step="10" placeholder="auto" style="width:70px;">
               </label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#9ca3af;">H
-                <input type="number" id="prop-style-h" min="20" step="10" placeholder="auto" style="width:70px;">
+              <label data-hf-id="hf-o5f1" style="display:flex;align-items:center;gap:4px;font-size:11px;color:#9ca3af;">H
+                <input data-hf-id="hf-6zzs" type="number" id="prop-style-h" min="20" step="10" placeholder="auto" style="width:70px;">
               </label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#9ca3af;">↻
-                <input type="number" id="prop-rotate" step="1" placeholder="0°" style="width:60px;">
+              <label data-hf-id="hf-hqsk" style="display:flex;align-items:center;gap:4px;font-size:11px;color:#9ca3af;">↻
+                <input data-hf-id="hf-ocxk" type="number" id="prop-rotate" step="1" placeholder="0°" style="width:60px;">
               </label>
-              <button type="button" id="prop-transform-reset" style="padding:2px 8px;font-size:11px;cursor:pointer;">Reset</button>
+              <button data-hf-id="hf-ffnq" type="button" id="prop-transform-reset" style="padding:2px 8px;font-size:11px;cursor:pointer;">Reset</button>
             </div>
           </div>
-          <div class="prop-group hidden" id="prop-level-group">
-            <label>Heading Level</label>
-            <select id="prop-heading-level">
-              <option value="1">H1</option><option value="2">H2</option><option value="3">H3</option>
-              <option value="4">H4</option><option value="5">H5</option><option value="6">H6</option>
+          <div data-hf-id="hf-ozrl" class="prop-group hidden" id="prop-level-group">
+            <label data-hf-id="hf-mbif">Heading Level</label>
+            <select data-hf-id="hf-2rk5" id="prop-heading-level">
+              <option data-hf-id="hf-ok29" value="1">H1</option><option data-hf-id="hf-5e0v" value="2">H2</option><option data-hf-id="hf-easd" value="3">H3</option>
+              <option data-hf-id="hf-to7z" value="4">H4</option><option data-hf-id="hf-oz35" value="5">H5</option><option data-hf-id="hf-v27b" value="6">H6</option>
             </select>
           </div>
-          <div class="prop-group hidden" id="prop-lang-group">
-            <label>Language</label>
-            <select id="prop-code-lang">
-              <option value="">Auto</option><option value="python">Python</option>
-              <option value="javascript">JavaScript</option><option value="typescript">TypeScript</option>
-              <option value="html">HTML</option><option value="css">CSS</option>
-              <option value="bash">Bash</option><option value="sql">SQL</option>
-              <option value="json">JSON</option><option value="yaml">YAML</option>
-              <option value="java">Java</option><option value="csharp">C#</option>
-              <option value="cpp">C++</option><option value="go">Go</option>
-              <option value="rust">Rust</option><option value="ruby">Ruby</option>
-              <option value="php">PHP</option><option value="swift">Swift</option>
+          <div data-hf-id="hf-c19t" class="prop-group hidden" id="prop-lang-group">
+            <label data-hf-id="hf-0whf">Language</label>
+            <select data-hf-id="hf-tmwa" id="prop-code-lang">
+              <option data-hf-id="hf-8wkm" value="">Auto</option><option data-hf-id="hf-ejuh" value="python">Python</option>
+              <option data-hf-id="hf-n4fv" value="javascript">JavaScript</option><option data-hf-id="hf-n3gz" value="typescript">TypeScript</option>
+              <option data-hf-id="hf-ma6r" value="html">HTML</option><option data-hf-id="hf-iu2p" value="css">CSS</option>
+              <option data-hf-id="hf-aiwl" value="bash">Bash</option><option data-hf-id="hf-js09" value="sql">SQL</option>
+              <option data-hf-id="hf-2nr5" value="json">JSON</option><option data-hf-id="hf-f6yn" value="yaml">YAML</option>
+              <option data-hf-id="hf-qf7l" value="java">Java</option><option data-hf-id="hf-34iq" value="csharp">C#</option>
+              <option data-hf-id="hf-hamj" value="cpp">C++</option><option data-hf-id="hf-8gg1" value="go">Go</option>
+              <option data-hf-id="hf-xiah" value="rust">Rust</option><option data-hf-id="hf-0dux" value="ruby">Ruby</option>
+              <option data-hf-id="hf-5c09" value="php">PHP</option><option data-hf-id="hf-2hg5" value="swift">Swift</option>
             </select>
           </div>
-          <div class="prop-group hidden" id="prop-imgurl-group">
-            <label>Image Source</label>
-            <input type="text" id="prop-img-url" placeholder="URL or data URI">
-            <div id="prop-img-preview" class="prop-img-preview"></div>
+          <div data-hf-id="hf-zyxd" class="prop-group hidden" id="prop-imgurl-group">
+            <label data-hf-id="hf-nnu3">Image Source</label>
+            <input data-hf-id="hf-xr1j" type="text" id="prop-img-url" placeholder="URL or data URI">
+            <div data-hf-id="hf-e136" id="prop-img-preview" class="prop-img-preview"></div>
           </div>
-          <div class="prop-group hidden" id="prop-imgsize-group">
-            <label>Sizing (Marpit)</label>
-            <select id="prop-img-sizing">
-              <option value="">Default</option><option value="auto">auto</option>
-              <option value="contain">contain</option><option value="cover">cover</option>
-              <option value="fit">fit</option><option value="50%">50%</option>
-              <option value="75%">75%</option><option value="100%">100%</option>
+          <div data-hf-id="hf-vj01" class="prop-group hidden" id="prop-imgsize-group">
+            <label data-hf-id="hf-liah">Sizing (Marpit)</label>
+            <select data-hf-id="hf-4kke" id="prop-img-sizing">
+              <option data-hf-id="hf-3o9a" value="">Default</option><option data-hf-id="hf-6wgz" value="auto">auto</option>
+              <option data-hf-id="hf-ocol" value="contain">contain</option><option data-hf-id="hf-ewt5" value="cover">cover</option>
+              <option data-hf-id="hf-ok6p" value="fit">fit</option><option data-hf-id="hf-p5yt" value="50%">50%</option>
+              <option data-hf-id="hf-4awp" value="75%">75%</option><option data-hf-id="hf-9ws5" value="100%">100%</option>
             </select>
           </div>
-          <div class="prop-group hidden" id="prop-imgfilter-group">
-            <label>Filters (Marpit)</label>
-            <div class="filter-chips" id="filter-chips">
-              <label><input type="checkbox" data-filter="blur"> blur</label>
-              <label><input type="checkbox" data-filter="brightness"> bright</label>
-              <label><input type="checkbox" data-filter="grayscale"> gray</label>
-              <label><input type="checkbox" data-filter="invert"> invert</label>
-              <label><input type="checkbox" data-filter="opacity"> opacity</label>
-              <label><input type="checkbox" data-filter="sepia"> sepia</label>
-              <label><input type="checkbox" data-filter="drop-shadow"> shadow</label>
+          <div data-hf-id="hf-nfns" class="prop-group hidden" id="prop-imgfilter-group">
+            <label data-hf-id="hf-rqgg">Filters (Marpit)</label>
+            <div data-hf-id="hf-mpji" class="filter-chips" id="filter-chips">
+              <label data-hf-id="hf-nlts"><input data-hf-id="hf-r4z9" type="checkbox" data-filter="blur"> blur</label>
+              <label data-hf-id="hf-p5tp"><input data-hf-id="hf-eihf" type="checkbox" data-filter="brightness"> bright</label>
+              <label data-hf-id="hf-t2qq"><input data-hf-id="hf-x733" type="checkbox" data-filter="grayscale"> gray</label>
+              <label data-hf-id="hf-ixqx"><input data-hf-id="hf-afu6" type="checkbox" data-filter="invert"> invert</label>
+              <label data-hf-id="hf-hrem"><input data-hf-id="hf-4rj1" type="checkbox" data-filter="opacity"> opacity</label>
+              <label data-hf-id="hf-i4e9"><input data-hf-id="hf-y94o" type="checkbox" data-filter="sepia"> sepia</label>
+              <label data-hf-id="hf-eek9"><input data-hf-id="hf-k60a" type="checkbox" data-filter="drop-shadow"> shadow</label>
             </div>
           </div>
-          <div class="prop-group hidden" id="prop-bgimg-group">
-            <label>BG Mode (Marpit)</label>
-            <select id="prop-bg-mode">
-              <option value="">Normal</option><option value="bg">bg (cover)</option>
-              <option value="bg left">bg left</option><option value="bg right">bg right</option>
-              <option value="bg contain">bg contain</option><option value="bg fit">bg fit</option>
-              <option value="bg vertical">bg vertical</option>
+          <div data-hf-id="hf-sys9" class="prop-group hidden" id="prop-bgimg-group">
+            <label data-hf-id="hf-bdln">BG Mode (Marpit)</label>
+            <select data-hf-id="hf-ertp" id="prop-bg-mode">
+              <option data-hf-id="hf-q2v6" value="">Normal</option><option data-hf-id="hf-xc4h" value="bg">bg (cover)</option>
+              <option data-hf-id="hf-ns05" value="bg left">bg left</option><option data-hf-id="hf-5wyn" value="bg right">bg right</option>
+              <option data-hf-id="hf-2a1r" value="bg contain">bg contain</option><option data-hf-id="hf-xbbd" value="bg fit">bg fit</option>
+              <option data-hf-id="hf-6bzx" value="bg vertical">bg vertical</option>
             </select>
           </div>
-          <div class="prop-group hidden" id="prop-fit-group">
-            <label><input type="checkbox" id="prop-fit-check"> Fit (stretch to fill)</label>
+          <div data-hf-id="hf-ym3i" class="prop-group hidden" id="prop-fit-group">
+            <label data-hf-id="hf-t04y"><input data-hf-id="hf-jxiy" type="checkbox" id="prop-fit-check"> Fit (stretch to fill)</label>
           </div>
-          <div class="prop-group hidden" id="prop-fragment-group">
-            <label>List Style</label>
-            <select id="prop-list-style">
-              <option value="dash">- Normal bullets</option>
-              <option value="star">* Fragmented (animated)</option>
-              <option value="ordered">1. 2. 3. Ordered</option>
+          <div data-hf-id="hf-9aqp" class="prop-group hidden" id="prop-fragment-group">
+            <label data-hf-id="hf-osfw">List Style</label>
+            <select data-hf-id="hf-w8ru" id="prop-list-style">
+              <option data-hf-id="hf-4o7q" value="dash">- Normal bullets</option>
+              <option data-hf-id="hf-ky8a" value="star">* Fragmented (animated)</option>
+              <option data-hf-id="hf-90m7" value="ordered">1. 2. 3. Ordered</option>
             </select>
           </div>
-          <div class="prop-group hidden" id="prop-right-content-group">
-            <label>Right Column</label>
-            <textarea id="prop-right-content" rows="4"></textarea>
+          <div data-hf-id="hf-wusx" class="prop-group hidden" id="prop-right-content-group">
+            <label data-hf-id="hf-mqbp">Right Column</label>
+            <textarea data-hf-id="hf-d0sg" id="prop-right-content" rows="4"></textarea>
           </div>
-          <div class="prop-group hidden" id="prop-compare-group">
-            <label>Left Image</label>
-            <div class="img-drop-target" id="drop-compare-left" data-field="prop-compare-left">
-              <div class="img-drop-preview" id="preview-compare-left"></div>
-              <span class="img-drop-hint">Drop image here or paste URL</span>
+          <div data-hf-id="hf-ag5q" class="prop-group hidden" id="prop-compare-group">
+            <label data-hf-id="hf-8b11">Left Image</label>
+            <div data-hf-id="hf-kpzv" class="img-drop-target" id="drop-compare-left" data-field="prop-compare-left">
+              <div data-hf-id="hf-yrug" class="img-drop-preview" id="preview-compare-left"></div>
+              <span data-hf-id="hf-6u3z" class="img-drop-hint">Drop image here or paste URL</span>
             </div>
-            <input type="text" id="prop-compare-left" placeholder="Left/Before image URL">
-            <label style="margin-top:6px">Left Label</label>
-            <input type="text" id="prop-compare-left-label" placeholder="Before">
-            <label style="margin-top:10px">Right Image</label>
-            <div class="img-drop-target" id="drop-compare-right" data-field="prop-compare-right">
-              <div class="img-drop-preview" id="preview-compare-right"></div>
-              <span class="img-drop-hint">Drop image here or paste URL</span>
+            <input data-hf-id="hf-2570" type="text" id="prop-compare-left" placeholder="Left/Before image URL">
+            <label data-hf-id="hf-ii17" style="margin-top:6px">Left Label</label>
+            <input data-hf-id="hf-2q23" type="text" id="prop-compare-left-label" placeholder="Before">
+            <label data-hf-id="hf-z6j0" style="margin-top:10px">Right Image</label>
+            <div data-hf-id="hf-pkgd" class="img-drop-target" id="drop-compare-right" data-field="prop-compare-right">
+              <div data-hf-id="hf-m66f" class="img-drop-preview" id="preview-compare-right"></div>
+              <span data-hf-id="hf-hfdb" class="img-drop-hint">Drop image here or paste URL</span>
             </div>
-            <input type="text" id="prop-compare-right" placeholder="Right/After image URL">
-            <label style="margin-top:6px">Right Label</label>
-            <input type="text" id="prop-compare-right-label" placeholder="After">
+            <input data-hf-id="hf-zkb7" type="text" id="prop-compare-right" placeholder="Right/After image URL">
+            <label data-hf-id="hf-z37g" style="margin-top:6px">Right Label</label>
+            <input data-hf-id="hf-mlq9" type="text" id="prop-compare-right-label" placeholder="After">
           </div>
-          <div class="prop-group hidden" id="prop-combine-group">
-            <label>Source Images <span class="drop-grid-hint">(drop images below)</span></label>
-            <div class="img-drop-target img-drop-target-grid" id="drop-combine-sources">
-              <div id="combine-src-previews" class="grid-drop-previews"></div>
-              <span class="img-drop-hint">Drop source images here</span>
+          <div data-hf-id="hf-wju4" class="prop-group hidden" id="prop-combine-group">
+            <label data-hf-id="hf-j5re">Source Images <span data-hf-id="hf-h3xa" class="drop-grid-hint">(drop images below)</span></label>
+            <div data-hf-id="hf-a43h" class="img-drop-target img-drop-target-grid" id="drop-combine-sources">
+              <div data-hf-id="hf-li72" id="combine-src-previews" class="grid-drop-previews"></div>
+              <span data-hf-id="hf-0goo" class="img-drop-hint">Drop source images here</span>
             </div>
-            <div id="combine-source-cards" class="grid-image-cards"></div>
-            <label style="margin-top:10px">Result Image</label>
-            <div class="img-drop-target" id="drop-combine-result" data-field="prop-combine-result">
-              <div class="img-drop-preview" id="preview-combine-result"></div>
-              <span class="img-drop-hint">Drop result image here</span>
+            <div data-hf-id="hf-tdit" id="combine-source-cards" class="grid-image-cards"></div>
+            <label data-hf-id="hf-e9rl" style="margin-top:10px">Result Image</label>
+            <div data-hf-id="hf-t57n" class="img-drop-target" id="drop-combine-result" data-field="prop-combine-result">
+              <div data-hf-id="hf-kmv2" class="img-drop-preview" id="preview-combine-result"></div>
+              <span data-hf-id="hf-zvth" class="img-drop-hint">Drop result image here</span>
             </div>
-            <input type="text" id="prop-combine-result" placeholder="Result image URL">
-            <label style="margin-top:6px">Result Label</label>
-            <input type="text" id="prop-combine-result-label" placeholder="Result">
+            <input data-hf-id="hf-w0vg" type="text" id="prop-combine-result" placeholder="Result image URL">
+            <label data-hf-id="hf-wb2b" style="margin-top:6px">Result Label</label>
+            <input data-hf-id="hf-fj13" type="text" id="prop-combine-result-label" placeholder="Result">
           </div>
-          <div class="prop-group hidden" id="prop-grid-group">
-            <label>Images <span class="drop-grid-hint">(drop images below)</span></label>
-            <div class="img-drop-target img-drop-target-grid" id="drop-grid-images">
-              <div id="grid-drop-previews" class="grid-drop-previews"></div>
-              <span class="img-drop-hint">Drop images here to add</span>
+          <div data-hf-id="hf-mh2t" class="prop-group hidden" id="prop-grid-group">
+            <label data-hf-id="hf-59b7">Images <span data-hf-id="hf-yyv6" class="drop-grid-hint">(drop images below)</span></label>
+            <div data-hf-id="hf-97b4" class="img-drop-target img-drop-target-grid" id="drop-grid-images">
+              <div data-hf-id="hf-un7q" id="grid-drop-previews" class="grid-drop-previews"></div>
+              <span data-hf-id="hf-0zzr" class="img-drop-hint">Drop images here to add</span>
             </div>
-            <label class="grid-sync-label"><input type="checkbox" id="grid-sync-sizes"> Sync all W &amp; H</label>
-            <div id="grid-image-cards" class="grid-image-cards"></div>
+            <label data-hf-id="hf-vy7l" class="grid-sync-label"><input data-hf-id="hf-zs1p" type="checkbox" id="grid-sync-sizes"> Sync all W &amp; H</label>
+            <div data-hf-id="hf-d0aa" id="grid-image-cards" class="grid-image-cards"></div>
           </div>
         </div>
       </div>
 
       <!-- Directives Panel -->
-      <div class="right-tab-content" id="directives-tab">
-        <div class="props-form">
-          <h4 class="section-title">Global Directives</h4>
-          <div class="prop-group">
-            <label>Theme</label>
-            <select id="dir-theme">
-              <option value="default">default</option>
-              <option value="gaia">gaia</option>
-              <option value="uncover">uncover</option>
-              <option value="dark">dark</option>
-              <option value="gradient">gradient</option>
-              <option value="neon">neon</option>
-              <optgroup label="Awesome-Marp">
-                <option value="awesome-marp-blue">Awesome-Marp Blue</option>
-                <option value="awesome-marp-dark">Awesome-Marp Dark</option>
-                <option value="awesome-marp-green">Awesome-Marp Green</option>
-                <option value="awesome-marp-red">Awesome-Marp Red</option>
-                <option value="awesome-marp-purple">Awesome-Marp Purple</option>
-                <option value="awesome-marp-brown">Awesome-Marp Brown</option>
+      <div data-hf-id="hf-7jhu" class="right-tab-content" id="directives-tab">
+        <div data-hf-id="hf-zbop" class="props-form">
+          <h4 data-hf-id="hf-7oaq" class="section-title">Global Directives</h4>
+          <div data-hf-id="hf-rhgp" class="prop-group">
+            <label data-hf-id="hf-lntm">Theme</label>
+            <select data-hf-id="hf-qsxz" id="dir-theme">
+              <option data-hf-id="hf-1et9" value="default">default</option>
+              <option data-hf-id="hf-yzvp" value="gaia">gaia</option>
+              <option data-hf-id="hf-66l1" value="uncover">uncover</option>
+              <option data-hf-id="hf-d9k5" value="dark">dark</option>
+              <option data-hf-id="hf-e23d" value="gradient">gradient</option>
+              <option data-hf-id="hf-7dch" value="neon">neon</option>
+              <optgroup data-hf-id="hf-fmvt" label="Awesome-Marp">
+                <option data-hf-id="hf-izme" value="awesome-marp-blue">Awesome-Marp Blue</option>
+                <option data-hf-id="hf-zxr6" value="awesome-marp-dark">Awesome-Marp Dark</option>
+                <option data-hf-id="hf-ml58" value="awesome-marp-green">Awesome-Marp Green</option>
+                <option data-hf-id="hf-5z48" value="awesome-marp-red">Awesome-Marp Red</option>
+                <option data-hf-id="hf-8hha" value="awesome-marp-purple">Awesome-Marp Purple</option>
+                <option data-hf-id="hf-7boq" value="awesome-marp-brown">Awesome-Marp Brown</option>
               </optgroup>
             </select>
           </div>
-          <div class="prop-group">
-            <label><input type="checkbox" id="dir-paginate" checked> Paginate</label>
+          <div data-hf-id="hf-sods" class="prop-group">
+            <label data-hf-id="hf-e2ik"><input data-hf-id="hf-i4ah" type="checkbox" id="dir-paginate" checked> Paginate</label>
           </div>
-          <div class="prop-group">
-            <label>Header</label>
-            <input type="text" id="dir-header" placeholder="Header text">
+          <div data-hf-id="hf-sa2r" class="prop-group">
+            <label data-hf-id="hf-yl1k">Header</label>
+            <input data-hf-id="hf-s35v" type="text" id="dir-header" placeholder="Header text">
           </div>
-          <div class="prop-group">
-            <label>Footer</label>
-            <input type="text" id="dir-footer" placeholder="Footer text">
+          <div data-hf-id="hf-qajm" class="prop-group">
+            <label data-hf-id="hf-lnvu">Footer</label>
+            <input data-hf-id="hf-al6v" type="text" id="dir-footer" placeholder="Footer text">
           </div>
-          <div class="prop-group">
-            <label>Global Class</label>
-            <input type="text" id="dir-global-class" placeholder="e.g. invert, lead">
+          <div data-hf-id="hf-pw8l" class="prop-group">
+            <label data-hf-id="hf-nevm">Global Class</label>
+            <input data-hf-id="hf-j9dm" type="text" id="dir-global-class" placeholder="e.g. invert, lead">
           </div>
-          <div class="prop-group">
-            <label>Logo Image (bottom-left)</label>
-            <input type="text" id="dir-logo" placeholder="Logo URL...">
-            <div id="logo-preview" style="margin-top:4px"></div>
+          <div data-hf-id="hf-r35o" class="prop-group">
+            <label data-hf-id="hf-8jox">Logo Image (bottom-left)</label>
+            <input data-hf-id="hf-ee85" type="text" id="dir-logo" placeholder="Logo URL...">
+            <div data-hf-id="hf-we2z" id="logo-preview" style="margin-top:4px"></div>
           </div>
-          <div class="prop-group">
-            <label>Default Transition (Marp bespoke)</label>
-            <select id="dir-transition">
-              <option value="">none</option>
-              <option value="fade">fade</option>
-              <option value="fade-out">fade-out</option>
-              <option value="slide">slide</option>
-              <option value="push">push</option>
-              <option value="cover">cover</option>
-              <option value="reveal">reveal</option>
-              <option value="wipe">wipe</option>
-              <option value="zoom">zoom</option>
-              <option value="rotate">rotate</option>
-              <option value="flip">flip</option>
-              <option value="fall">fall</option>
-              <option value="drop">drop</option>
-              <option value="glow">glow</option>
-              <option value="swap">swap</option>
-              <option value="iris-in">iris-in</option>
-              <option value="iris-out">iris-out</option>
-              <option value="explode">explode</option>
-              <option value="implode">implode</option>
+          <div data-hf-id="hf-qoun" class="prop-group">
+            <label data-hf-id="hf-zy2l">Default Transition (Marp bespoke)</label>
+            <select data-hf-id="hf-y91l" id="dir-transition">
+              <option data-hf-id="hf-2iob" value="">none</option>
+              <option data-hf-id="hf-t585" value="fade">fade</option>
+              <option data-hf-id="hf-837v" value="fade-out">fade-out</option>
+              <option data-hf-id="hf-9ymd" value="slide">slide</option>
+              <option data-hf-id="hf-htih" value="push">push</option>
+              <option data-hf-id="hf-h4z1" value="cover">cover</option>
+              <option data-hf-id="hf-6zmz" value="reveal">reveal</option>
+              <option data-hf-id="hf-6wy7" value="wipe">wipe</option>
+              <option data-hf-id="hf-5jhv" value="zoom">zoom</option>
+              <option data-hf-id="hf-1fd7" value="rotate">rotate</option>
+              <option data-hf-id="hf-src7" value="flip">flip</option>
+              <option data-hf-id="hf-7f3z" value="fall">fall</option>
+              <option data-hf-id="hf-sg33" value="drop">drop</option>
+              <option data-hf-id="hf-f1ij" value="glow">glow</option>
+              <option data-hf-id="hf-09dv" value="swap">swap</option>
+              <option data-hf-id="hf-wmwd" value="iris-in">iris-in</option>
+              <option data-hf-id="hf-7cyt" value="iris-out">iris-out</option>
+              <option data-hf-id="hf-a7g5" value="explode">explode</option>
+              <option data-hf-id="hf-emn1" value="implode">implode</option>
             </select>
-            <input type="text" id="dir-transition-duration" placeholder="Duration e.g. 0.5s, 800ms" style="margin-top:4px">
+            <input data-hf-id="hf-wqf8" type="text" id="dir-transition-duration" placeholder="Duration e.g. 0.5s, 800ms" style="margin-top:4px">
           </div>
 
-          <h4 class="section-title">Per-Slide Directives</h4>
-          <div class="prop-group">
-            <label>Background Color</label>
-            <div class="color-row">
-              <input type="color" id="dir-bg-color" value="#ffffff">
-              <input type="text" id="dir-bg-color-text" placeholder="#ffffff">
+          <h4 data-hf-id="hf-fgvo" class="section-title">Per-Slide Directives</h4>
+          <div data-hf-id="hf-opbi" class="prop-group">
+            <label data-hf-id="hf-y0pa">Background Color</label>
+            <div data-hf-id="hf-htm6" class="color-row">
+              <input data-hf-id="hf-6cx8" type="color" id="dir-bg-color" value="#ffffff">
+              <input data-hf-id="hf-rc4y" type="text" id="dir-bg-color-text" placeholder="#ffffff">
             </div>
           </div>
-          <div class="prop-group">
-            <label>Text Color</label>
-            <div class="color-row">
-              <input type="color" id="dir-text-color" value="#333333">
-              <input type="text" id="dir-text-color-text" placeholder="#333333">
+          <div data-hf-id="hf-ob0h" class="prop-group">
+            <label data-hf-id="hf-low5">Text Color</label>
+            <div data-hf-id="hf-11ki" class="color-row">
+              <input data-hf-id="hf-zfuy" type="color" id="dir-text-color" value="#333333">
+              <input data-hf-id="hf-wtow" type="text" id="dir-text-color-text" placeholder="#333333">
             </div>
           </div>
-          <div class="prop-group">
-            <label>Background Image</label>
-            <input type="text" id="dir-bg-image" placeholder="url(image.jpg)">
+          <div data-hf-id="hf-dqor" class="prop-group">
+            <label data-hf-id="hf-isx0">Background Image</label>
+            <input data-hf-id="hf-4lxv" type="text" id="dir-bg-image" placeholder="url(image.jpg)">
           </div>
-          <div class="prop-group">
-            <label>Background Size</label>
-            <select id="dir-bg-size">
-              <option value="">auto</option><option value="cover">cover</option><option value="contain">contain</option>
+          <div data-hf-id="hf-e4zs" class="prop-group">
+            <label data-hf-id="hf-n7py">Background Size</label>
+            <select data-hf-id="hf-d9xt" id="dir-bg-size">
+              <option data-hf-id="hf-f3ly" value="">auto</option><option data-hf-id="hf-ibw4" value="cover">cover</option><option data-hf-id="hf-v5gp" value="contain">contain</option>
             </select>
           </div>
-          <div class="prop-group">
-            <label>Class</label>
-            <select id="dir-class">
-              <option value="">None</option><option value="invert">invert</option><option value="lead">lead</option>
+          <div data-hf-id="hf-cy2p" class="prop-group">
+            <label data-hf-id="hf-k2af">Class</label>
+            <select data-hf-id="hf-2dsw" id="dir-class">
+              <option data-hf-id="hf-wbmz" value="">None</option><option data-hf-id="hf-jb01" value="invert">invert</option><option data-hf-id="hf-24j9" value="lead">lead</option>
             </select>
           </div>
-          <div class="prop-group">
-            <label>Slide Header</label>
-            <input type="text" id="dir-slide-header" placeholder="Overrides global header for this slide">
+          <div data-hf-id="hf-dcdq" class="prop-group">
+            <label data-hf-id="hf-ib0z">Slide Header</label>
+            <input data-hf-id="hf-rx1k" type="text" id="dir-slide-header" placeholder="Overrides global header for this slide">
           </div>
-          <div class="prop-group">
-            <label>Slide Footer</label>
-            <input type="text" id="dir-slide-footer" placeholder="Overrides global footer for this slide">
+          <div data-hf-id="hf-c5gn" class="prop-group">
+            <label data-hf-id="hf-clod">Slide Footer</label>
+            <input data-hf-id="hf-qp7w" type="text" id="dir-slide-footer" placeholder="Overrides global footer for this slide">
           </div>
-          <div class="prop-group">
-            <label>Slide Transition (overrides default)</label>
-            <select id="dir-slide-transition">
-              <option value="">(use default)</option>
-              <option value="none">none</option>
-              <option value="fade">fade</option>
-              <option value="fade-out">fade-out</option>
-              <option value="slide">slide</option>
-              <option value="push">push</option>
-              <option value="cover">cover</option>
-              <option value="reveal">reveal</option>
-              <option value="wipe">wipe</option>
-              <option value="zoom">zoom</option>
-              <option value="rotate">rotate</option>
-              <option value="flip">flip</option>
-              <option value="fall">fall</option>
-              <option value="drop">drop</option>
-              <option value="glow">glow</option>
-              <option value="swap">swap</option>
-              <option value="iris-in">iris-in</option>
-              <option value="iris-out">iris-out</option>
-              <option value="explode">explode</option>
-              <option value="implode">implode</option>
+          <div data-hf-id="hf-cjro" class="prop-group">
+            <label data-hf-id="hf-na7u">Slide Transition (overrides default)</label>
+            <select data-hf-id="hf-d7tt" id="dir-slide-transition">
+              <option data-hf-id="hf-lu4a" value="">(use default)</option>
+              <option data-hf-id="hf-2vjp" value="none">none</option>
+              <option data-hf-id="hf-v2eh" value="fade">fade</option>
+              <option data-hf-id="hf-rhkb" value="fade-out">fade-out</option>
+              <option data-hf-id="hf-tzh5" value="slide">slide</option>
+              <option data-hf-id="hf-8ae5" value="push">push</option>
+              <option data-hf-id="hf-hxl3" value="cover">cover</option>
+              <option data-hf-id="hf-9vij" value="reveal">reveal</option>
+              <option data-hf-id="hf-xnjj" value="wipe">wipe</option>
+              <option data-hf-id="hf-7zgz" value="zoom">zoom</option>
+              <option data-hf-id="hf-0siz" value="rotate">rotate</option>
+              <option data-hf-id="hf-ck5j" value="flip">flip</option>
+              <option data-hf-id="hf-b0an" value="fall">fall</option>
+              <option data-hf-id="hf-wolr" value="drop">drop</option>
+              <option data-hf-id="hf-41u3" value="glow">glow</option>
+              <option data-hf-id="hf-m7er" value="swap">swap</option>
+              <option data-hf-id="hf-ntsx" value="iris-in">iris-in</option>
+              <option data-hf-id="hf-cud5" value="iris-out">iris-out</option>
+              <option data-hf-id="hf-ndrd" value="explode">explode</option>
+              <option data-hf-id="hf-74tt" value="implode">implode</option>
             </select>
-            <input type="text" id="dir-slide-transition-duration" placeholder="Duration e.g. 0.5s" style="margin-top:4px">
+            <input data-hf-id="hf-mu60" type="text" id="dir-slide-transition-duration" placeholder="Duration e.g. 0.5s" style="margin-top:4px">
           </div>
         </div>
       </div>
 
       <!-- Style / Custom CSS -->
-      <div class="right-tab-content" id="style-tab">
-        <div class="props-form">
-          <h4 class="section-title">Custom CSS</h4>
-          <p class="tab-hint">Marpit theme-css compatible</p>
-          <div class="prop-group">
-            <label>Quick Hashtags</label>
-            <div id="css-tags" class="css-tags">
-              <button type="button" class="css-tag-btn" data-class="tag-spotlight" data-css=".slide-frame.tag-spotlight { box-shadow: inset 0 0 0 3px rgba(255,255,255,0.18); }\n.slide-frame.tag-spotlight h1, .slide-frame.tag-spotlight h2 { color: #ffd166; }">#spotlight</button>
-              <button type="button" class="css-tag-btn" data-class="tag-clean" data-css=".slide-frame.tag-clean { background: #ffffff !important; color: #0f172a !important; }\n.slide-frame.tag-clean h1, .slide-frame.tag-clean h2 { color: #0b3b66; }">#clean</button>
-              <button type="button" class="css-tag-btn" data-class="tag-center" data-css=".slide-frame.tag-center { justify-content: center; text-align: center; }">#center</button>
-              <button type="button" class="css-tag-btn" data-class="tag-code" data-css=".slide-frame.tag-code pre { border: 1px solid rgba(180,190,254,0.35); box-shadow: 0 0 0 1px rgba(180,190,254,0.18), 0 12px 30px rgba(0,0,0,0.35); }">#code</button>
-              <button type="button" class="css-tag-btn" data-class="tag-title" data-css=".slide-frame.tag-title { justify-content: center; text-align: center; }\n.slide-frame.tag-title h1 { font-size: 3.2em; letter-spacing: -0.02em; margin-bottom: 0.2em; }\n.slide-frame.tag-title p { font-size: 1.2em; opacity: 0.9; }">#title</button>
-              <button type="button" class="css-tag-btn" data-class="tag-warning" data-css=".slide-frame.tag-warning { background: linear-gradient(135deg, #2b1300, #4a1d00) !important; color: #ffe8cc !important; }\n.slide-frame.tag-warning h1, .slide-frame.tag-warning h2 { color: #ffcf66 !important; }\n.slide-frame.tag-warning blockquote, .slide-frame.tag-warning pre { border-color: rgba(255,207,102,0.4); }">#warning</button>
-              <button type="button" class="css-tag-btn" data-class="tag-demo" data-css=".slide-frame.tag-demo { background: radial-gradient(circle at 12% 10%, rgba(91,192,190,0.16), transparent 44%), #0f172a !important; }\n.slide-frame.tag-demo h1, .slide-frame.tag-demo h2 { color: #67e8f9; }\n.slide-frame.tag-demo .slide-number { background: rgba(103,232,249,0.16); border-radius: 999px; padding: 2px 8px; }">#demo</button>
-              <button type="button" class="css-tag-btn" data-class="tag-two-column" data-css=".slide-frame.tag-two-column .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 2.2rem; align-items: start; }\n.slide-frame.tag-two-column .columns .col { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 1rem; }">#two-column</button>
-              <button type="button" class="css-tag-btn" data-class="tag-minimal" data-css=".slide-frame.tag-minimal { box-shadow: none; background-image: none !important; }\n.slide-frame.tag-minimal h1, .slide-frame.tag-minimal h2 { font-weight: 700; letter-spacing: -0.01em; }\n.slide-frame.tag-minimal .slide-progress, .slide-frame.tag-minimal .slide-number { display: none; }">#minimal</button>
-              <button type="button" class="css-tag-btn" data-class="tag-focus" data-css=".slide-frame.tag-focus { justify-content: center; }\n.slide-frame.tag-focus h1, .slide-frame.tag-focus h2 { font-size: 2.6em; line-height: 1.1; }\n.slide-frame.tag-focus p, .slide-frame.tag-focus li { font-size: 1.15em; }">#focus</button>
+      <div data-hf-id="hf-xc37" class="right-tab-content" id="style-tab">
+        <div data-hf-id="hf-e21p" class="props-form">
+          <h4 data-hf-id="hf-a9vb" class="section-title">Custom CSS</h4>
+          <p data-hf-id="hf-joeu" class="tab-hint">Marpit theme-css compatible</p>
+          <div data-hf-id="hf-bcul" class="prop-group">
+            <label data-hf-id="hf-xar9">Quick Hashtags</label>
+            <div data-hf-id="hf-jqda" id="css-tags" class="css-tags">
+              <button data-hf-id="hf-lx3y" type="button" class="css-tag-btn" data-class="tag-spotlight" data-css=".slide-frame.tag-spotlight { box-shadow: inset 0 0 0 3px rgba(255,255,255,0.18); }\n.slide-frame.tag-spotlight h1, .slide-frame.tag-spotlight h2 { color: #ffd166; }">#spotlight</button>
+              <button data-hf-id="hf-8kq6" type="button" class="css-tag-btn" data-class="tag-clean" data-css=".slide-frame.tag-clean { background: #ffffff !important; color: #0f172a !important; }\n.slide-frame.tag-clean h1, .slide-frame.tag-clean h2 { color: #0b3b66; }">#clean</button>
+              <button data-hf-id="hf-elq2" type="button" class="css-tag-btn" data-class="tag-center" data-css=".slide-frame.tag-center { justify-content: center; text-align: center; }">#center</button>
+              <button data-hf-id="hf-l1y3" type="button" class="css-tag-btn" data-class="tag-code" data-css=".slide-frame.tag-code pre { border: 1px solid rgba(180,190,254,0.35); box-shadow: 0 0 0 1px rgba(180,190,254,0.18), 0 12px 30px rgba(0,0,0,0.35); }">#code</button>
+              <button data-hf-id="hf-rfjc" type="button" class="css-tag-btn" data-class="tag-title" data-css=".slide-frame.tag-title { justify-content: center; text-align: center; }\n.slide-frame.tag-title h1 { font-size: 3.2em; letter-spacing: -0.02em; margin-bottom: 0.2em; }\n.slide-frame.tag-title p { font-size: 1.2em; opacity: 0.9; }">#title</button>
+              <button data-hf-id="hf-u3tx" type="button" class="css-tag-btn" data-class="tag-warning" data-css=".slide-frame.tag-warning { background: linear-gradient(135deg, #2b1300, #4a1d00) !important; color: #ffe8cc !important; }\n.slide-frame.tag-warning h1, .slide-frame.tag-warning h2 { color: #ffcf66 !important; }\n.slide-frame.tag-warning blockquote, .slide-frame.tag-warning pre { border-color: rgba(255,207,102,0.4); }">#warning</button>
+              <button data-hf-id="hf-4645" type="button" class="css-tag-btn" data-class="tag-demo" data-css=".slide-frame.tag-demo { background: radial-gradient(circle at 12% 10%, rgba(91,192,190,0.16), transparent 44%), #0f172a !important; }\n.slide-frame.tag-demo h1, .slide-frame.tag-demo h2 { color: #67e8f9; }\n.slide-frame.tag-demo .slide-number { background: rgba(103,232,249,0.16); border-radius: 999px; padding: 2px 8px; }">#demo</button>
+              <button data-hf-id="hf-sbbh" type="button" class="css-tag-btn" data-class="tag-two-column" data-css=".slide-frame.tag-two-column .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 2.2rem; align-items: start; }\n.slide-frame.tag-two-column .columns .col { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 1rem; }">#two-column</button>
+              <button data-hf-id="hf-1xfb" type="button" class="css-tag-btn" data-class="tag-minimal" data-css=".slide-frame.tag-minimal { box-shadow: none; background-image: none !important; }\n.slide-frame.tag-minimal h1, .slide-frame.tag-minimal h2 { font-weight: 700; letter-spacing: -0.01em; }\n.slide-frame.tag-minimal .slide-progress, .slide-frame.tag-minimal .slide-number { display: none; }">#minimal</button>
+              <button data-hf-id="hf-ojqu" type="button" class="css-tag-btn" data-class="tag-focus" data-css=".slide-frame.tag-focus { justify-content: center; }\n.slide-frame.tag-focus h1, .slide-frame.tag-focus h2 { font-size: 2.6em; line-height: 1.1; }\n.slide-frame.tag-focus p, .slide-frame.tag-focus li { font-size: 1.15em; }">#focus</button>
             </div>
-            <div class="css-tag-scope">
-              <label><input type="radio" name="css-tag-scope" value="current" checked> Current page</label>
-              <label><input type="radio" name="css-tag-scope" value="all"> All pages</label>
+            <div data-hf-id="hf-3gjp" class="css-tag-scope">
+              <label data-hf-id="hf-xj3x"><input data-hf-id="hf-b16m" type="radio" name="css-tag-scope" value="current" checked> Current page</label>
+              <label data-hf-id="hf-1v50"><input data-hf-id="hf-1a40" type="radio" name="css-tag-scope" value="all"> All pages</label>
             </div>
-            <button type="button" id="btn-clear-css-tags" class="btn-tag-remove">Remove Hashtag Styles</button>
+            <button data-hf-id="hf-82hu" type="button" id="btn-clear-css-tags" class="btn-tag-remove">Remove Hashtag Styles</button>
           </div>
-          <textarea id="custom-css-editor" rows="15" placeholder="/* Custom presentation styles */
+          <textarea data-hf-id="hf-vdy5" id="custom-css-editor" rows="15" placeholder="/* Custom presentation styles */
 section { font-family: 'Helvetica Neue'; }
 .columns { display:flex; gap:2em; }
 .columns .col { flex:1; }"></textarea>
-          <button id="btn-apply-css" class="btn-primary">Apply CSS</button>
+          <button data-hf-id="hf-mz88" id="btn-apply-css" class="btn-primary">Apply CSS</button>
         </div>
       </div>
     </aside>
   </main>
 
   <!-- Templates Modal -->
-  <div id="templates-modal" class="modal hidden">
-    <div class="modal-overlay"></div>
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Slide Templates</h2>
-        <button class="modal-close">&times;</button>
+  <div data-hf-id="hf-hddw" id="templates-modal" class="modal hidden">
+    <div data-hf-id="hf-8kvo" class="modal-overlay"></div>
+    <div data-hf-id="hf-liyz" class="modal-content">
+      <div data-hf-id="hf-20xn" class="modal-header">
+        <h2 data-hf-id="hf-h4d7">Slide Templates</h2>
+        <button data-hf-id="hf-0r08" class="modal-close">×</button>
       </div>
-      <div class="modal-body" id="templates-gallery"></div>
+      <div data-hf-id="hf-ngje" class="modal-body" id="templates-gallery"></div>
     </div>
   </div>
 
   <!-- Sample Picker Modal -->
-  <div id="sample-picker-modal" class="modal hidden">
-    <div class="modal-overlay"></div>
-    <div class="modal-content" style="max-width:560px;">
-      <div class="modal-header">
-        <h2>Load Sample Deck</h2>
-        <button class="modal-close" data-close="sample-picker-modal">&times;</button>
+  <div data-hf-id="hf-yvwo" id="sample-picker-modal" class="modal hidden">
+    <div data-hf-id="hf-lfik" class="modal-overlay"></div>
+    <div data-hf-id="hf-5lf6" class="modal-content" style="max-width:560px;">
+      <div data-hf-id="hf-6sjf" class="modal-header">
+        <h2 data-hf-id="hf-xpvc">Load Sample Deck</h2>
+        <button data-hf-id="hf-rxv7" class="modal-close" data-close="sample-picker-modal">×</button>
       </div>
-      <div class="modal-body">
-        <p style="margin:0 0 14px;font-size:13px;color:var(--text-muted,#9aa);">Choose a sample to replace the current deck:</p>
-        <div id="sample-picker-list" style="display:flex;flex-direction:column;gap:10px;"></div>
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px;">
-          <button class="modal-close" data-close="sample-picker-modal">Cancel</button>
-          <button id="btn-sample-picker-load" class="primary">Load selected</button>
+      <div data-hf-id="hf-oxz4" class="modal-body">
+        <p data-hf-id="hf-5u9p" style="margin:0 0 14px;font-size:13px;color:var(--text-muted,#9aa);">Choose a sample to replace the current deck:</p>
+        <div data-hf-id="hf-mjzn" id="sample-picker-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <div data-hf-id="hf-trns" style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px;">
+          <button data-hf-id="hf-7dak" class="modal-close" data-close="sample-picker-modal">Cancel</button>
+          <button data-hf-id="hf-qz59" id="btn-sample-picker-load" class="primary">Load selected</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Import DESIGN.md Modal -->
-  <div id="design-md-modal" class="modal hidden">
-    <div class="modal-overlay"></div>
-    <div class="modal-content" style="max-width:780px;">
-      <div class="modal-header">
-        <h2>Import DESIGN.md</h2>
-        <button class="modal-close" data-close="design-md-modal">&times;</button>
+  <div data-hf-id="hf-w3jd" id="design-md-modal" class="modal hidden">
+    <div data-hf-id="hf-k8lh" class="modal-overlay"></div>
+    <div data-hf-id="hf-nsuu" class="modal-content" style="max-width:780px;">
+      <div data-hf-id="hf-6e8e" class="modal-header">
+        <h2 data-hf-id="hf-ktpb">Import DESIGN.md</h2>
+        <button data-hf-id="hf-kq6s" class="modal-close" data-close="design-md-modal">×</button>
       </div>
-      <div class="modal-body">
-        <p style="margin:0 0 8px;font-size:13px;color:var(--text-muted,#9aa);">
-          Paste a <a href="https://github.com/google-labs-code/design.md" target="_blank" rel="noopener">DESIGN.md</a>
-          file (Google Labs design-token spec). The YAML front-matter <code>colors</code>,
-          <code>typography</code>, <code>rounded</code> and <code>spacing</code> tokens will be
+      <div data-hf-id="hf-nqig" class="modal-body">
+        <p data-hf-id="hf-2xkg" style="margin:0 0 8px;font-size:13px;color:var(--text-muted,#9aa);">
+          Paste a <a data-hf-id="hf-3ax9" href="https://github.com/google-labs-code/design.md" target="_blank" rel="noopener">DESIGN.md</a>
+          file (Google Labs design-token spec). The YAML front-matter <code data-hf-id="hf-jnb4">colors</code>,
+          <code data-hf-id="hf-p1bd">typography</code>, <code data-hf-id="hf-u37h">rounded</code> and <code data-hf-id="hf-zdmd">spacing</code> tokens will be
           turned into a Marp theme and applied to your deck.
         </p>
-        <textarea id="design-md-input" spellcheck="false"
-          style="width:100%;height:340px;font-family:Consolas,monospace;font-size:12px;background:#1e1e2e;color:#cdd6f4;border:1px solid #444;border-radius:6px;padding:10px;"
-          placeholder="---&#10;name: My Brand&#10;colors:&#10;  primary: '#1A1C1E'&#10;  secondary: '#6C7278'&#10;  tertiary: '#B8422E'&#10;  neutral: '#F7F5F2'&#10;typography:&#10;  h1:&#10;    fontFamily: Public Sans&#10;    fontSize: 3rem&#10;rounded:&#10;  md: 8px&#10;spacing:&#10;  md: 16px&#10;---&#10;&#10;## Overview&#10;…"></textarea>
-        <div id="design-md-status" style="margin-top:8px;font-size:12px;color:#9aa;min-height:18px;"></div>
-        <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;">
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button id="btn-design-md-load" title="Load the last DESIGN.md you applied">↺ Load saved</button>
-            <button id="btn-design-md-revert" title="Revert to the theme that was active before applying this DESIGN.md">⤺ Revert</button>
-            <button id="btn-design-md-clear" title="Remove the applied DESIGN.md theme entirely">🗑 Clear</button>
+        <textarea data-hf-id="hf-auyn" id="design-md-input" spellcheck="false" style="width:100%;height:340px;font-family:Consolas,monospace;font-size:12px;background:#1e1e2e;color:#cdd6f4;border:1px solid #444;border-radius:6px;padding:10px;" placeholder="---
+name: My Brand
+colors:
+  primary: '#1A1C1E'
+  secondary: '#6C7278'
+  tertiary: '#B8422E'
+  neutral: '#F7F5F2'
+typography:
+  h1:
+    fontFamily: Public Sans
+    fontSize: 3rem
+rounded:
+  md: 8px
+spacing:
+  md: 16px
+---
+
+## Overview
+…"></textarea>
+        <div data-hf-id="hf-5lea" id="design-md-status" style="margin-top:8px;font-size:12px;color:#9aa;min-height:18px;"></div>
+        <div data-hf-id="hf-fsb7" style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;">
+          <div data-hf-id="hf-rzp5" style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button data-hf-id="hf-e628" id="btn-design-md-load" title="Load the last DESIGN.md you applied">↺ Load saved</button>
+            <button data-hf-id="hf-rlwq" id="btn-design-md-revert" title="Revert to the theme that was active before applying this DESIGN.md">⤺ Revert</button>
+            <button data-hf-id="hf-47qj" id="btn-design-md-clear" title="Remove the applied DESIGN.md theme entirely">🗑 Clear</button>
           </div>
-          <div style="display:flex;gap:8px;">
-            <button class="modal-close" data-close="design-md-modal">Cancel</button>
-            <button id="btn-design-md-apply" class="primary">Apply as theme</button>
+          <div data-hf-id="hf-3oaa" style="display:flex;gap:8px;">
+            <button data-hf-id="hf-6qvh" class="modal-close" data-close="design-md-modal">Cancel</button>
+            <button data-hf-id="hf-1hmc" id="btn-design-md-apply" class="primary">Apply as theme</button>
           </div>
         </div>
       </div>
@@ -789,18 +800,18 @@ section { font-family: 'Helvetica Neue'; }
   </div>
 
   <!-- Presenter Mode -->
-  <div id="presenter-mode" class="hidden">
-    <div id="presenter-slides"></div>
-    <div id="presenter-controls">
-      <button id="presenter-prev">◀ Prev</button>
-      <span id="presenter-indicator">1 / 1</span>
-      <button id="presenter-next">Next ▶</button>
-      <button id="presenter-exit">✕ Exit</button>
+  <div data-hf-id="hf-183a" id="presenter-mode" class="hidden">
+    <div data-hf-id="hf-gx1u" id="presenter-slides"></div>
+    <div data-hf-id="hf-l65e" id="presenter-controls">
+      <button data-hf-id="hf-v2g1" id="presenter-prev">◀ Prev</button>
+      <span data-hf-id="hf-qn9f" id="presenter-indicator">1 / 1</span>
+      <button data-hf-id="hf-zdbf" id="presenter-next">Next ▶</button>
+      <button data-hf-id="hf-efcm" id="presenter-exit">✕ Exit</button>
     </div>
   </div>
 
   <!-- Toast -->
-  <div id="toast" class="hidden"></div>
+  <div data-hf-id="hf-1xhf" id="toast" class="hidden"></div>
 
   <!-- Scripts -->
   <script src="js/parser.js"></script>
@@ -816,137 +827,146 @@ section { font-family: 'Helvetica Neue'; }
   <script src="js/app.js"></script>
 
   <!-- ===== Script → Video modal ===== -->
-  <div id="s2v-modal" class="hidden" data-voice="auto" data-workflow="narrative">
-    <div class="s2v-card">
-      <h2>🎤 Script → Video</h2>
-      <div class="s2v-sub">
-        Generates voiceover via <a href="https://huggingface.co/spaces/k2-fsa/OmniVoice" target="_blank" style="color:#9bd;">OmniVoice (HF Space)</a>,
-        maps each sentence to a HyperFrames-style scene (<a href="https://github.com/pjecuacion/script-to-video-skill" target="_blank" style="color:#9bd;">script-to-video-skill</a>),
+  <div data-hf-id="hf-0u5z" id="s2v-modal" class="hidden" data-voice="auto" data-workflow="narrative">
+    <div data-hf-id="hf-x8z6" class="s2v-card">
+      <h2 data-hf-id="hf-syc7">🎤 Script → Video</h2>
+      <div data-hf-id="hf-21tz" class="s2v-sub">
+        Generates voiceover via <a data-hf-id="hf-prjw" href="https://huggingface.co/spaces/k2-fsa/OmniVoice" target="_blank" style="color:#9bd;">OmniVoice (HF Space)</a>,
+        maps each sentence to a HyperFrames-style scene (<a data-hf-id="hf-0jtq" href="https://github.com/pjecuacion/script-to-video-skill" target="_blank" style="color:#9bd;">script-to-video-skill</a>),
         and adds a new slide with the timed composition.
       </div>
 
-      <label for="s2v-workflow">Workflow</label>
-      <select id="s2v-workflow">
-        <option value="narrative" selected>Narrative — generate voiceover with OmniVoice</option>
-        <option value="catalog-showcase">Catalog showcase — use your own audio/video file</option>
-        <option value="talking-cut">Talking-cut — face-cam video with graphic cutaways</option>
+      <label data-hf-id="hf-ht90" for="s2v-workflow">Workflow</label>
+      <select data-hf-id="hf-57ax" id="s2v-workflow">
+        <option data-hf-id="hf-4ghr" value="narrative" selected>Narrative — generate voiceover with OmniVoice</option>
+        <option data-hf-id="hf-omty" value="catalog-showcase">Catalog showcase — use your own audio/video file</option>
+        <option data-hf-id="hf-mmn0" value="talking-cut">Talking-cut — face-cam video with graphic cutaways</option>
       </select>
 
-      <div id="s2v-server-section">
-      <label for="s2v-server">OmniVoice server</label>
-      <select id="s2v-server-mode" style="margin-bottom:6px;">
-        <option value="hf" selected>Hugging Face Space (free, slow cold-start, may queue)</option>
-        <option value="local">Local install (http://localhost:8001)</option>
-        <option value="custom">Custom URL…</option>
+      <div data-hf-id="hf-jrlq" id="s2v-server-section">
+      <label data-hf-id="hf-22uj" for="s2v-server">OmniVoice server</label>
+      <select data-hf-id="hf-gs1m" id="s2v-server-mode" style="margin-bottom:6px;">
+        <option data-hf-id="hf-btk2" value="hf" selected>Hugging Face Space (free, slow cold-start, may queue)</option>
+        <option data-hf-id="hf-6gkv" value="local">Local install (http://localhost:8001)</option>
+        <option data-hf-id="hf-8j1k" value="custom">Custom URL…</option>
       </select>
-      <input id="s2v-server" type="text" placeholder="http://localhost:8001" value="" style="display:none;" />
-      <div style="font-size:11px;color:#7a8;margin-top:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <span id="s2v-server-status" style="display:none;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;"></span>
-        Local install: <code style="color:#fc6;">pip install omnivoice</code> then <code style="color:#fc6;">omnivoice-demo --ip 0.0.0.0 --port 8001</code>
+      <input data-hf-id="hf-9pqk" id="s2v-server" type="text" placeholder="http://localhost:8001" value="" style="display:none;">
+      <div data-hf-id="hf-idk8" style="font-size:11px;color:#7a8;margin-top:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span data-hf-id="hf-9uj7" id="s2v-server-status" style="display:none;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;"></span>
+        Local install: <code data-hf-id="hf-ufym" style="color:#fc6;">pip install omnivoice</code> then <code data-hf-id="hf-u9tt" style="color:#fc6;">omnivoice-demo --ip 0.0.0.0 --port 8001</code>
       </div>
-      <div class="s2v-local-note" id="s2v-local-note">
+      <div data-hf-id="hf-f2ss" class="s2v-local-note" id="s2v-local-note">
         Local CPU OmniVoice is private and free, but slow: even short scripts can take a few minutes. Use the Hugging Face Space or a GPU machine for longer narration.
       </div>
       </div><!-- /s2v-server-section -->
 
-      <div id="s2v-catalog-section">
-        <label for="s2v-catalog-file">Audio/video file (mp3, wav, m4a, mp4)</label>
-        <input id="s2v-catalog-file" type="file" accept="audio/*,video/mp4,.mp4" />
-        <div style="font-size:11px;color:#7a8;margin-top:4px;">Your file’s audio is used directly — no TTS synthesis is run.</div>
+      <div data-hf-id="hf-kwv4" id="s2v-catalog-section">
+        <label data-hf-id="hf-qsx4" for="s2v-catalog-file">Audio/video file (mp3, wav, m4a, mp4)</label>
+        <input data-hf-id="hf-49cl" id="s2v-catalog-file" type="file" accept="audio/*,video/mp4,.mp4">
+        <div data-hf-id="hf-fotu" style="font-size:11px;color:#7a8;margin-top:4px;">Your file’s audio is used directly — no TTS synthesis is run.</div>
       </div>
 
-      <label for="s2v-file">Load .txt script (optional)</label>
-      <input id="s2v-file" type="file" accept=".txt,.md" />
+      <label data-hf-id="hf-1mfg" for="s2v-file">Load .txt script (optional)</label>
+      <input data-hf-id="hf-laof" id="s2v-file" type="file" accept=".txt,.md">
 
       <!-- AI topic → script -->
-      <details id="s2v-ai-box" open>
-        <summary>✨ Generate script from topic with AI (optional)</summary>
-        <div class="ai-row">
-          <div>
-            <label style="margin:8px 0 4px;">OpenAI API key</label>
-            <input id="s2v-openai-key" type="password" placeholder="sk-…" autocomplete="off" />
+      <details data-hf-id="hf-0vnb" id="s2v-ai-box" open>
+        <summary data-hf-id="hf-r3rn">✨ Generate script from topic with AI (optional)</summary>
+        <div data-hf-id="hf-229h" class="ai-row">
+          <div data-hf-id="hf-yeow">
+            <label data-hf-id="hf-c2vu" style="margin:8px 0 4px;">OpenAI API key</label>
+            <input data-hf-id="hf-90sd" id="s2v-openai-key" type="password" placeholder="sk-…" autocomplete="off">
           </div>
-          <div>
-            <label style="margin:8px 0 4px;">Model</label>
-            <select id="s2v-openai-model">
-              <option value="gpt-4o-mini" selected>gpt-4o-mini (fast, cheap)</option>
-              <option value="gpt-4o">gpt-4o</option>
-              <option value="gpt-4-turbo">gpt-4-turbo</option>
+          <div data-hf-id="hf-y7yw">
+            <label data-hf-id="hf-nns8" style="margin:8px 0 4px;">Model</label>
+            <select data-hf-id="hf-g04k" id="s2v-openai-model">
+              <option data-hf-id="hf-97qj" value="gpt-4o-mini" selected>gpt-4o-mini (fast, cheap)</option>
+              <option data-hf-id="hf-h06f" value="gpt-4o">gpt-4o</option>
+              <option data-hf-id="hf-8f2x" value="gpt-4-turbo">gpt-4-turbo</option>
             </select>
           </div>
         </div>
-        <label style="margin:8px 0 4px;">Topic / prompt</label>
-        <input id="s2v-topic" type="text" placeholder="e.g. Why AI is changing how we ship software" />
-        <div class="s2v-chips" id="s2v-topic-chips">
-          <button class="s2v-chip" type="button" data-prompt="why user stories matter">why user stories matter</button>
-          <button class="s2v-chip" type="button" data-prompt="how microservices improve scalability">microservices &amp; scalability</button>
-          <button class="s2v-chip" type="button" data-prompt="why AI is changing how we ship software">AI changes software shipping</button>
-          <button class="s2v-chip" type="button" data-prompt="__catalog-showcase">catalog showcase ▸</button>
-          <button class="s2v-chip" type="button" data-prompt="__talking-cut">talking-cut ▸</button>
+        <label data-hf-id="hf-wdcb" style="margin:8px 0 4px;">Topic / prompt</label>
+        <input data-hf-id="hf-hjpr" id="s2v-topic" type="text" placeholder="e.g. Why AI is changing how we ship software">
+        <div data-hf-id="hf-atq6" class="s2v-chips" id="s2v-topic-chips">
+          <button data-hf-id="hf-704o" class="s2v-chip" type="button" data-prompt="why user stories matter">why user stories matter</button>
+          <button data-hf-id="hf-nrhg" class="s2v-chip" type="button" data-prompt="how microservices improve scalability">microservices &amp; scalability</button>
+          <button data-hf-id="hf-k3wq" class="s2v-chip" type="button" data-prompt="why AI is changing how we ship software">AI changes software shipping</button>
+          <button data-hf-id="hf-72t1" class="s2v-chip" type="button" data-prompt="__catalog-showcase">catalog showcase ▸</button>
+          <button data-hf-id="hf-2bs6" class="s2v-chip" type="button" data-prompt="__talking-cut">talking-cut ▸</button>
         </div>
-        <div class="ai-row" style="grid-template-columns:auto 1fr;align-items:center;gap:8px;margin-top:8px;">
-          <label style="margin:0;white-space:nowrap;">Sentences</label>
-          <input id="s2v-sentences" type="range" min="4" max="16" value="8" style="padding:0;border:none;background:none;" oninput="document.getElementById('s2v-sentences-val').textContent=this.value" />
-          <span></span><span id="s2v-sentences-val" style="font-size:12px;color:#9bd;">8</span>
+        <div data-hf-id="hf-zk8b" class="ai-row" style="grid-template-columns:auto 1fr;align-items:center;gap:8px;margin-top:8px;">
+          <label data-hf-id="hf-ffnd" style="margin:0;white-space:nowrap;">Sentences</label>
+          <input data-hf-id="hf-56wb" id="s2v-sentences" type="range" min="4" max="16" value="8" style="padding:0;border:none;background:none;" oninput="document.getElementById('s2v-sentences-val').textContent=this.value">
+          <span data-hf-id="hf-l73p"></span><span data-hf-id="hf-zo05" id="s2v-sentences-val" style="font-size:12px;color:#9bd;">8</span>
         </div>
-        <div class="ai-hint">Key is saved in browser localStorage (this device only) and never leaves your browser except to api.openai.com.</div>
-        <button id="s2v-generate-script">✨ Generate Script</button>
+        <div data-hf-id="hf-d9o7" class="ai-hint">Key is saved in browser localStorage (this device only) and never leaves your browser except to api.openai.com.</div>
+        <button data-hf-id="hf-ezbp" id="s2v-generate-script">✨ Generate Script</button>
       </details>
 
-      <label for="s2v-text">Script (or paste below) — supports YAML front-matter for <code>title</code>, <code>theme</code>, <code>voice</code></label>
-      <textarea id="s2v-text" placeholder="---&#10;title: My first AI video&#10;theme: shadow-cut&#10;voice: auto&#10;---&#10;The opening hook sentence.&#10;Then the second sentence flows in.&#10;Did you know 47% of devs use AI tools daily?&#10;Closing thought."></textarea>
+      <label data-hf-id="hf-hcrz" for="s2v-text">Script (or paste below) — supports YAML front-matter for <code data-hf-id="hf-6iju">title</code>, <code data-hf-id="hf-w8q1">theme</code>, <code data-hf-id="hf-pe5y">voice</code></label>
+      <textarea data-hf-id="hf-k2s3" id="s2v-text" placeholder="---
+title: My first AI video
+theme: shadow-cut
+voice: auto
+---
+The opening hook sentence.
+Then the second sentence flows in.
+Did you know 47% of devs use AI tools daily?
+Closing thought."></textarea>
 
-      <div class="s2v-row">
-        <div>
-          <label for="s2v-voice">Voice mode</label>
-          <select id="s2v-voice">
-            <option value="auto" selected>Auto (random voice)</option>
-            <option value="clone">Clone (upload reference audio)</option>
+      <div data-hf-id="hf-fdbo" class="s2v-row">
+        <div data-hf-id="hf-x11t">
+          <label data-hf-id="hf-y2mx" for="s2v-voice">Voice mode</label>
+          <select data-hf-id="hf-4e78" id="s2v-voice">
+            <option data-hf-id="hf-7qpb" value="auto" selected>Auto (random voice)</option>
+            <option data-hf-id="hf-yeb2" value="clone">Clone (upload reference audio)</option>
           </select>
         </div>
-        <div class="s2v-clone-fields">
-          <label for="s2v-ref">Reference audio (.mp3 / .wav, ≤30s)</label>
-          <input id="s2v-ref" type="file" accept="audio/*" />
+        <div data-hf-id="hf-77vz" class="s2v-clone-fields">
+          <label data-hf-id="hf-8t72" for="s2v-ref">Reference audio (.mp3 / .wav, ≤30s)</label>
+          <input data-hf-id="hf-fnea" id="s2v-ref" type="file" accept="audio/*">
+          <div data-hf-id="hf-rrzn" style="margin-top:8px;font-size:12px;color:#f5c16c;">Also add <code data-hf-id="hf-nk8x">ref_text</code> in the script's YAML front-matter — a short transcript of the reference clip required for Clone mode.</div>
         </div>
       </div>
 
-      <div class="s2v-row">
-        <div>
-          <label for="s2v-theme">Visual theme</label>
-          <select id="s2v-theme">
-            <option value="auto">Auto (from script front-matter)</option>
-            <option value="rotate">✦ Rotate — cycle all 10 themes</option>
-            <option value="shadow-cut">Shadow Cut — dark, cinematic, red</option>
-            <option value="neon-tokyo">Neon Tokyo — cyberpunk, cyan/pink</option>
-            <option value="blueprint">Blueprint — navy engineering, mono</option>
-            <option value="broadsheet">Broadsheet — editorial newspaper</option>
-            <option value="brutalist">Brutalist — stark, high-contrast</option>
-            <option value="dusk-gradient">Dusk Gradient — sunset, creator</option>
-            <option value="frost">Frost — clean SaaS, blue/white</option>
-            <option value="open-page">Open Page — light, handwritten</option>
-            <option value="terminal-green">Terminal Green — hacker/dev</option>
-            <option value="velvet-standard">Velvet Standard — luxury, gold</option>
+      <div data-hf-id="hf-u6oc" class="s2v-row">
+        <div data-hf-id="hf-xfcu">
+          <label data-hf-id="hf-900w" for="s2v-theme">Visual theme</label>
+          <select data-hf-id="hf-lv29" id="s2v-theme">
+            <option data-hf-id="hf-lxk0" value="auto">Auto (from script front-matter)</option>
+            <option data-hf-id="hf-n7bt" value="rotate">✦ Rotate — cycle all 10 themes</option>
+            <option data-hf-id="hf-nfrq" value="shadow-cut">Shadow Cut — dark, cinematic, red</option>
+            <option data-hf-id="hf-awm1" value="neon-tokyo">Neon Tokyo — cyberpunk, cyan/pink</option>
+            <option data-hf-id="hf-2hgf" value="blueprint">Blueprint — navy engineering, mono</option>
+            <option data-hf-id="hf-2wn1" value="broadsheet">Broadsheet — editorial newspaper</option>
+            <option data-hf-id="hf-vl3h" value="brutalist">Brutalist — stark, high-contrast</option>
+            <option data-hf-id="hf-4kaw" value="dusk-gradient">Dusk Gradient — sunset, creator</option>
+            <option data-hf-id="hf-78ca" value="frost">Frost — clean SaaS, blue/white</option>
+            <option data-hf-id="hf-60bq" value="open-page">Open Page — light, handwritten</option>
+            <option data-hf-id="hf-6z7u" value="terminal-green">Terminal Green — hacker/dev</option>
+            <option data-hf-id="hf-e56l" value="velvet-standard">Velvet Standard — luxury, gold</option>
           </select>
         </div>
-        <div>
-          <label for="s2v-quality">Quality profile</label>
-          <select id="s2v-quality">
-            <option value="fast">Fast — quickest preview (lower quality)</option>
-            <option value="balanced" selected>Balanced — quality/speed tradeoff</option>
-            <option value="high">High — best quality (slower)</option>
+        <div data-hf-id="hf-w8fr">
+          <label data-hf-id="hf-r6uf" for="s2v-quality">Quality profile</label>
+          <select data-hf-id="hf-zjt1" id="s2v-quality">
+            <option data-hf-id="hf-568p" value="fast">Fast — quickest preview (lower quality)</option>
+            <option data-hf-id="hf-j6i1" value="balanced" selected>Balanced — quality/speed tradeoff</option>
+            <option data-hf-id="hf-4gil" value="high">High — best quality (slower)</option>
           </select>
         </div>
       </div>
 
-      <div style="display:flex;align-items:baseline;gap:8px;">
-        <div class="s2v-log" id="s2v-log" style="flex:1;">Idle. Paste a script and click Generate.</div>
-        <span id="s2v-elapsed" style="display:none;font-size:12px;font-family:'Fira Code',monospace;color:#f8c;flex-shrink:0;padding:2px 6px;background:#2a1a2a;border-radius:4px;"></span>
+      <div data-hf-id="hf-un8i" style="display:flex;align-items:baseline;gap:8px;">
+        <div data-hf-id="hf-ctn2" class="s2v-log" id="s2v-log" style="flex:1;">Idle. Paste a script and click Generate.</div>
+        <span data-hf-id="hf-ib4v" id="s2v-elapsed" style="display:none;font-size:12px;font-family:'Fira Code',monospace;color:#f8c;flex-shrink:0;padding:2px 6px;background:#2a1a2a;border-radius:4px;"></span>
       </div>
 
-      <div class="s2v-actions">
-        <button class="s2v-secondary" id="s2v-load-sample">Load sample</button>
-        <button class="s2v-secondary" id="s2v-cancel">Cancel</button>
-        <button class="s2v-primary" id="s2v-go">Generate Video</button>
+      <div data-hf-id="hf-2ssp" class="s2v-actions">
+        <button data-hf-id="hf-syes" class="s2v-secondary" id="s2v-load-sample">Load sample</button>
+        <button data-hf-id="hf-5vqv" class="s2v-secondary" id="s2v-cancel">Cancel</button>
+        <button data-hf-id="hf-p8jh" class="s2v-primary" id="s2v-go">Generate Video</button>
       </div>
     </div>
   </div>
